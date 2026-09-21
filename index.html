@@ -537,7 +537,7 @@ function threadHTML(){
 }
 function profileHTML(){
   const me=S.me;
-  return `<div class="cover">${cover()}</div><div class="pinfo"><span class="av">${av(me.uid,me.name,84,'new')}</span><h2>${esc(me.name)}</h2>${me.bio?`<p>${esc(me.bio)}</p>`:'<p class="mute">Танилцуулга нэмээгүй байна.</p>'}<div class="stats"><div><b>${S.mine.length}</b><span>Нийтлэл</span></div><div><b>${S.friends.size}</b><span>Найз</span></div></div><div class="pbtns"><button class="btn" data-a="editprofile">Профайл засах</button><button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><button class="btn line" data-a="blocklist">Блоклосон</button><button class="btn line" data-a="logout">Гарах</button></div></div><div class="sec">Миний нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
+  return `<div class="cover">${cover()}</div><div class="pinfo"><span class="av">${av(me.uid,me.name,84,'new')}</span><h2>${esc(me.name)}</h2>${me.bio?`<p>${esc(me.bio)}</p>`:'<p class="mute">Танилцуулга нэмээгүй байна.</p>'}<div class="stats"><div><b>${S.mine.length}</b><span>Нийтлэл</span></div><div><b>${S.friends.size}</b><span>Найз</span></div></div><div class="pbtns"><button class="btn" data-a="editprofile">Профайл засах</button><button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><button class="btn line" data-a="ringset">Дуудлагын дуу</button><button class="btn line" data-a="blocklist">Блоклосон</button><button class="btn line" data-a="logout">Гарах</button></div></div><div class="sec">Миний нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
 }
 function userHTML(){
   const v=S.view,u=U.get(v.uid)||{name:v.name,bio:''},bl=S.blocked.has(v.uid);
@@ -715,7 +715,7 @@ function subscribe(){
 function loadPeople(){refreshFriends()}
 /* ---------- overlay ---------- */
 const ov=$('#ov');
-function closeOv(){clearTimeout(svT);ov.className='';ov.innerHTML='';S.sv=null;if(S.me&&!S.thread&&S.tab==='feed')refreshStories()}
+function closeOv(){if(!INC)ringStop();clearTimeout(svT);ov.className='';ov.innerHTML='';S.sv=null;if(S.me&&!S.thread&&S.tab==='feed')refreshStories()}
 function openSheet(h){ov.innerHTML=`<div class="scrim" data-a="closeov"></div><div class="sheet" role="dialog" aria-modal="true">${h}</div>`;ov.className='open'}
 function drawStory(){
   clearTimeout(svT);
@@ -740,14 +740,29 @@ const TURN=[];
 const ICE={iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302','stun:stun.cloudflare.com:3478']},...TURN]};
 let CALL=null,INC=null,ringCtx=null,ringT=null;
 function callStatus(t){const s=$('.cinfo span');if(s)s.textContent=t}
-function ringStart(){
+const RINGS={
+  bell:{n:'🔔 Хонх',type:'triangle',loop:2.2,seq:[[880,0,.16],[660,.18,.16],[880,.4,.16],[660,.58,.16],[880,.8,.3]]},
+  soft:{n:'🎵 Зөөлөн',type:'sine',loop:2.4,seq:[[523.25,0,.3],[659.25,.22,.3],[783.99,.44,.3],[1046.5,.66,.55]]},
+  mongol:{n:'🏔 Монгол ая',type:'triangle',loop:3,seq:[[293.66,0,.28],[392,.3,.28],[440,.6,.28],[587.33,.9,.4],[440,1.35,.28],[392,1.65,.28],[293.66,1.95,.6]]}
+};
+let RING=lsGet('maze-ring',{tone:'bell',vol:.6});if(!RINGS[RING.tone])RING.tone='bell';
+function ringOnce(tone,vol){
+  const ctx=ringCtx,r=RINGS[tone]||RINGS.bell,t0=ctx.currentTime+.02;
+  r.seq.forEach(([fq,st,du])=>{
+    const o=ctx.createOscillator(),g=ctx.createGain();o.type=r.type;o.frequency.value=fq;
+    g.gain.setValueAtTime(.0001,t0+st);g.gain.exponentialRampToValueAtTime(Math.max(.001,vol*.5),t0+st+.02);g.gain.exponentialRampToValueAtTime(.0001,t0+st+du);
+    o.connect(g);g.connect(ctx.destination);o.start(t0+st);o.stop(t0+st+du+.05);
+  });
+  return r.loop;
+}
+function ringStart(tone,vol){
   try{
     ringCtx=ringCtx||new (window.AudioContext||window.webkitAudioContext)();if(ringCtx.resume)ringCtx.resume();
-    const beep=()=>{const o=ringCtx.createOscillator(),g=ringCtx.createGain();o.type='sine';o.frequency.value=520;g.gain.value=.12;o.connect(g);g.connect(ringCtx.destination);o.start();o.stop(ringCtx.currentTime+.35)};
-    clearInterval(ringT);beep();ringT=setInterval(()=>{beep();try{navigator.vibrate&&navigator.vibrate(300)}catch(_){}},1500);
+    tone=tone||RING.tone;vol=vol==null?RING.vol:vol;clearInterval(ringT);
+    const lp=ringOnce(tone,vol);
+    ringT=setInterval(()=>{ringOnce(tone,vol);try{navigator.vibrate&&navigator.vibrate([300,120,300])}catch(_){}},lp*1000);
   }catch(_){}
-}
-function ringStop(){clearInterval(ringT);ringT=null}
+}function ringStop(){clearInterval(ringT);ringT=null}
 function playRemote(){
   const rv=$('#rv'),lv=$('#lv');if(!rv)return;
   const tap=()=>{const c=$('.call');if(c&&!$('.tapplay'))c.insertAdjacentHTML('beforeend',`<button class="btn tapplay" data-a="cplay">▶ Дарж эхлүүлэх</button>`)};
@@ -959,6 +974,12 @@ document.addEventListener('click',async e=>{
       await addDoc(collection(db,'reports'),d);closeOv();toast('Гомдол илгээгдлээ');break}
     case 'block':if(confirm('Энэ хэрэглэгчийг блоклох уу?')){await setDoc(doc(db,'blocks',S.me.uid+'_'+id),{by:S.me.uid,target:id,createdAt:serverTimestamp()});closeOv();toast('Блоклолоо')}break;
     case 'unblock':await deleteDoc(doc(db,'blocks',S.me.uid+'_'+id));closeOv();toast('Блокоос гаргалаа');break;
+    case 'ringset':{
+      const rs=()=>`<h3>Дуудлагын дуу</h3>${Object.entries(RINGS).map(([k,r])=>`<button class="btn ${RING.tone===k?'':'line'}" data-a="ringtone" data-t="${k}">${r.n}${RING.tone===k?' ✓':''}</button>`).join('')}<label>Дууны хэмжээ<input type="range" id="rvol" min="0.1" max="1" step="0.05" value="${RING.vol}"></label><button class="btn line" data-a="ringtest">▶ Сонсох</button>`;
+      openSheet(rs());break}
+    case 'ringtone':{RING.tone=b.dataset.t;lsSet('maze-ring',RING);ringStop();ringStart();setTimeout(ringStop,2600);
+      document.querySelectorAll('.sheet [data-a="ringtone"]').forEach(x=>{const on=x.dataset.t===RING.tone;x.classList.toggle('line',!on);x.textContent=RINGS[x.dataset.t].n+(on?' ✓':'')});break}
+    case 'ringtest':ringStop();ringStart();setTimeout(ringStop,2600);break;
     case 'blocklist':openSheet(`<h3>Блоклосон хэрэглэгчид</h3>${S.blocked.size?[...S.blocked].map(u=>`<div class="row" style="margin:0 0 8px;width:100%">${av(u,nmOf(u),40)}<div class="rt"><b>${esc(nmOf(u))}</b></div><button class="btn sm line" data-a="unblock" data-id="${esc(u)}">Гаргах</button></div>`).join(''):'<p class="mute">Блоклосон хэрэглэгч байхгүй.</p>'}`);break;
     case 'editpost':{const p=allPosts().find(x=>x.id===id);if(!p)break;
       openSheet(`<h3>Нийтлэл засах</h3><textarea id="ep" maxlength="2000">${esc(p.text)}</textarea><button class="btn" data-a="savepost" data-id="${esc(id)}">Хадгалах</button>`);break}
@@ -1039,6 +1060,7 @@ document.addEventListener('submit',async e=>{
   }catch(err){console.error(err);toast('Илгээж чадсангүй. Дахин оролдоно уу.',3000)}
 });
 document.addEventListener('input',e=>{
+  if(e.target.id==='rvol'){RING.vol=+e.target.value;lsSet('maze-ring',RING)}
   if(e.target.id==='fq'){S.q=e.target.value;refreshFriends()}
   if(e.target.id==='pq'){S.pq=e.target.value;refreshPosts()}
   if(e.target.id==='cq'){S.cq=e.target.value;refreshChats()}
