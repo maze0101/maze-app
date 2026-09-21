@@ -14,8 +14,9 @@ service cloud.firestore {
         && (!('nameLower' in d) || isStr(d.nameLower, 40))
         && (!('bio' in d) || isStr(d.bio, 140))
         && (!('photo' in d) || isStr(d.photo, 60000))
+        && (!('dm' in d) || d.dm in ['all', 'friends'])
         && (!('lastSeen' in d) || d.lastSeen is number || d.lastSeen is timestamp)
-        && d.keys().hasOnly(['name', 'nameLower', 'bio', 'photo', 'lastSeen', 'createdAt']);
+        && d.keys().hasOnly(['name', 'nameLower', 'bio', 'photo', 'dm', 'lastSeen', 'createdAt']);
     }
     match /users/{uid} {
       allow read: if signedIn();
@@ -153,13 +154,14 @@ service cloud.firestore {
         && (acceptedReq(fid.split('_')[0], fid.split('_')[1]) || acceptedReq(fid.split('_')[1], fid.split('_')[0]));
     }
 
-    // ---------- Чат: 1:1 зөвхөн найзуудын хооронд, блоклоогүй үед ----------
+    // ---------- Чат: 1:1 блоклоогүй үед. Найз биш хүнд зөвхөн тэр "бүгд" гэж тохируулсан бол ----------
     function pairOk(chatId) {
       let p = chatId.split('_');
-      return p.size() == 2 && request.auth.uid in p
-        && exists(/databases/$(database)/documents/friendships/$(chatId))
+      return p.size() == 2 && p[0] < p[1] && request.auth.uid in p
         && !exists(/databases/$(database)/documents/blocks/$(p[0] + '_' + p[1]))
-        && !exists(/databases/$(database)/documents/blocks/$(p[1] + '_' + p[0]));
+        && !exists(/databases/$(database)/documents/blocks/$(p[1] + '_' + p[0]))
+        && (exists(/databases/$(database)/documents/friendships/$(chatId))
+            || get(/databases/$(database)/documents/users/$(p[0] == request.auth.uid ? p[1] : p[0])).data.get('dm', 'all') != 'friends');
     }
     match /chats/{chatId} {
       allow read: if signedIn() && request.auth.uid in resource.data.members;
@@ -176,7 +178,8 @@ service cloud.firestore {
             && request.resource.data.members.size() >= 2 && request.resource.data.members.size() <= 20
             && request.auth.uid in request.resource.data.members
             && isStr(request.resource.data.name, 40)
-            && request.resource.data.keys().hasOnly(['group', 'name', 'members', 'last', 'lastAt', 'lastFrom', 'seen']))
+            && (!('photo' in request.resource.data) || isStr(request.resource.data.photo, 60000))
+            && request.resource.data.keys().hasOnly(['group', 'name', 'photo', 'members', 'last', 'lastAt', 'lastFrom', 'seen']))
         );
       allow update: if signedIn() && request.auth.uid in resource.data.members && (
         // "Үзсэн": зөвхөн өөрийн түлхүүр
@@ -184,6 +187,10 @@ service cloud.firestore {
           && request.resource.data.seen.diff(resource.data.get('seen', {})).affectedKeys().hasOnly([request.auth.uid])) ||
         // мессеж засах/устгахад сүүлийн мессежийн урьдчилсан харагдацыг шинэчлэх (зөвхөн илгээгч)
         (changed().hasOnly(['last']) && resource.data.lastFrom == request.auth.uid && isStr(request.resource.data.last, 200)) ||
+        // бүлгийн нэр/зураг солих: гишүүн бүр
+        (resource.data.get('group', false) == true && changed().hasOnly(['name', 'photo'])
+          && isStr(request.resource.data.name, 40) && request.resource.data.name.size() > 0
+          && isStr(request.resource.data.get('photo', ''), 60000)) ||
         // бүлгээс гарах: зөвхөн өөрийгөө хасна
         (resource.data.get('group', false) == true && changed().hasOnly(['members'])
           && request.resource.data.members.toSet() == resource.data.members.toSet().difference([request.auth.uid].toSet())) ||
