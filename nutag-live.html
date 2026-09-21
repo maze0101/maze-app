@@ -295,6 +295,13 @@ html,body{touch-action:manipulation}
 .simg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
 .sv .stext{position:relative;z-index:1}
 .sv .scap{position:relative;z-index:2;align-self:center;background:rgba(0,0,0,.5);padding:8px 14px;border-radius:14px;margin-bottom:12px;text-align:center;overflow-wrap:anywhere}
+.srep{position:relative;z-index:4;padding:0 12px calc(12px + env(safe-area-inset-bottom,0px))}
+.srx{display:flex;justify-content:center;gap:6px;margin-bottom:8px}
+.srx button{font-size:26px;padding:4px 8px}
+.srep form{display:flex;gap:8px}
+.srep input{flex:1;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:11px 16px;color:#fff}
+.srep input::placeholder{color:rgba(255,255,255,.7)}
+.srep form button{color:#fff;padding:0 10px}
 .sown{position:relative;z-index:4;align-self:center;display:flex;gap:8px}
 .sviews{position:relative;z-index:4;align-self:center;color:#fff;background:rgba(255,255,255,.16);padding:8px 16px;border-radius:999px;font-size:14px}
 .nrow{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--surface);text-align:left;width:100%;font-size:14px}
@@ -913,9 +920,14 @@ function drawStory(){
   clearTimeout(svT);
   const {groups,gi,i}=S.sv,g=groups[gi],s=g.list[i];
   const im=safeImg(s.img),mine=g.uid===S.me.uid;
-  ov.innerHTML=`<div class="sv" style="background:${GR[s.g]||GR[0]}">${im?`<img class="simg" src="${im}" alt="">`:''}<div class="sbars">${g.list.map((_,k)=>`<span class="sb ${k<i?'done':k===i?'on':''}"><i></i></span>`).join('')}</div><div class="shead">${av(g.uid,g.name,38)}<b>${esc(g.name)}</b><span>${ago(s.t)}</span><button class="ib" data-a="closeov" aria-label="Хаах">${ic('close',24)}</button></div>${im?`<div style="flex:1"></div>${s.text?`<div class="scap">${esc(s.text)}</div>`:''}`:`<div class="stext">${esc(s.text)}</div>`}${mine?`<div class="sown"><button class="sviews" data-a="sviews">👁 ${s.views.filter(u=>u!==S.me.uid).length} үзсэн</button><button class="sviews" data-a="sdel" style="background:rgba(255,80,80,.35)">🗑 Устгах</button></div>`:''}<button class="sz l" data-a="sprev" aria-label="Өмнөх"></button><button class="sz r" data-a="snext" aria-label="Дараах"></button></div>`;
+  ov.innerHTML=`<div class="sv" style="background:${GR[s.g]||GR[0]}">${im?`<img class="simg" src="${im}" alt="">`:''}<div class="sbars">${g.list.map((_,k)=>`<span class="sb ${k<i?'done':k===i?'on':''}"><i></i></span>`).join('')}</div><div class="shead">${av(g.uid,g.name,38)}<b>${esc(g.name)}</b><span>${ago(s.t)}</span><button class="ib" data-a="closeov" aria-label="Хаах">${ic('close',24)}</button></div>${im?`<div style="flex:1"></div>${s.text?`<div class="scap">${esc(s.text)}</div>`:''}`:`<div class="stext">${esc(s.text)}</div>`}${mine?`<div class="sown"><button class="sviews" data-a="sviews">👁 ${s.views.filter(u=>u!==S.me.uid).length} үзсэн</button><button class="sviews" data-a="sdel" style="background:rgba(255,80,80,.35)">🗑 Устгах</button></div>`:''}${mine?'':`<div class="srep"><div class="srx">${EMO.map(e=>`<button type="button" data-a="srx" data-e="${e}">${e}</button>`).join('')}</div><form data-f="sreply"><input id="sri" placeholder="${esc(g.name)} рүү хариулах" aria-label="Хариулах" maxlength="200" autocomplete="off"><button type="submit" aria-label="Илгээх">${ic('send',20)}</button></form></div>`}<button class="sz l" data-a="sprev" aria-label="Өмнөх"></button><button class="sz r" data-a="snext" aria-label="Дараах"></button></div>`;
   ov.className='open';svT=setTimeout(nextStory,4500);
   if(!mine&&!s.views.includes(S.me.uid)){s.views.push(S.me.uid);FS.updateDoc(FS.doc(db,'stories',s.id),{views:FS.arrayUnion(S.me.uid)}).catch(()=>{})}
+}
+async function storyReply(t){
+  const sv=S.sv;if(!sv||!S.me)return;const g=sv.groups[sv.gi],s=g.list[sv.i];if(!s||g.uid===S.me.uid)return;
+  const th={uid:g.uid,name:g.name,cid:chatId(S.me.uid,g.uid),group:false};
+  await sendTo(th,{text:t,re:{n:'Story',t:s.text||'📷 Story'}});toast('Илгээлээ ✓');
 }
 function markSeen(g){S.seenMap[g.uid]=Math.max(S.seenMap[g.uid]||0,g.latest);lsSet('nutag-seen-'+S.me.uid,S.seenMap)}
 function nextStory(){
@@ -1345,6 +1357,7 @@ document.addEventListener('click',async e=>{
     case 'savestory':{const t=$('#st-t').value.trim();if(!t&&!S.draftStory){toast('Текст эсвэл зураг нэм');break}
       const sd={uid:S.me.uid,name:S.me.name,text:t,g:S.gsel,views:[],createdAt:serverTimestamp()};if(S.draftStory)sd.img=S.draftStory;
       b.disabled=true;await addDoc(collection(db,'stories'),sd);S.draftStory=null;closeOv();toast('Story нийтлэгдлээ');break}
+    case 'srx':{try{await storyReply(b.dataset.e)}catch(x){toast('Илгээж чадсангүй',2500)}break}
     case 'sdel':{const sv=S.sv;if(!sv)break;const g=sv.groups[sv.gi],s=g.list[sv.i];if(!s)break;clearTimeout(svT);
       if(!confirm('Энэ story-г устгах уу?')){svT=setTimeout(nextStory,4500);break}
       try{await deleteDoc(doc(db,'stories',s.id))}catch(x){onErr(x);svT=setTimeout(nextStory,4500);break}
@@ -1406,12 +1419,15 @@ document.addEventListener('submit',async e=>{
       bt.update(doc(db,'posts',id),{cc:increment(1)});
       await bt.commit();
     }
+    if(k==='sreply'){const inp=$('#sri'),t=inp?inp.value.trim():'';if(!t)return;inp.value='';
+      try{await storyReply(t);S.sv&&nextStory()}catch(x){inp.value=t;throw x}return}
     if(k==='msg'){
       const inp=$('#mi'),t=inp?inp.value.trim():'';if(!t)return;inp.value='';
       try{await sendMsg({text:t})}catch(x){inp.value=t;throw x}
     }
   }catch(err){console.error(err);toast('Илгээж чадсангүй. Дахин оролдоно уу.',3000)}
 });
+document.addEventListener('focusin',e=>{if(e.target.id==='sri')clearTimeout(svT)});
 document.addEventListener('input',e=>{
   if(e.target.id==='rvol'){RING.vol=+e.target.value;lsSet('maze-ring',RING)}
   if(e.target.id==='fq'){S.q=e.target.value;refreshFriends()}
