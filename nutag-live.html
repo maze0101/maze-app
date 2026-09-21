@@ -376,6 +376,44 @@ body{letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
 .sec{letter-spacing:.09em;font-size:12px}
 ::-webkit-scrollbar{width:0;height:0}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ===== Загварууд: data-style = glass (үндсэн) | minimal | card ===== */
+/* Минимал: хавтгай, нимгэн зураас, сүүдэр/гэрэлгүй, нэг өнгө */
+:root[data-style="minimal"]{--r:14px;--shadow:none;--glow:none;--grad:linear-gradient(var(--sky),var(--sky));--bubble-me:var(--sky);--ring:conic-gradient(var(--sky),var(--sky))}
+:root[data-style="minimal"] #app::before{display:none}
+:root[data-style="minimal"] #hd,:root[data-style="minimal"] #nav,:root[data-style="minimal"] .mf,:root[data-style="minimal"] .sheet{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;background:var(--bg)}
+:root[data-style="minimal"] #nav{border-radius:0;margin:0;border:0;border-top:1px solid var(--line);padding:0}
+:root[data-style="minimal"] #nav button{border-radius:0}
+:root[data-style="minimal"] #nav button.on{background:transparent;box-shadow:none;border-top:2px solid var(--sky)}
+:root[data-style="minimal"] #nav button.on svg{filter:none}
+:root[data-style="minimal"] .card,:root[data-style="minimal"] .post,:root[data-style="minimal"] .row,:root[data-style="minimal"] .stats>*{background:transparent;border-width:0 0 1px;border-radius:0;box-shadow:none;margin-left:0;margin-right:0}
+:root[data-style="minimal"] .row{width:100%;padding-left:18px;padding-right:18px}
+:root[data-style="minimal"] .btn{box-shadow:none;border-radius:10px;color:#fff;background:var(--sky)}
+:root[data-style="minimal"] .btn.line{background:transparent;color:var(--ink)}
+:root[data-style="minimal"] .b,:root[data-style="minimal"] .b.me{box-shadow:none;border-radius:14px}
+:root[data-style="minimal"] .b.me{background:var(--sky)}
+:root[data-style="minimal"] .sheet{border-radius:18px 18px 0 0}
+:root[data-style="minimal"] .chip,:root[data-style="minimal"] .search,:root[data-style="minimal"] .tabs2 button{border-radius:10px}
+:root[data-style="minimal"] .tabs2 button.on{background:var(--sky)}
+:root[data-style="minimal"] .stats b,:root[data-style="minimal"] .logo{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--sky)}
+:root[data-style="minimal"] .badge,:root[data-style="minimal"] .dot{box-shadow:none}
+/* Карт: том дугуй, өргөгдсөн, тод сүүдэртэй */
+:root[data-style="card"]{--r:28px;--shadow:0 14px 34px -14px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.18)}
+:root[data-style="card"] body,:root[data-style="card"] #app{background:color-mix(in srgb,var(--bg) 88%,#000)}
+:root[data-style="card"] #app::before{opacity:.5}
+:root[data-style="card"] #hd{background:transparent;border-bottom:0;-webkit-backdrop-filter:none;backdrop-filter:none}
+:root[data-style="card"] #nav{border-radius:32px;background:var(--surface);box-shadow:var(--shadow);border-color:transparent}
+:root[data-style="card"] .card,:root[data-style="card"] .post,:root[data-style="card"] .row,:root[data-style="card"] .stats>*{border-color:transparent;background:var(--surface);box-shadow:var(--shadow)}
+:root[data-style="card"] .post{margin:16px 12px;padding-top:18px}
+:root[data-style="card"] .row{border-radius:24px;padding:14px 16px;margin-bottom:12px}
+:root[data-style="card"] .art,:root[data-style="card"] .igrid{margin:12px 12px 0;border-radius:20px;overflow:hidden}
+:root[data-style="card"] .btn{border-radius:18px;padding:12px 22px}
+:root[data-style="card"] .b{border-radius:24px;padding:11px 16px}
+:root[data-style="card"] .sheet{border-radius:36px 36px 0 0;box-shadow:0 -24px 70px rgba(0,0,0,.55)}
+:root[data-style="card"] .mf{background:var(--surface);border-radius:28px;margin:0 10px 8px;border-top:0;box-shadow:var(--shadow)}
+:root[data-style="card"] .search,:root[data-style="card"] .cmf input{border-color:transparent;background:var(--surface);box-shadow:var(--shadow)}
+:root[data-style="card"] .chip,:root[data-style="card"] .tabs2 button{border-color:transparent;background:var(--surface);box-shadow:var(--shadow)}
+:root[data-style="card"] .tabs2 button.on{background:var(--grad)}
 </style>
 </head>
 <body>
@@ -736,7 +774,7 @@ function settingsHTML(){
   sec('Аккаунт')+`<button class="btn line" data-a="editprofile">Профайл засах</button>`+
   sec('Хувийн байдал')+`<p class="mute" style="margin:0;font-size:13px">Хэн танд чатаар шууд бичиж болох вэ?</p><div style="display:flex;gap:8px"><button class="btn ${dm==='all'?'':'line'}" style="flex:1" data-a="dmset" data-v="all">Бүгд${dm==='all'?' ✓':''}</button><button class="btn ${dm==='friends'?'':'line'}" style="flex:1" data-a="dmset" data-v="friends">Зөвхөн найзууд${dm==='friends'?' ✓':''}</button></div><button class="btn line" data-a="blocklist">Блоклосон хэрэглэгчид (${S.blocked.size})</button>`+
   sec('Дуудлага ба мэдэгдэл')+`<button class="btn line" data-a="ringset">Дуудлагын дуу</button>`+(np?`<button class="btn line" data-a="notif" ${np==='granted'?'disabled':''}>${np==='granted'?'🔔 Мэдэгдэл асаалттай':np==='denied'?'🔕 Мэдэгдэл хаалттай (браузерийн тохиргооноос нээнэ)':'🔔 Мэдэгдэл асаах'}</button>`:'')+
-  sec('Харагдац')+`<button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button>`+
+  sec('Харагдац')+`<button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><div class="tabs2" style="padding:8px 0 0">${[['glass','Шилэн'],['minimal','Минимал'],['card','Карт']].map(([v,n])=>`<button data-a="dstyle" data-v="${v}" class="${(document.documentElement.dataset.style||'glass')===v?'on':''}">${n}</button>`).join('')}</div>`+
   sec('Аюулгүй байдал')+secInfo()+`<button class="btn line" data-a="logout">Гарах</button><button class="btn line" data-a="delaccask" style="color:var(--like)">Акаунт устгах</button>`;
 }
 function profileHTML(){
@@ -1416,6 +1454,7 @@ document.addEventListener('click',async e=>{
       await updateDoc(doc(db,'users',S.me.uid),up);
       const old=U.get(S.me.uid)||{};U.set(S.me.uid,{name:n,bio,photo:S.draftPhoto||old.photo||'',dm:S.me.dm||'all'});S.draftPhoto=null;
       S.me.name=n;S.me.bio=bio;closeOv();render();toast('Хадгалагдлаа');break}
+    case 'dstyle':{const v=b.dataset.v;document.documentElement.dataset.style=v;try{localStorage.setItem('maze-style',v)}catch(_){}document.querySelectorAll('[data-a=dstyle]').forEach(x=>x.classList.toggle('on',x.dataset.v===v));break}
     case 'theme':{const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
       r.dataset.theme=dark?'light':'dark';try{localStorage.setItem('nutag-theme',r.dataset.theme)}catch(_){}break}
     case 'notif':await askNotify();break;
@@ -1504,6 +1543,7 @@ document.addEventListener('change',async e=>{
 
 /* ---------- эхлүүлэлт ---------- */
 async function main(){
+  try{const st=localStorage.getItem('maze-style');if(st)document.documentElement.dataset.style=st}catch(_){}
   try{const t=localStorage.getItem('nutag-theme');if(t)document.documentElement.dataset.theme=t}catch(_){}
   if(!configured&&!window.__FB_MOCK){setupRender();return}
   $('#main').innerHTML='<div style="min-height:70vh;display:grid;align-items:center">'+loader()+'</div>';
