@@ -5,13 +5,15 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function mine(uid) { return signedIn() && request.auth.uid == uid; }
 
-    // Хэрэглэгчийн профайл (нэр, танилцуулга)
+    // Хэрэглэгчийн профайл (нэр, танилцуулга, зураг)
     match /users/{uid} {
       allow read: if signedIn();
       allow create, update: if mine(uid)
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
-        && request.resource.data.name.size() <= 40;
+        && request.resource.data.name.size() <= 40
+        && (!('photo' in request.resource.data)
+            || (request.resource.data.photo is string && request.resource.data.photo.size() < 60000));
       allow delete: if false;
     }
 
@@ -22,8 +24,10 @@ service cloud.firestore {
         && request.resource.data.text.size() <= 2000
         && request.resource.data.get('img', '').size() < 900000;
       allow update: if signedIn() && (
-        resource.data.uid == request.auth.uid ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'cc'])
+        (resource.data.uid == request.auth.uid
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.text.size() <= 2000) ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'cc', 'rx'])
       );
       allow delete: if mine(resource.data.uid);
 
@@ -61,6 +65,20 @@ service cloud.firestore {
         && request.resource.data.members.hasAll(fid.split('_'));
     }
 
+    // Блок (id = блоклогч_блоклогдсон)
+    match /blocks/{bid} {
+      allow read: if signedIn() &&
+        (resource.data.by == request.auth.uid || resource.data.target == request.auth.uid);
+      allow create: if mine(request.resource.data.by)
+        && bid == request.resource.data.by + '_' + request.resource.data.target;
+      allow delete: if mine(resource.data.by);
+    }
+
+    // Гомдол (зөвхөн бичих)
+    match /reports/{rid} {
+      allow create: if mine(request.resource.data.by);
+    }
+
     // Видео дуудлага (WebRTC signaling)
     match /calls/{callId} {
       allow read, update: if signedIn() &&
@@ -75,19 +93,38 @@ service cloud.firestore {
       }
     }
 
-    // Чат (id нь найзуудын id-тай адил)
+    // Чат: 1:1 (id = хоёр uid) болон бүлэг (id = 'g...', group: true)
     match /chats/{chatId} {
       allow read: if signedIn() && request.auth.uid in resource.data.members;
-      allow create, update: if signedIn()
-        && request.auth.uid in chatId.split('_')
-        && request.resource.data.members.hasAll(chatId.split('_'));
+      allow create: if signedIn() && (
+        (request.auth.uid in chatId.split('_')
+          && request.resource.data.members.hasAll(chatId.split('_'))) ||
+        (request.resource.data.get('group', false) == true
+          && request.auth.uid in request.resource.data.members
+          && request.resource.data.members.size() <= 20)
+      );
+      allow update: if signedIn() && (
+        (request.auth.uid in chatId.split('_')
+          && request.resource.data.members.hasAll(chatId.split('_'))) ||
+        (request.auth.uid in resource.data.members
+          && request.resource.data.get('group', false) == resource.data.get('group', false))
+      );
 
       match /messages/{msgId} {
-        allow read: if signedIn() && request.auth.uid in chatId.split('_');
+        allow read: if signedIn() && (
+          request.auth.uid in chatId.split('_') ||
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members);
         allow create: if signedIn()
-          && request.auth.uid in chatId.split('_')
+          && (request.auth.uid in chatId.split('_') ||
+              request.auth.uid in getAfter(/databases/$(database)/documents/chats/$(chatId)).data.members)
           && request.resource.data.from == request.auth.uid
-          && request.resource.data.text.size() <= 2000;
+          && request.resource.data.text.size() <= 2000
+          && request.resource.data.get('img', '').size() < 900000
+          && request.resource.data.get('aud', '').size() < 900000;
+        allow update: if signedIn()
+          && (request.auth.uid in chatId.split('_') ||
+              request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rx']);
       }
     }
   }
