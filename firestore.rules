@@ -4,110 +4,178 @@ service cloud.firestore {
 
     function signedIn() { return request.auth != null; }
     function mine(uid) { return signedIn() && request.auth.uid == uid; }
+    function isStr(v, max) { return v is string && v.size() <= max; }
+    function stamped() { return request.resource.data.createdAt == request.time; }
+    function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
 
-    // Хэрэглэгчийн профайл (нэр, танилцуулга, зураг)
+    // ---------- Хэрэглэгчийн профайл ----------
+    function validUser(d) {
+      return d.name is string && d.name.size() > 0 && d.name.size() <= 40
+        && (!('nameLower' in d) || d.nameLower == d.name.lower())
+        && (!('bio' in d) || isStr(d.bio, 140))
+        && (!('photo' in d) || isStr(d.photo, 60000))
+        && (!('lastSeen' in d) || d.lastSeen is number || d.lastSeen is timestamp)
+        && d.keys().hasOnly(['name', 'nameLower', 'bio', 'photo', 'lastSeen', 'createdAt']);
+    }
     match /users/{uid} {
       allow read: if signedIn();
-      allow create, update: if mine(uid)
-        && request.resource.data.name is string
-        && request.resource.data.name.size() > 0
-        && request.resource.data.name.size() <= 40
-        && (!('photo' in request.resource.data)
-            || (request.resource.data.photo is string && request.resource.data.photo.size() < 60000));
+      allow create, update: if mine(uid) && validUser(request.resource.data);
       allow delete: if false;
     }
 
-    // Нийтлэл, сэтгэгдэл
+    // ---------- Нийтлэл ----------
+    function onlyMeInSet(newL, oldL) {
+      return newL is list
+        && newL.size() <= oldL.size() + 1
+        && newL.toSet().difference(oldL.toSet()).hasOnly([request.auth.uid])
+        && oldL.toSet().difference(newL.toSet()).hasOnly([request.auth.uid]);
+    }
+    function rxOk() {
+      let n = request.resource.data.get('rx', {});
+      let o = resource.data.get('rx', {});
+      return n is map
+        && n.diff(o).affectedKeys().hasOnly([request.auth.uid])
+        && (!(request.auth.uid in n) || isStr(n[request.auth.uid], 8));
+    }
     match /posts/{postId} {
       allow read: if signedIn();
       allow create: if mine(request.resource.data.uid)
-        && request.resource.data.text.size() <= 2000
-        && request.resource.data.get('img', '').size() < 900000;
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'img', 'createdAt', 'likes', 'cc'])
+        && isStr(request.resource.data.name, 40)
+        && isStr(request.resource.data.text, 2000)
+        && (request.resource.data.text.size() > 0 || 'img' in request.resource.data)
+        && (!('img' in request.resource.data) || isStr(request.resource.data.img, 900000))
+        && request.resource.data.likes == []
+        && request.resource.data.cc == 0
+        && stamped();
       allow update: if signedIn() && (
+        // өөрийн нийтлэлийг засах
         (resource.data.uid == request.auth.uid
-          && request.resource.data.uid == resource.data.uid
-          && request.resource.data.text.size() <= 2000) ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'cc', 'rx'])
+          && changed().hasOnly(['text', 'edited'])
+          && isStr(request.resource.data.text, 2000)
+          && (request.resource.data.text.size() > 0 || 'img' in resource.data)) ||
+        // лайк: зөвхөн өөрийн uid-г нэмэх/хасах
+        (changed().hasOnly(['likes']) && onlyMeInSet(request.resource.data.likes, resource.data.likes)) ||
+        // сэтгэгдлийн тоо +1
+        (changed().hasOnly(['cc']) && request.resource.data.cc == resource.data.cc + 1) ||
+        // реакц: зөвхөн өөрийн түлхүүр
+        (changed().hasOnly(['rx']) && rxOk())
       );
       allow delete: if mine(resource.data.uid);
 
       match /comments/{commentId} {
         allow read: if signedIn();
         allow create: if mine(request.resource.data.uid)
-          && request.resource.data.text.size() <= 500;
+          && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'createdAt'])
+          && isStr(request.resource.data.name, 40)
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 500
+          && stamped()
+          && exists(/databases/$(database)/documents/posts/$(postId));
         allow delete: if mine(resource.data.uid);
       }
     }
 
-    // Story
+    // ---------- Story ----------
     match /stories/{storyId} {
       allow read: if signedIn();
       allow create: if mine(request.resource.data.uid)
-        && request.resource.data.text.size() <= 200;
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'g', 'createdAt'])
+        && isStr(request.resource.data.name, 40)
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 200
+        && request.resource.data.g is int && request.resource.data.g >= 0 && request.resource.data.g < 10
+        && stamped();
       allow delete: if mine(resource.data.uid);
     }
 
-    // Найзын хүсэлт (id = илгээгч_хүлээн авагч)
-    match /requests/{reqId} {
-      allow read: if signedIn() &&
-        (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
-      allow create: if mine(request.resource.data.from)
-        && reqId == request.resource.data.from + '_' + request.resource.data.to;
-      allow update, delete: if signedIn() &&
-        (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
-    }
-
-    // Найзууд (id = хоёр uid цагаан толгойн дарааллаар _-ээр холбогдсон)
-    match /friendships/{fid} {
-      allow read, delete: if signedIn() && request.auth.uid in resource.data.members;
-      allow create: if signedIn()
-        && request.auth.uid in fid.split('_')
-        && request.resource.data.members.hasAll(fid.split('_'));
-    }
-
-    // Блок (id = блоклогч_блоклогдсон)
+    // ---------- Блок (id = блоклогч_блоклогдсон) ----------
     match /blocks/{bid} {
       allow read: if signedIn() &&
         (resource.data.by == request.auth.uid || resource.data.target == request.auth.uid);
       allow create: if mine(request.resource.data.by)
-        && bid == request.resource.data.by + '_' + request.resource.data.target;
+        && request.resource.data.keys().hasOnly(['by', 'target', 'createdAt'])
+        && request.resource.data.target is string
+        && request.resource.data.by != request.resource.data.target
+        && bid == request.resource.data.by + '_' + request.resource.data.target
+        && stamped();
       allow delete: if mine(resource.data.by);
     }
 
-    // Гомдол (зөвхөн бичих)
-    match /reports/{rid} {
-      allow create: if mine(request.resource.data.by);
-    }
-
-    // Видео дуудлага (WebRTC signaling)
-    match /calls/{callId} {
-      allow read, update: if signedIn() &&
+    // ---------- Найзын хүсэлт (id = илгээгч_хүлээн авагч) ----------
+    match /requests/{reqId} {
+      allow read: if signedIn() &&
         (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
-      allow create: if mine(request.resource.data.from);
-      allow delete: if false;
-
-      match /{col}/{candId} {
-        allow read, create: if signedIn() && (
-          get(/databases/$(database)/documents/calls/$(callId)).data.from == request.auth.uid ||
-          get(/databases/$(database)/documents/calls/$(callId)).data.to == request.auth.uid);
-      }
+      allow create: if mine(request.resource.data.from)
+        && request.resource.data.keys().hasOnly(['from', 'to', 'fromName', 'toName', 'status', 'createdAt'])
+        && request.resource.data.to is string
+        && request.resource.data.from != request.resource.data.to
+        && reqId == request.resource.data.from + '_' + request.resource.data.to
+        && request.resource.data.status == 'pending'
+        && isStr(request.resource.data.fromName, 40)
+        && isStr(request.resource.data.toName, 40)
+        && stamped()
+        && !exists(/databases/$(database)/documents/blocks/$(request.resource.data.to + '_' + request.resource.data.from));
+      // зөвхөн хүлээн авагч зөвшөөрч болно
+      allow update: if signedIn() && resource.data.to == request.auth.uid
+        && changed().hasOnly(['status'])
+        && request.resource.data.status == 'accepted';
+      allow delete: if signedIn() &&
+        (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
     }
 
-    // Чат: 1:1 (id = хоёр uid) болон бүлэг (id = 'g...', group: true)
+    // ---------- Найзууд: зөвхөн зөвшөөрөгдсөн хүсэлттэй үед ----------
+    function acceptedReq(a, b) {
+      return exists(/databases/$(database)/documents/requests/$(a + '_' + b))
+        && getAfter(/databases/$(database)/documents/requests/$(a + '_' + b)).data.status == 'accepted'
+        && getAfter(/databases/$(database)/documents/requests/$(a + '_' + b)).data.to == request.auth.uid;
+    }
+    match /friendships/{fid} {
+      allow read, delete: if signedIn() && request.auth.uid in resource.data.members;
+      allow create: if signedIn()
+        && fid.split('_').size() == 2
+        && request.auth.uid in fid.split('_')
+        && request.resource.data.members == fid.split('_')
+        && request.resource.data.keys().hasOnly(['members', 'names', 'createdAt'])
+        && (acceptedReq(fid.split('_')[0], fid.split('_')[1]) || acceptedReq(fid.split('_')[1], fid.split('_')[0]));
+    }
+
+    // ---------- Чат: 1:1 зөвхөн найзуудын хооронд, блоклоогүй үед ----------
+    function pairOk(chatId) {
+      let p = chatId.split('_');
+      return p.size() == 2 && request.auth.uid in p
+        && exists(/databases/$(database)/documents/friendships/$(chatId))
+        && !exists(/databases/$(database)/documents/blocks/$(p[0] + '_' + p[1]))
+        && !exists(/databases/$(database)/documents/blocks/$(p[1] + '_' + p[0]));
+    }
     match /chats/{chatId} {
       allow read: if signedIn() && request.auth.uid in resource.data.members;
-      allow create: if signedIn() && (
-        (request.auth.uid in chatId.split('_')
-          && request.resource.data.members.hasAll(chatId.split('_'))) ||
-        (request.resource.data.get('group', false) == true
-          && request.auth.uid in request.resource.data.members
-          && request.resource.data.members.size() <= 20)
-      );
-      allow update: if signedIn() && (
-        (request.auth.uid in chatId.split('_')
-          && request.resource.data.members.hasAll(chatId.split('_'))) ||
-        (request.auth.uid in resource.data.members
-          && request.resource.data.get('group', false) == resource.data.get('group', false))
+      allow create: if signedIn() && request.resource.data.lastFrom == request.auth.uid
+        && request.resource.data.lastAt == request.time
+        && isStr(request.resource.data.last, 200)
+        && (
+          (pairOk(chatId)
+            && request.resource.data.members == chatId.split('_')
+            && request.resource.data.keys().hasOnly(['members', 'names', 'last', 'lastAt', 'lastFrom', 'seen']))
+          ||
+          (chatId.matches('g[a-z0-9]+')
+            && request.resource.data.get('group', false) == true
+            && request.resource.data.members.size() >= 2 && request.resource.data.members.size() <= 20
+            && request.auth.uid in request.resource.data.members
+            && isStr(request.resource.data.name, 40)
+            && request.resource.data.keys().hasOnly(['group', 'name', 'members', 'last', 'lastAt', 'lastFrom', 'seen']))
+        );
+      allow update: if signedIn() && request.auth.uid in resource.data.members && (
+        // "Үзсэн": зөвхөн өөрийн түлхүүр
+        (changed().hasOnly(['seen'])
+          && request.resource.data.seen.diff(resource.data.get('seen', {})).affectedKeys().hasOnly([request.auth.uid])) ||
+        // шинэ мессежийн мэдээлэл
+        (changed().hasOnly(['members', 'names', 'last', 'lastAt', 'lastFrom'])
+          && request.resource.data.members == resource.data.members
+          && request.resource.data.lastFrom == request.auth.uid
+          && request.resource.data.lastAt == request.time
+          && isStr(request.resource.data.last, 200)
+          && (resource.data.get('group', false) == true || pairOk(chatId)))
       );
 
       match /messages/{msgId} {
@@ -115,16 +183,73 @@ service cloud.firestore {
           request.auth.uid in chatId.split('_') ||
           request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members);
         allow create: if signedIn()
-          && (request.auth.uid in chatId.split('_') ||
-              request.auth.uid in getAfter(/databases/$(database)/documents/chats/$(chatId)).data.members)
+          && (pairOk(chatId) ||
+              (getAfter(/databases/$(database)/documents/chats/$(chatId)).data.get('group', false) == true
+               && request.auth.uid in getAfter(/databases/$(database)/documents/chats/$(chatId)).data.members))
           && request.resource.data.from == request.auth.uid
-          && request.resource.data.text.size() <= 2000
-          && request.resource.data.get('img', '').size() < 900000
-          && request.resource.data.get('aud', '').size() < 900000;
+          && request.resource.data.keys().hasOnly(['from', 'fn', 'text', 'img', 'aud', 'createdAt'])
+          && isStr(request.resource.data.text, 2000)
+          && isStr(request.resource.data.fn, 40)
+          && (request.resource.data.text.size() > 0 || 'img' in request.resource.data || 'aud' in request.resource.data)
+          && (!('img' in request.resource.data) || isStr(request.resource.data.img, 900000))
+          && (!('aud' in request.resource.data) || isStr(request.resource.data.aud, 900000))
+          && stamped();
         allow update: if signedIn()
           && (request.auth.uid in chatId.split('_') ||
               request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rx']);
+          && changed().hasOnly(['rx'])
+          && request.resource.data.get('rx', {}).diff(resource.data.get('rx', {})).affectedKeys().hasOnly([request.auth.uid])
+          && (!(request.auth.uid in request.resource.data.get('rx', {}))
+              || isStr(request.resource.data.get('rx', {})[request.auth.uid], 8));
+        allow delete: if false;
+      }
+    }
+
+    // ---------- Гомдол (зөвхөн бичих) ----------
+    match /reports/{rid} {
+      allow create: if mine(request.resource.data.by)
+        && request.resource.data.keys().hasOnly(['by', 'target', 'reason', 'postId', 'createdAt'])
+        && isStr(request.resource.data.target, 128)
+        && isStr(request.resource.data.reason, 60)
+        && (!('postId' in request.resource.data) || isStr(request.resource.data.postId, 128))
+        && stamped();
+    }
+
+    // ---------- Видео дуудлага ----------
+    function pairId(a, b) { return a < b ? a + '_' + b : b + '_' + a; }
+    match /calls/{callId} {
+      allow read: if signedIn() &&
+        (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+      allow create: if mine(request.resource.data.from)
+        && request.resource.data.to is string
+        && request.resource.data.to != request.resource.data.from
+        && request.resource.data.status == 'ringing'
+        && request.resource.data.keys().hasOnly(['from', 'to', 'fromName', 'toName', 'status', 'offer', 'createdAt'])
+        && isStr(request.resource.data.fromName, 40)
+        && isStr(request.resource.data.toName, 40)
+        && stamped()
+        && exists(/databases/$(database)/documents/friendships/$(pairId(request.resource.data.from, request.resource.data.to)))
+        && !exists(/databases/$(database)/documents/blocks/$(request.resource.data.from + '_' + request.resource.data.to))
+        && !exists(/databases/$(database)/documents/blocks/$(request.resource.data.to + '_' + request.resource.data.from));
+      allow update: if signedIn()
+        && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid)
+        && changed().hasOnly(['status', 'answer'])
+        && request.resource.data.status in ['active', 'declined', 'ended']
+        // хариулт, зөвшөөрөл, татгалзахыг зөвхөн дуудлага хүлээн авагч хийнэ
+        && (request.resource.data.status == 'ended' || resource.data.to == request.auth.uid)
+        && (!('answer' in changed()) || resource.data.to == request.auth.uid);
+      allow delete: if false;
+
+      match /{col}/{candId} {
+        allow read: if signedIn() && (
+          get(/databases/$(database)/documents/calls/$(callId)).data.from == request.auth.uid ||
+          get(/databases/$(database)/documents/calls/$(callId)).data.to == request.auth.uid);
+        allow create: if signedIn()
+          && request.resource.data.keys().hasOnly(['c'])
+          && isStr(request.resource.data.c, 2000)
+          && (
+            (col == 'callerCandidates' && get(/databases/$(database)/documents/calls/$(callId)).data.from == request.auth.uid) ||
+            (col == 'calleeCandidates' && get(/databases/$(database)/documents/calls/$(callId)).data.to == request.auth.uid));
       }
     }
   }

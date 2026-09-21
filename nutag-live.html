@@ -2,8 +2,11 @@
 <html lang="mn">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>MAZE APP</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob: mediastream:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://www.gstatic.com; frame-src https://*.firebaseapp.com https://*.web.app; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#2F7D5B">
@@ -57,7 +60,7 @@ input,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--sky);outline-offset:2px}
 .mute{color:var(--mute)}
 
-#app{height:100%;max-width:480px;margin:0 auto;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
+#app{height:var(--vh,100%);max-width:480px;margin:0 auto;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
 #app::before{content:"";position:absolute;inset:-20% -30% auto -30%;height:340px;background:radial-gradient(closest-side,rgba(123,92,255,.22),transparent),radial-gradient(closest-side at 80% 30%,rgba(55,230,224,.16),transparent);pointer-events:none;z-index:0}
 #hd,#main,#nav{position:relative;z-index:1}
 #hd{display:flex;align-items:center;gap:10px;padding:10px 18px;background:transparent;min-height:60px;flex:none}
@@ -197,6 +200,7 @@ input,textarea{font:inherit;color:inherit}
 .cb.off{background:#fff;color:#111}
 .cb.end{background:#F0456B}
 .cb.end svg{transform:rotate(135deg)}
+.tapplay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3}
 .crow{display:flex;gap:10px}.crow .btn{flex:1;padding:13px}
 .ph .del+.del{margin-left:0}
 .ph [data-a="user"]{cursor:pointer}
@@ -229,7 +233,7 @@ input,textarea{font:inherit;color:inherit}
 .pick{display:flex;flex-direction:column;gap:4px;max-height:38vh;overflow:auto}
 .sheet label.pk{flex-direction:row;align-items:center;gap:10px;color:var(--ink);font-size:15px;padding:6px 2px}
 .pick input{width:auto;padding:0}
-.auth{min-height:100%;display:flex;flex-direction:column;justify-content:center;gap:18px;padding:32px 24px}
+.auth{min-height:100%;display:flex;flex-direction:column;justify-content:center;justify-content:safe center;gap:18px;padding:32px 24px}
 .auth .logo{font-size:30px;gap:10px}
 .auth .lead{margin:0;color:var(--mute)}
 .seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
@@ -329,6 +333,19 @@ const I={
 /* ---------- мэдэгдэл (апп нээлттэй үед) ---------- */
 let swReg=null;
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').then(r=>{swReg=r}).catch(()=>{});
+/* ---------- гар утасны гар (keyboard) ---------- */
+(function(){
+  const vv=window.visualViewport,root=document.documentElement;
+  const fit=()=>{
+    if(vv){root.style.setProperty('--vh',Math.round(vv.height)+'px');if(vv.offsetTop>0||window.scrollY>0)window.scrollTo(0,0)}
+  };
+  if(vv){vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit);fit()}
+  document.addEventListener('focusin',e=>{
+    const t=e.target;if(!t||!/^(INPUT|TEXTAREA)$/.test(t.tagName))return;
+    [250,600].forEach(ms=>setTimeout(()=>{if(document.activeElement===t)t.scrollIntoView({block:'center',behavior:'smooth'})},ms));
+  });
+  document.addEventListener('focusout',()=>setTimeout(()=>{if(!/^(INPUT|TEXTAREA)$/.test((document.activeElement||{}).tagName||''))window.scrollTo(0,0)},100));
+})();
 /* ---------- автомат шинэчлэлт ---------- */
 let pageHash=null,updT=null;
 const hashStr=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return h+':'+s.length};
@@ -376,6 +393,7 @@ function av(uid,name,s=40,ring){
 function ago(ms){const s=Math.max(0,(Date.now()-ms)/1000);if(s<60)return 'Дөнгөж сая';const m=s/60;if(m<60)return Math.floor(m)+' мин';const h=m/60;if(h<24)return Math.floor(h)+' цаг';const d=h/24;if(d<7)return Math.floor(d)+' өдөр';return new Date(ms).toISOString().slice(0,10)}
 const hhmm=ms=>{const d=new Date(ms);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
 const tms=x=>x&&x.toMillis?x.toMillis():Date.now();
+const tv=v=>typeof v==='number'?v:(v&&v.toMillis?v.toMillis():0);
 const safeImg=s=>typeof s==='string'&&/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(s)?s:'';
 function toast(m,ms=1900){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),ms)}
 function onErr(e){console.error(e);if(S.errShown)return;S.errShown=true;
@@ -406,7 +424,7 @@ function cropSq(file,n){return new Promise((res,rej)=>{const r=new FileReader();
 /* ---------- views ---------- */
 function unreadChats(){let n=0;S.chats.forEach((c,cid)=>{if(c.lastFrom&&c.lastFrom!==S.me.uid&&c.lastAt>(S.readMap[cid]||0))n++});return n}
 function headerHTML(){
-  if(S.thread)return `<button class="ib" data-a="back" aria-label="Буцах">${ic('back',24)}</button>${av(S.thread.uid,S.thread.name,38)}<b style="font-weight:600">${S.thread.group?'👥 ':''}${esc(S.thread.name)}</b>${S.thread.group||hid(S.thread.uid)?'':`<button class="ib" style="margin-left:auto" data-a="call" aria-label="Видео дуудлага">${ic('video',22)}</button>`}`;
+  if(S.thread)return `<button class="ib" data-a="back" aria-label="Буцах">${ic('back',24)}</button>${av(S.thread.uid,S.thread.name,38)}<b style="font-weight:600">${S.thread.group?'👥 ':''}${esc(S.thread.name)}${!S.thread.group&&typeof isOnline==='function'&&isOnline(S.thread.uid)?'<span class="dot" title="Онлайн"></span>':''}</b>${S.thread.group||hid(S.thread.uid)?'':`<button class="ib" style="margin-left:auto" data-a="call" aria-label="Видео дуудлага">${ic('video',22)}</button>`}`;
   if(S.view)return `<button class="ib" data-a="uback" aria-label="Буцах">${ic('back',24)}</button>${av(S.view.uid,S.view.name,38)}<b style="font-weight:600">${esc((U.get(S.view.uid)||S.view).name)}</b>`;
   if(S.tab==='feed')return `<div class="logo"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M4 24V4h20v20H10V10h8v6" fill="none" stroke="var(--sky)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="14" cy="19" r="2.2" fill="var(--green)"/></svg>MAZE APP</div>${canNotify()&&Notification.permission==='default'?`<button class="ib" style="margin-left:auto" data-a="notif" aria-label="Мэдэгдэл асаах">${ic('bell',22)}</button>`:''}`;
   return `<div class="title">${{friends:'Найзууд',chat:'Чат',profile:'Профайл'}[S.tab]}</div>`;
@@ -441,8 +459,9 @@ function postsHTML(){
   return list.length?list.map(postHTML).join(''):`<div class="empty">${q?'Ийм нийтлэл олдсонгүй.':'Нийтлэл байхгүй.'}${!q&&S.tab==='feed'&&!S.view?' Дээрх талбарт анхны нийтлэлээ бич.':''}</div>`;
 }
 function feedHTML(){
-  return storiesHTML()+`<section class="card composer"><form data-f="post"><div class="top">${av(S.me.uid,S.me.name,42)}<textarea id="cmp" rows="2" maxlength="2000" placeholder="Юу бодож байна?" aria-label="Шинэ нийтлэл"></textarea></div><div id="prev"></div><div class="bar"><label class="chip">${ic('image',18)}Зураг<input type="file" id="file" accept="image/*" hidden></label><button class="btn" type="submit">Нийтлэх</button></div></form></section><input class="search" id="pq" placeholder="Нийтлэл хайх" aria-label="Нийтлэл хайх" value="${esc(S.pq)}" autocomplete="off"><div id="posts">${postsHTML()}</div>`;
+  return verifyHTML()+storiesHTML()+`<section class="card composer"><form data-f="post"><div class="top">${av(S.me.uid,S.me.name,42)}<textarea id="cmp" rows="2" maxlength="2000" placeholder="Юу бодож байна?" aria-label="Шинэ нийтлэл"></textarea></div><div id="prev"></div><div class="bar"><label class="chip">${ic('image',18)}Зураг<input type="file" id="file" accept="image/*" hidden></label><button class="btn" type="submit">Нийтлэх</button></div></form></section><input class="search" id="pq" placeholder="Нийтлэл хайх" aria-label="Нийтлэл хайх" value="${esc(S.pq)}" autocomplete="off"><div id="posts">${postsHTML()}</div>`;
 }
+function verifyHTML(){const u=auth&&auth.currentUser;return u&&!u.emailVerified?`<section class="card composer" style="display:flex;gap:10px;align-items:center"><span style="flex:1;font-size:14px">📧 Имэйлээ баталгаажуулна уу. Баталгаажуулах холбоос имэйл рүү чинь илгээгдсэн.</span><button class="btn sm line" data-a="verify">Дахин илгээх</button></section>`:''}
 function personAction(uid,name){
   if(S.friends.has(uid))return `<button class="btn sm line" data-a="thread" data-id="${esc(uid)}" data-n="${esc(name)}">Чат</button>`;
   const inc=S.reqIn.find(r=>r.from===uid);
@@ -529,6 +548,12 @@ const refreshFriends=()=>{const e=$('#flist');if(e)e.innerHTML=friendLists();if(
 const refreshChats=()=>{if(S.tab==='chat'&&!S.thread&&!S.view){const e=$('#clist');if(e)e.innerHTML=chatItems();else $('#main').innerHTML=chatListHTML()}};
 function scrollMsgs(){const e=$('#msgs');if(e)e.scrollTop=e.scrollHeight}
 function refreshMsgs(){const e=$('#msgs');if(e){const nb=e.scrollHeight-e.scrollTop-e.clientHeight<90;e.innerHTML=msgsHTML();if(S.stick||nb)scrollMsgs();S.stick=false}}
+let hbT=null;
+function heartbeat(){
+  const ping=()=>{if(S.me&&!document.hidden)FS.updateDoc(FS.doc(db,'users',S.me.uid),{lastSeen:FS.serverTimestamp()}).catch(()=>{})};
+  ping();clearInterval(hbT);hbT=setInterval(ping,60000);
+}
+document.addEventListener('visibilitychange',()=>{if(S.me&&!document.hidden&&FS.updateDoc)FS.updateDoc(FS.doc(db,'users',S.me.uid),{lastSeen:FS.serverTimestamp()}).catch(()=>{})});
 function refreshAll(){
   if(!S.me)return;refreshPosts();refreshStories();refreshFriends();refreshChats();refreshNav();
   if(S.thread){$('#hd').innerHTML=headerHTML();refreshMsgs()}else if(S.tab==='profile'||S.view)refreshProfile();
@@ -544,7 +569,7 @@ function authHTML(){
   <form data-f="${A.mode}" novalidate>
     ${reg?fld('Нэр','n','text','maxlength="40" autocomplete="name" required'):''}
     ${fld('Имэйл','e','email','autocomplete="email" autocapitalize="none" required')}
-    ${rst?'':fld('Нууц үг','p','password',`autocomplete="${reg?'new-password':'current-password'}" required`,reg?'Хамгийн багадаа 6 тэмдэгт':'')}
+    ${rst?'':fld('Нууц үг','p','password',`autocomplete="${reg?'new-password':'current-password'}" required`,reg?'8+ тэмдэгт, том/жижиг үсэг, тоо':'')}
     ${reg?fld('Нууц үг давтах','p2','password','autocomplete="new-password" required'):''}
     <div id="amsg" class="${A.ok?'aok':'aerr'}" role="alert">${esc(A.msg)}</div>
     <button class="btn" type="submit">${reg?'Бүртгүүлэх':rst?'Сэргээх холбоос илгээх':'Нэвтрэх'}</button>
@@ -568,7 +593,7 @@ function setupRender(){
 }
 
 /* ---------- бүртгэл ---------- */
-const AUTH_ERR={'auth/email-already-in-use':'Энэ имэйл бүртгэлтэй байна. Нэвтрэх хэсгээр орно уу.','auth/invalid-email':'Имэйл хаяг буруу байна.','auth/weak-password':'Нууц үг хамгийн багадаа 6 тэмдэгттэй байна.','auth/invalid-credential':'Имэйл эсвэл нууц үг буруу байна.','auth/user-not-found':'Имэйл эсвэл нууц үг буруу байна.','auth/wrong-password':'Имэйл эсвэл нууц үг буруу байна.','auth/too-many-requests':'Хэт олон оролдлого хийлээ. Түр хүлээгээд дахин оролдоно уу.','auth/network-request-failed':'Интернэт холболтоо шалгана уу.','auth/operation-not-allowed':'Firebase дээр Email/Password нэвтрэлт идэвхжээгүй байна.','auth/operation-not-supported-in-this-environment':'Файлыг http:// эсвэл https:// хаягаар нээнэ үү (file:// ажиллахгүй).'};
+const AUTH_ERR={'auth/email-already-in-use':'Энэ имэйл бүртгэлтэй байна. Нэвтрэх хэсгээр орно уу.','auth/invalid-email':'Имэйл хаяг буруу байна.','auth/weak-password':'Нууц үг хэт сул байна.','auth/password-does-not-meet-requirements':'Нууц үг хамгийн багадаа 8 тэмдэгт, том үсэг, жижиг үсэг болон тоо агуулсан байх ёстой.','auth/invalid-credential':'Имэйл эсвэл нууц үг буруу байна.','auth/user-not-found':'Имэйл эсвэл нууц үг буруу байна.','auth/wrong-password':'Имэйл эсвэл нууц үг буруу байна.','auth/too-many-requests':'Хэт олон оролдлого хийлээ. Түр хүлээгээд дахин оролдоно уу.','auth/network-request-failed':'Интернэт холболтоо шалгана уу.','auth/operation-not-allowed':'Firebase дээр Email/Password нэвтрэлт идэвхжээгүй байна.','auth/operation-not-supported-in-this-environment':'Файлыг http:// эсвэл https:// хаягаар нээнэ үү (file:// ажиллахгүй).'};
 const amsg=(m,ok)=>{A.msg=m;A.ok=!!ok;const e=$('#amsg');if(e){e.textContent=m;e.className=ok?'aok':'aerr'}};
 async function doAuth(f){
   const fd=new FormData(f),mode=f.dataset.f,e=(fd.get('e')||'').trim(),p=fd.get('p')||'',btn=f.querySelector('button[type=submit]');
@@ -578,7 +603,7 @@ async function doAuth(f){
   if(mode==='login'){btn.disabled=true;try{await AU.signInWithEmailAndPassword(auth,e,p)}catch(x){amsg(AUTH_ERR[x.code]||'Нэвтэрч чадсангүй. Дахин оролдоно уу.');btn.disabled=false}return}
   const n=(fd.get('n')||'').trim();
   if(!n)return amsg('Нэрээ оруулна уу.');
-  if(p.length<6)return amsg('Нууц үг хамгийн багадаа 6 тэмдэгттэй байна.');
+  if(p.length<8||!/[a-z]/.test(p)||!/[A-Z]/.test(p)||!/[0-9]/.test(p))return amsg('Нууц үг хамгийн багадаа 8 тэмдэгт, том үсэг, жижиг үсэг болон тоо агуулсан байх ёстой.');
   if(p!==(fd.get('p2')||''))return amsg('Хоёр нууц үг таарахгүй байна.');
   btn.disabled=true;regBusy=true;
   try{
@@ -586,7 +611,7 @@ async function doAuth(f){
     try{
       await FS.setDoc(FS.doc(db,'users',cred.user.uid),{name:n,nameLower:n.toLowerCase(),bio:'',createdAt:FS.serverTimestamp()});
     }catch(x){regBusy=false;await AU.signOut(auth);amsg('Профайл үүсгэж чадсангүй. Firestore-ийн дүрмээ (rules) шалгана уу.');btn.disabled=false;return}
-    regBusy=false;await startSession(cred.user);
+    regBusy=false;AU.sendEmailVerification(cred.user).catch(()=>{});await startSession(cred.user);
   }catch(x){regBusy=false;amsg(AUTH_ERR[x.code]||'Бүртгэл үүсгэж чадсангүй. Дахин оролдоно уу.');btn.disabled=false}
 }
 
@@ -609,10 +634,10 @@ async function startSession(u){
     unsubAll();U.clear();seenSent.clear();
     Object.assign(S,{me:{uid:u.uid,name:p.name,bio:p.bio||''},tab:'feed',thread:null,posts:[],mine:[],stories:[],friends:new Map(),reqIn:[],reqOut:new Set(),chats:new Map(),msgs:[],cm:new Map(),open:new Set(),people:[],q:'',draftImg:null,errShown:false,view:null,vposts:[],pq:'',cq:'',rxOpen:null,blocked:new Set(),blockedBy:new Set(),draftPhoto:null,stick:false,
       readMap:lsGet('nutag-read-'+u.uid,{}),seenMap:lsGet('nutag-seen-'+u.uid,{})});
-    subscribe();render();toast('Тавтай морил, '+S.me.name);
+    subscribe();heartbeat();render();toast('Тавтай морил, '+S.me.name);
   }catch(e){onErr(e);A.mode='login';amsg('Профайлаа уншиж чадсангүй. Firestore-ийн тохиргоогоо шалгана уу.');S.me=null;render()}
 }
-function endSession(){endCall(true);INC=null;recStop(false);unsubAll();clearTimeout(svT);const o=$('#ov');o.className='';o.innerHTML='';S.me=null;S.thread=null;A.mode='login';A.msg='';A.ok=false}
+function endSession(){clearInterval(hbT);endCall(true);INC=null;recStop(false);unsubAll();clearTimeout(svT);const o=$('#ov');o.className='';o.innerHTML='';S.me=null;S.thread=null;A.mode='login';A.msg='';A.ok=false}
 function subscribe(){
   const {collection,query,where,orderBy,limit,onSnapshot,Timestamp}=FS,uid=S.me.uid,on=(q,fn)=>subs.push(onSnapshot(q,fn,onErr));
   on(query(collection(db,'posts'),orderBy('createdAt','desc'),limit(50)),sn=>{S.posts=sn.docs.map(mapPost);refreshPosts()});
@@ -642,16 +667,18 @@ function subscribe(){
       notify('✉ '+(g?x.name:((x.names&&x.names[peer])||'Шинэ мессеж')),(g&&sender?sender+': ':'')+x.last,'chat-'+ch.doc.id)});
     rdy.chats=true;
     S.chats=new Map(sn.docs.map(d=>{const x=d.data({serverTimestamps:'estimate'}),g=!!x.group,peer=g?null:x.members.find(m=>m!==uid);
-      return [d.id,{group:g,members:x.members,peer,name:g?(x.name||'Бүлэг'):((x.names&&x.names[peer])||'Хэрэглэгч'),last:x.last||'',lastAt:tms(x.lastAt),lastFrom:x.lastFrom,seen:x.seen||{}}]}));
+      return [d.id,{group:g,members:x.members,peer,name:g?(x.name||'Бүлэг'):((x.names&&x.names[peer])||'Хэрэглэгч'),last:x.last||'',lastAt:tms(x.lastAt),lastFrom:x.lastFrom,seen:Object.fromEntries(Object.entries(x.seen||{}).map(([k,v])=>[k,tv(v)]))}]}));
     refreshChats();refreshNav();if(S.thread){refreshMsgs();markRead(S.thread.cid)}});
-  on(query(collection(db,'users'),limit(300)),sn=>{
-    sn.docChanges().forEach(ch=>{if(ch.type==='removed')U.delete(ch.doc.id);else{const x=ch.doc.data();U.set(ch.doc.id,{name:x.name||'Хэрэглэгч',bio:x.bio||'',photo:safeImg(x.photo)})}});
-    clearTimeout(uT);uT=setTimeout(refreshAll,120)});
+  on(query(collection(db,'users'),limit(300)),sn=>{let vis=false;
+    sn.docChanges().forEach(ch=>{if(ch.type==='removed'){U.delete(ch.doc.id);vis=true}else{
+      const x=ch.doc.data(),o=U.get(ch.doc.id),n={name:x.name||'Хэрэглэгч',bio:x.bio||'',photo:safeImg(x.photo),ls:tv(x.lastSeen)};
+      U.set(ch.doc.id,n);if(!o||o.name!==n.name||o.bio!==n.bio||o.photo!==n.photo)vis=true}});
+    if(vis){clearTimeout(uT);uT=setTimeout(refreshAll,120)}else if(S.thread&&!S.thread.group)$('#hd').innerHTML=headerHTML()});
   on(query(collection(db,'blocks'),where('by','==',uid)),sn=>{S.blocked=new Set(sn.docs.map(d=>d.data().target));refreshAll()});
   on(query(collection(db,'blocks'),where('target','==',uid)),sn=>{S.blockedBy=new Set(sn.docs.map(d=>d.data().by));refreshAll()});
   on(query(collection(db,'calls'),where('to','==',uid),where('status','==','ringing')),sn=>sn.docChanges().forEach(ch=>{
     if(ch.type==='added'){const d=ch.doc.data({serverTimestamps:'estimate'});
-      if(Date.now()-tms(d.createdAt)>60000)return;
+      if(Date.now()-tms(d.createdAt)>180000)return;
       if(CALL||INC){FS.updateDoc(ch.doc.ref,{status:'declined'}).catch(()=>{});return}
       showIncoming(ch.doc.id,d)}
     else if(ch.type==='removed'&&INC&&INC.id===ch.doc.id)closeIncoming()}));
@@ -678,37 +705,67 @@ function nextStory(){
 function prevStory(){if(S.sv.i>0)S.sv.i--;drawStory()}
 
 /* ---------- видео дуудлага (WebRTC, signaling = Firestore) ---------- */
-const ICE={iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}]};
-let CALL=null,INC=null;
+// Өөр сүлжээнээс (мобайл дата ↔ WiFi) холбогдоход TURN сервер заавал хэрэгтэй.
+// Жишээ: metered.ca эсвэл Cloudflare-ийн үнэгүй TURN бүртгэл авч энд оруулна:
+// const TURN=[{urls:['turn:HOST:443?transport=tcp','turns:HOST:443?transport=tcp'],username:'...',credential:'...'}];
+const TURN=[];
+const ICE={iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']},...TURN]};
+let CALL=null,INC=null,ringCtx=null,ringT=null;
 function callStatus(t){const s=$('.cinfo span');if(s)s.textContent=t}
+function ringStart(){
+  try{
+    ringCtx=ringCtx||new (window.AudioContext||window.webkitAudioContext)();if(ringCtx.resume)ringCtx.resume();
+    const beep=()=>{const o=ringCtx.createOscillator(),g=ringCtx.createGain();o.type='sine';o.frequency.value=520;g.gain.value=.12;o.connect(g);g.connect(ringCtx.destination);o.start();o.stop(ringCtx.currentTime+.35)};
+    clearInterval(ringT);beep();ringT=setInterval(()=>{beep();try{navigator.vibrate&&navigator.vibrate(300)}catch(_){}},1500);
+  }catch(_){}
+}
+function ringStop(){clearInterval(ringT);ringT=null}
+function playRemote(){
+  const rv=$('#rv'),lv=$('#lv');if(!rv)return;
+  const tap=()=>{const c=$('.call');if(c&&!$('.tapplay'))c.insertAdjacentHTML('beforeend',`<button class="btn tapplay" data-a="cplay">▶ Дарж эхлүүлэх</button>`)};
+  const go=v=>{const p=v.play();if(p&&p.catch)p.catch(tap)};go(rv);if(lv)go(lv);
+}
 function drawCall(st){
   const c=CALL;
   ov.innerHTML=`<div class="call"><video id="rv" autoplay playsinline></video><video id="lv" autoplay playsinline muted></video><div class="cinfo"><b>${esc(c.name)}</b><span>${st}</span></div><div class="cbar"><button class="cb" data-a="cmute" aria-label="Микрофон">${ic('mic',24)}</button><button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button><button class="cb end" data-a="cend" aria-label="Таслах">${ic('phone',24)}</button></div></div>`;
   ov.className='open';$('#lv').srcObject=c.local;$('#rv').srcObject=c.remote;
+  $('#rv').onloadedmetadata=playRemote;playRemote();
+}
+function connWatch(ms=25000){
+  const c=CALL;if(!c)return;clearTimeout(c.ct);
+  c.ct=setTimeout(()=>{if(CALL===c&&c.pc.connectionState!=='connected'){
+    toast(TURN.length?'Холбогдож чадсангүй. Интернэтээ шалгана уу.':'Сүлжээ холбогдсонгүй. Та хоёр өөр сүлжээнд (WiFi/дата) байвал TURN сервер хэрэгтэй.',5000);endCall(true)}},ms);
 }
 function makeCall(id,peer,name,local,mine){
-  const pc=new RTCPeerConnection(ICE),remote=new MediaStream(),{collection,addDoc,doc}=FS,q=[];
+  const pc=new RTCPeerConnection(ICE),remote=new MediaStream(),{collection,addDoc}=FS,q=[];
   CALL={id,peer,name,local,remote,pc,unsubs:[],q,ready:false,mine,over:false};
   local.getTracks().forEach(t=>pc.addTrack(t,local));
-  pc.ontrack=e=>e.streams[0]&&e.streams[0].getTracks().forEach(t=>{if(!remote.getTracks().includes(t))remote.addTrack(t)});
+  pc.ontrack=e=>{
+    const s=e.streams&&e.streams[0];if(!s)return;
+    if(CALL&&CALL.pc===pc)CALL.remote=s;
+    const rv=$('#rv');if(rv){if(rv.srcObject!==s)rv.srcObject=s;playRemote()}};
   const send=c=>addDoc(collection(db,'calls',id,mine),{c:JSON.stringify(c)}).catch(()=>{});
-  pc.onicecandidate=e=>{if(!e.candidate)return;if(CALL&&CALL.ready)send(e.candidate);else q.push(e.candidate)};
+  pc.onicecandidate=e=>{if(!e.candidate)return;if(CALL&&CALL.pc===pc&&CALL.ready)send(e.candidate);else q.push(e.candidate)};
   CALL.flush=()=>{CALL.ready=true;q.splice(0).forEach(send)};
-  pc.onconnectionstatechange=()=>{if(!CALL||CALL.pc!==pc)return;
-    if(pc.connectionState==='connected')callStatus('Холбогдсон');
-    if(pc.connectionState==='failed'){toast('Холбогдож чадсангүй');endCall(true)}};
+  pc.onconnectionstatechange=()=>{if(!CALL||CALL.pc!==pc)return;const s=pc.connectionState;
+    if(s==='connected'){clearTimeout(CALL.ct);clearTimeout(CALL.dt);callStatus('Холбогдсон')}
+    else if(s==='disconnected'){clearTimeout(CALL.dt);CALL.dt=setTimeout(()=>{if(CALL&&CALL.pc===pc&&pc.connectionState!=='connected'){toast('Холболт тасарлаа');endCall(true)}},8000)}
+    else if(s==='failed'){toast('Холбогдож чадсангүй');endCall(true)}};
   return pc;
 }
 function watchCands(col){const {collection,onSnapshot}=FS,pc=CALL.pc;
   CALL.unsubs.push(onSnapshot(collection(db,'calls',CALL.id,col),sn=>sn.docChanges().forEach(ch=>{if(ch.type==='added')pc.addIceCandidate(JSON.parse(ch.doc.data().c)).catch(()=>{})}),onErr))}
 async function getMedia(){
   if(!navigator.mediaDevices||!window.RTCPeerConnection)throw new Error('unsupported');
-  return navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:true});
+  try{return await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:true})}
+  catch(e){if(e&&(e.name==='NotFoundError'||e.name==='OverconstrainedError'))return navigator.mediaDevices.getUserMedia({audio:true});throw e}
 }
+const isOnline=u=>{const x=U.get(u);return !!(x&&x.ls&&Date.now()-x.ls<240000)};
 async function startCall(uid,name){
   if(CALL||INC)return;
   const {doc,setDoc,onSnapshot,serverTimestamp}=FS;let local;
-  try{local=await getMedia()}catch(e){toast('Камер/микрофоны зөвшөөрөл өгнө үү',3500);return}
+  try{local=await getMedia()}catch(e){toast(e&&e.name==='NotAllowedError'?'Камер/микрофоны зөвшөөрөл өгнө үү':'Камер/микрофон олдсонгүй',3500);return}
+  if(!isOnline(uid))toast(name+' одоогоор онлайн биш байна. Апп нээлттэй үед л дуудлага хүлээн авна.',4500);
   const id=chatId(S.me.uid,uid)+'_'+Date.now(),ref=doc(db,'calls',id);
   try{
     const pc=makeCall(id,uid,name,local,'callerCandidates');drawCall('Залгаж байна...');
@@ -717,40 +774,42 @@ async function startCall(uid,name){
     CALL.flush();
     let got=false;
     CALL.unsubs.push(onSnapshot(ref,async sn=>{const d=sn.data();if(!d||!CALL||CALL.id!==id)return;
-      if(d.answer&&!got){got=true;await pc.setRemoteDescription(d.answer);watchCands('calleeCandidates');callStatus('Холбогдож байна...')}
+      if(d.answer&&!got){got=true;await pc.setRemoteDescription(d.answer);watchCands('calleeCandidates');callStatus('Холбогдож байна...');connWatch()}
       if(d.status==='declined'){toast('Татгалзлаа');endCall(false)}
       else if(d.status==='ended'){toast('Дуудлага дууслаа');endCall(false)}},onErr));
-    CALL.timer=setTimeout(()=>{if(CALL&&CALL.id===id&&CALL.pc.connectionState!=='connected'){toast('Хариулсангүй');endCall(true)}},45000);
+    CALL.hint=setTimeout(()=>{if(CALL&&CALL.id===id&&!got)callStatus('Хариу хүлээж байна… (нөгөө тал апп-аа нээгээгүй байж магадгүй)')},12000);
+    CALL.timer=setTimeout(()=>{if(CALL&&CALL.id===id&&!got){toast('Хариулсангүй');endCall(true)}},45000);
   }catch(e){console.error(e);toast('Дуудлага эхлүүлж чадсангүй',3000);endCall(true)}
 }
 function showIncoming(id,d){
-  INC={id,d};notify('📹 Видео дуудлага',d.fromName+' залгаж байна','call-'+id);
+  INC={id,d};notify('📹 Видео дуудлага',d.fromName+' залгаж байна','call-'+id);ringStart();
   try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(_){}
   ov.innerHTML=`<div class="scrim"></div><div class="sheet" role="alertdialog"><h3>📹 ${esc(d.fromName)} залгаж байна</h3><div class="crow"><button class="btn line" data-a="cdec">Татгалзах</button><button class="btn" data-a="cacc">Хариулах</button></div></div>`;
   ov.className='open';
 }
-function closeIncoming(){INC=null;if(!CALL){ov.className='';ov.innerHTML=''}}
+function closeIncoming(){ringStop();INC=null;if(!CALL){ov.className='';ov.innerHTML=''}}
 async function acceptCall(){
-  if(!INC||CALL)return;const {id,d}=INC;INC=null;const {doc,updateDoc,onSnapshot}=FS;let local;
+  if(!INC||CALL)return;ringStop();const {id,d}=INC;INC=null;const {doc,updateDoc,onSnapshot}=FS;let local;
   try{local=await getMedia()}catch(e){toast('Камер/микрофоны зөвшөөрөл өгнө үү',3500);await updateDoc(doc(db,'calls',id),{status:'declined'}).catch(()=>{});ov.className='';ov.innerHTML='';return}
   try{
     const ref=doc(db,'calls',id),pc=makeCall(id,d.from,d.fromName,local,'calleeCandidates');drawCall('Холбогдож байна...');
     await pc.setRemoteDescription(d.offer);const ans=await pc.createAnswer();await pc.setLocalDescription(ans);
     await updateDoc(ref,{answer:{type:ans.type,sdp:ans.sdp},status:'active'});
-    CALL.flush();watchCands('callerCandidates');
+    CALL.flush();watchCands('callerCandidates');connWatch();
     CALL.unsubs.push(onSnapshot(ref,sn=>{const x=sn.data();if(CALL&&CALL.id===id&&x&&x.status==='ended'){toast('Дуудлага дууслаа');endCall(false)}},onErr));
   }catch(e){console.error(e);toast('Холбогдож чадсангүй',3000);endCall(true)}
 }
 async function declineCall(){
-  if(!INC)return;const {id}=INC;INC=null;ov.className='';ov.innerHTML='';
+  if(!INC)return;ringStop();const {id}=INC;INC=null;ov.className='';ov.innerHTML='';
   try{await FS.updateDoc(FS.doc(db,'calls',id),{status:'declined'})}catch(_){}
 }
 function endCall(tell){
-  const c=CALL;if(!c||c.over)return;c.over=true;CALL=null;clearTimeout(c.timer);
+  const c=CALL;if(!c||c.over)return;c.over=true;CALL=null;[c.timer,c.hint,c.ct,c.dt].forEach(clearTimeout);
   c.unsubs.forEach(u=>u());try{c.pc.close()}catch(_){}c.local.getTracks().forEach(t=>t.stop());
   if(tell&&db)FS.updateDoc(FS.doc(db,'calls',c.id),{status:'ended'}).catch(()=>{});
   ov.className='';ov.innerHTML='';
 }
+window.addEventListener('pagehide',()=>{if(CALL)endCall(true)});
 function toggleTrack(kind,btn){
   if(!CALL)return;const ts=kind==='audio'?CALL.local.getAudioTracks():CALL.local.getVideoTracks();
   const on=!(ts[0]&&ts[0].enabled);ts.forEach(t=>t.enabled=on);btn.classList.toggle('off',!on);
@@ -760,7 +819,7 @@ function toggleTrack(kind,btn){
 function markRead(cid){
   const c=S.chats.get(cid);S.readMap[cid]=Math.max(Date.now(),c?c.lastAt:0);lsSet('nutag-read-'+S.me.uid,S.readMap);refreshNav();
   if(S.thread&&S.thread.cid===cid&&c&&c.lastFrom&&c.lastFrom!==S.me.uid&&!document.hidden&&seenSent.get(cid)!==c.lastAt){
-    seenSent.set(cid,c.lastAt);FS.updateDoc(FS.doc(db,'chats',cid),{['seen.'+S.me.uid]:Date.now()}).catch(()=>{})}
+    seenSent.set(cid,c.lastAt);FS.updateDoc(FS.doc(db,'chats',cid),{['seen.'+S.me.uid]:FS.serverTimestamp()}).catch(()=>{})}
 }
 function openThread(uid,name,gid){
   const {collection,query,orderBy,limitToLast,onSnapshot}=FS,cid=gid||chatId(S.me.uid,uid);
@@ -870,6 +929,7 @@ document.addEventListener('click',async e=>{
     case 'cacc':acceptCall();break;
     case 'cdec':declineCall();break;
     case 'cend':endCall(true);break;
+    case 'cplay':{const x=b;document.querySelectorAll('.call video').forEach(v=>v.play().catch(()=>{}));x.remove();break}
     case 'cmute':toggleTrack('audio',b);break;
     case 'ccam':toggleTrack('video',b);break;
     case 'addstory':
@@ -894,6 +954,7 @@ document.addEventListener('click',async e=>{
     case 'theme':{const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
       r.dataset.theme=dark?'light':'dark';try{localStorage.setItem('nutag-theme',r.dataset.theme)}catch(_){}break}
     case 'notif':await askNotify();break;
+    case 'verify':await AU.sendEmailVerification(auth.currentUser);toast('Баталгаажуулах имэйл илгээлээ');break;
     case 'logout':await AU.signOut(auth);break;
   }
   }catch(err){console.error(err);toast(err&&err.code==='permission-denied'?'Эрх хүрэхгүй байна.':'Үйлдэл амжилтгүй боллоо. Дахин оролдоно уу.',3000)}
