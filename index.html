@@ -150,7 +150,10 @@ html,body{touch-action:manipulation}
 .cover{height:150px;overflow:hidden;margin:0 14px;border-radius:var(--r)}
 .cover svg{width:100%;height:100%;display:block}
 .pinfo{background:transparent;padding:0 18px 16px}
-.pinfo .av{margin-top:-40px;display:block;height:78px;position:relative;margin-left:10px}
+.pinfo .av{margin-top:-48px;display:block;height:92px;position:relative;margin-left:10px}
+.pav{display:block;width:var(--s);height:var(--s);border-radius:26%;overflow:hidden;background:var(--surface);border:3px solid var(--bg);box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:zoom-in;transition:transform .2s}
+.pav:active{transform:scale(.96)}
+.pav img{width:100%;height:100%;object-fit:contain;display:block}
 .pinfo h2{font-family:var(--display);font-weight:600;font-size:21px;margin:8px 0 0;letter-spacing:-.02em}
 .pinfo p{margin:8px 0 0}
 .stats{display:flex;gap:10px;margin:16px 0}
@@ -814,7 +817,9 @@ async function askNotify(){
   toast(p==='granted'?'Мэдэгдэл асалаа':'Мэдэгдэл зөвшөөрөгдсөнгүй');if(p==='granted')registerPush();
   $('#hd').innerHTML=headerHTML();
 }
-const ic=(n,s=22,f)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="${f?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
+/* дүрсүүд: нимгэн зураас + бүдэг дотор будалт (duotone). f=true бол бүрэн будагдана */
+const DUO=new Set(['home','users','chat','user','heart','bell','bookmark','image','video','smile','send','phone']);
+const ic=(n,s=22,f)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="${f?'currentColor':'none'}" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${DUO.has(n)&&!f?`<g fill="currentColor" fill-opacity=".14">${I[n]}</g>`:I[n]}</svg>`;
 
 /* ---------- helpers ---------- */
 const hashIdx=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;return h%PAL.length};
@@ -865,6 +870,16 @@ const EMO=['👍','❤️','😂','😮','😢','🔥'];
 function rxSum(rx){const m={};Object.entries(rx||{}).forEach(([u,e])=>{(m[e]=m[e]||[]).push(u)});
   return Object.entries(m).map(([e,us])=>`<span class="rxb ${us.includes(S.me.uid)?'mine':''}">${e}${us.length>1?' '+us.length:''}</span>`).join('')}
 const rxPick=(k,id)=>`<div class="rxp">${EMO.map(e=>`<button data-a="rx" data-k="${k}" data-id="${esc(id)}" data-e="${e}">${e}</button>`).join('')}</div>`;
+/* профайл зураг: бүтнээр нь багтаана (тайрахгүй), хоосон зайг бүдэг хуулбараар дүүргэнэ */
+async function fitSq(file,n){
+  const im=await loadImg(file),cv=document.createElement('canvas');cv.width=cv.height=n;const x=cv.getContext('2d');
+  x.fillStyle='#111';x.fillRect(0,0,n,n);
+  const k=Math.max(n/im.width,n/im.height);x.filter='blur(14px) brightness(.7)';x.drawImage(im,(n-im.width*k)/2,(n-im.height*k)/2,im.width*k,im.height*k);x.filter='none';
+  const f=Math.min(n/im.width,n/im.height),w=im.width*f,h=im.height*f;x.drawImage(im,(n-w)/2,(n-h)/2,w,h);
+  if(im.close)im.close();
+  let d='';for(const q of [.78,.65,.5,.4]){d=cv.toDataURL('image/jpeg',q);if(d.length<55000)break}  // Firestore-ийн 60000 тэмдэгтийн хязгаараас хэтрүүлэхгүй
+  return d;
+}
 async function cropSq(file,n){
   const im=await loadImg(file),k=Math.min(im.width,im.height);
   return drawTo(im,n,n,(im.width-k)/2,(im.height-k)/2,k,k).toDataURL('image/jpeg',.72);
@@ -896,7 +911,7 @@ function headerHTML(){
 function navHTML(){
   const items=[['feed','home','Мэдээ'],['friends','users','Найзууд'],['chat','chat','Чат'],['profile','user','Профайл']];
   const bd={friends:S.reqIn.length,chat:unreadChats()};
-  return items.map(([k,i,l])=>`<button data-a="tab" data-t="${k}" class="${S.tab===k?'on':''}" ${S.tab===k?'aria-current="page"':''}>${ic(i,23)}<span>${l}</span>${bd[k]?`<span class="badge">${bd[k]}</span>`:''}</button>`).join('');
+  return items.map(([k,i,l])=>`<button data-a="tab" data-t="${k}" class="${S.tab===k?'on':''}" ${S.tab===k?'aria-current="page"':''}>${ic(i,24,S.tab===k)}<span>${l}</span>${bd[k]?`<span class="badge">${bd[k]}</span>`:''}</button>`).join('');
 }
 function storyGroups(){
   const m=new Map();S.stories.filter(s=>!hid(s.uid)).forEach(s=>{if(!m.has(s.uid))m.set(s.uid,{uid:s.uid,name:s.name,list:[]});m.get(s.uid).list.push(s)});
@@ -1078,11 +1093,16 @@ function settingsHTML(){
 }
 function profileHTML(){
   const me=S.me;
-  return `<div class="cover">${cover()}</div><div class="pinfo"><span class="av">${av(me.uid,me.name,84,'new')}</span><h2>${esc(me.name)}</h2>${me.bio?`<p>${esc(me.bio)}</p>`:'<p class="mute">Танилцуулга нэмээгүй байна.</p>'}<div class="stats"><div><b>${S.mine.length}</b><span>Нийтлэл</span></div><div><b>${S.friends.size}</b><span>Найз</span></div></div><div class="pbtns"><button class="btn" data-a="editprofile">Профайл засах</button><button class="btn line" data-a="settings">⚙ Тохиргоо</button></div></div><div class="sec">Миний нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
+  return `<div class="cover">${cover()}</div><div class="pinfo"><span class="av">${pav(me.uid,me.name,96)}</span><h2>${esc(me.name)}</h2>${me.bio?`<p>${esc(me.bio)}</p>`:'<p class="mute">Танилцуулга нэмээгүй байна.</p>'}<div class="stats"><div><b>${S.mine.length}</b><span>Нийтлэл</span></div><div><b>${S.friends.size}</b><span>Найз</span></div></div><div class="pbtns"><button class="btn" data-a="editprofile">Профайл засах</button><button class="btn line" data-a="settings">⚙ Тохиргоо</button></div></div><div class="sec">Миний нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
+}
+/* профайл хуудасны том зураг: бүтэн харагдана, дарвал томорно */
+function pav(uid,name,s){
+  const ph=safeImg((U.get(uid)||{}).photo);if(!ph)return av(uid,name,s,'new');
+  return `<span class="pav" style="--s:${s}px" data-a="avzoom" data-id="${esc(uid)}" role="button" aria-label="Зургийг томруулах"><img src="${ph}" alt=""></span>`;
 }
 function userHTML(){
   const v=S.view,u=U.get(v.uid)||{name:v.name,bio:''},bl=S.blocked.has(v.uid);
-  return `<div class="cover">${cover()}</div><div class="pinfo"><span class="av">${av(v.uid,u.name,84,'new')}</span><h2>${esc(u.name)}</h2>${u.bio?`<p>${esc(u.bio)}</p>`:''}<div class="stats"><div><b>${S.vposts.length}</b><span>Нийтлэл</span></div></div><div class="pbtns">${bl?'':personAction(v.uid,u.name)+`<button class="btn sm line" data-a="ucall" data-id="${esc(v.uid)}" data-n="${esc(u.name)}" data-au="1" aria-label="Дуут дуудлага">${ic('phone',18)}</button><button class="btn sm line" data-a="ucall" data-id="${esc(v.uid)}" data-n="${esc(u.name)}" aria-label="Видео дуудлага">${ic('video',20)}</button>`}${S.friends.has(v.uid)&&!bl?`<button class="btn line" data-a="unfriend" data-id="${esc(v.uid)}">Найзаас хасах</button>`:''}<button class="btn line" data-a="${bl?'unblock':'block'}" data-id="${esc(v.uid)}">${bl?'Блокоос гаргах':'Блоклох'}</button><button class="btn line" data-a="report" data-id="${esc(v.uid)}" data-n="${esc(u.name)}">Гомдол</button></div></div><div class="sec">Нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
+  return `<div class="cover">${cover()}</div><div class="pinfo"><span class="av">${pav(v.uid,u.name,96)}</span><h2>${esc(u.name)}</h2>${u.bio?`<p>${esc(u.bio)}</p>`:''}<div class="stats"><div><b>${S.vposts.length}</b><span>Нийтлэл</span></div></div><div class="pbtns">${bl?'':personAction(v.uid,u.name)+`<button class="btn sm line" data-a="ucall" data-id="${esc(v.uid)}" data-n="${esc(u.name)}" data-au="1" aria-label="Дуут дуудлага">${ic('phone',18)}</button><button class="btn sm line" data-a="ucall" data-id="${esc(v.uid)}" data-n="${esc(u.name)}" aria-label="Видео дуудлага">${ic('video',20)}</button>`}${S.friends.has(v.uid)&&!bl?`<button class="btn line" data-a="unfriend" data-id="${esc(v.uid)}">Найзаас хасах</button>`:''}<button class="btn line" data-a="${bl?'unblock':'block'}" data-id="${esc(v.uid)}">${bl?'Блокоос гаргах':'Блоклох'}</button><button class="btn line" data-a="report" data-id="${esc(v.uid)}" data-n="${esc(u.name)}">Гомдол</button></div></div><div class="sec">Нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
 }
 function render(){
   if(!S.me){authRender();return}
@@ -1767,6 +1787,7 @@ document.addEventListener('click',async e=>{
     case 'sviews':{const s=S.sv&&S.sv.groups[S.sv.gi].list[S.sv.i];if(!s)break;clearTimeout(svT);const v=s.views.filter(u=>u!==S.me.uid);
       openSheet(`<h3>👁 Үзсэн (${v.length})</h3>${v.length?v.map(u=>`<div class="row" style="margin:0 0 6px;width:100%">${av(u,nmOf(u),36)}<div class="rt"><b>${esc(nmOf(u))}</b></div></div>`).join(''):'<p class="mute" style="margin:0">Одоохондоо хэн ч үзээгүй байна.</p>'}`);break}
     case 'rmimg':{S.draftImgs.splice(+b.dataset.i,1);drawPrev();break}
+    case 'avzoom':{const im=safeImg((U.get(id)||{}).photo);if(im){ov.innerHTML=`<div class="scrim" data-a="closeov"></div><img class="zoom" src="${im}" alt="">`;ov.className='open'}break}
     case 'pzoom':{const p=allPosts().find(x=>x.id===id),im=p&&safeImg((p.imgs.length?p.imgs:[p.img])[+b.dataset.i||0]);if(im){ov.innerHTML=`<div class="scrim" data-a="closeov"></div><img class="zoom" src="${im}" alt="">`;ov.className='open'}break}
     case 'add':{const to=id,nm=b.dataset.n,rid=S.me.uid+'_'+to;
       if(S.friends.has(to)||S.reqOut.has(to)){toast('Хүсэлт өмнө нь илгээгдсэн');break}
@@ -1877,7 +1898,7 @@ document.addEventListener('change',async e=>{
   }
   if(e.target.id==='pfile'){
     const f=e.target.files[0];if(!f)return;
-    try{S.draftPhoto=await cropSq(f,160);const ph=$('.phrow');if(ph&&ph.firstElementChild)ph.firstElementChild.outerHTML=`<span class="hx" style="--s:56px;background:url('${S.draftPhoto}') center/cover"></span>`;toast('Зураг сонгогдлоо. Хадгалах дарна уу.')}catch(er){console.warn('photo',er);toast('Зургийг уншиж чадсангүй. Өөр зураг сонгоно уу.',3500)}
+    try{S.draftPhoto=await fitSq(f,320);const ph=$('.phrow');if(ph&&ph.firstElementChild)ph.firstElementChild.outerHTML=`<span class="hx" style="--s:56px;background:url('${S.draftPhoto}') center/cover"></span>`;toast('Зураг сонгогдлоо. Хадгалах дарна уу.')}catch(er){console.warn('photo',er);toast('Зургийг уншиж чадсангүй. Өөр зураг сонгоно уу.',3500)}
   }
 });
 
