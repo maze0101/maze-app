@@ -37,7 +37,7 @@ async function verifyIdToken(tok, PROJECT_ID) {
 let acc = null;
 async function accessToken(env) {
   if (acc && acc.exp > Date.now() + 60e3) return acc.t;
-  const sa = JSON.parse(env.SERVICE_ACCOUNT);
+  const sa = JSON.parse(env.SERVICE_ACCOUNT.replace(/^﻿/, '').trim());
   const now = Math.floor(Date.now() / 1000);
   const head = b64uStr(enc.encode(JSON.stringify({alg: 'RS256', typ: 'JWT'})));
   const body = b64uStr(enc.encode(JSON.stringify({
@@ -148,7 +148,7 @@ export default {
     if (req.method === 'OPTIONS') return new Response(null, {status: 204, headers: cors});
     if (req.method !== 'POST') return new Response('maze-verify ok', {headers: cors});
     let status = 500;
-    try { status = await handle(req, env); } catch (e) { console.error('verify', e.message); status = /token|alg|kid/.test(e.message) ? 401 : /^mail/.test(e.message) ? 502 : 500; }
+    try { status = await handle(req, env); } catch (e) { console.error('verify', e.message); status = e.message === 'bad token' ? 401 : /^mail/.test(e.message) ? 502 : 500; }
     return new Response(null, {status, headers: cors});
   },
 };
