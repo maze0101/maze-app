@@ -898,8 +898,19 @@ function postsHTML(){
 }
 const prevHTML=()=>S.draftImgs.map((d,i)=>`<div class="pv"><img src="${d}" alt="Сонгосон зураг"><button type="button" data-a="rmimg" data-i="${i}" aria-label="Хасах">✕</button></div>`).join('');
 const drawPrev=()=>{const e=$('#prev');if(e)e.innerHTML=prevHTML()};
+/* шинэ хэрэглэгчид зориулсан товч заавар (нэг удаа, "Ойлголоо" дарвал алга болно) */
+function welcomeHTML(){
+  if(lsGet('maze-welcome-'+S.me.uid,false))return '';
+  return `<section class="card" style="padding:14px 16px;font-size:14px;line-height:1.6"><b style="font-size:16px">👋 Тавтай морил, ${esc(S.me.name)}!</b><div style="margin-top:6px">
+  <div>🏠 <b>Мэдээ</b> — нийтлэл бичиж, зураг оруул. Story нэм.</div>
+  <div>👥 <b>Найзууд</b> — хүн хайж «Нэмэх» дарж найзын хүсэлт илгээ.</div>
+  <div>💬 <b>Чат</b> — «Чат» дарж зурвас бич. Дээд талын 📞 дуут, 📹 видео дуудлага. Найз биш хүнд ч залгаж болно.</div>
+  <div>👤 <b>Профайл</b> — нэр, танилцуулга, тохиргоо (⚙).</div>
+  <div>🔔 <b>Хонх</b> — лайк, сэтгэгдэл, найзын хүсэлтийн мэдэгдэл.</div></div>
+  <button class="btn sm" data-a="wdis" style="margin-top:10px">Ойлголоо</button></section>`;
+}
 function feedHTML(){
-  return verifyHTML()+storiesHTML()+`<section class="card composer"><form data-f="post"><div class="top">${av(S.me.uid,S.me.name,42)}<textarea id="cmp" rows="2" maxlength="2000" placeholder="Юу бодож байна?" aria-label="Шинэ нийтлэл"></textarea></div><div id="prev">${prevHTML()}</div><div class="bar"><label class="chip">${ic('image',18)}Зураг<input type="file" id="file" accept="image/*" multiple class="vh"></label><button class="btn" type="submit">Нийтлэх</button></div></form></section><div class="tabs2" role="tablist"><button data-a="ftab" data-v="all" class="${S.feedTab==='all'?'on':''}">Бүгд</button><button data-a="ftab" data-v="friends" class="${S.feedTab==='friends'?'on':''}">Найзууд</button><button data-a="ftab" data-v="saved" class="${S.feedTab==='saved'?'on':''}">Хадгалсан</button></div><input class="search" id="pq" placeholder="Нийтлэл хайх (#таг)" aria-label="Нийтлэл хайх" value="${esc(S.pq)}" autocomplete="off"><div id="posts">${postsHTML()}</div>`;
+  return verifyHTML()+welcomeHTML()+storiesHTML()+`<section class="card composer"><form data-f="post"><div class="top">${av(S.me.uid,S.me.name,42)}<textarea id="cmp" rows="2" maxlength="2000" placeholder="Юу бодож байна?" aria-label="Шинэ нийтлэл"></textarea></div><div id="prev">${prevHTML()}</div><div class="bar"><label class="chip">${ic('image',18)}Зураг<input type="file" id="file" accept="image/*" multiple class="vh"></label><button class="btn" type="submit">Нийтлэх</button></div></form></section><div class="tabs2" role="tablist"><button data-a="ftab" data-v="all" class="${S.feedTab==='all'?'on':''}">Бүгд</button><button data-a="ftab" data-v="friends" class="${S.feedTab==='friends'?'on':''}">Найзууд</button><button data-a="ftab" data-v="saved" class="${S.feedTab==='saved'?'on':''}">Хадгалсан</button></div><input class="search" id="pq" placeholder="Нийтлэл хайх (#таг)" aria-label="Нийтлэл хайх" value="${esc(S.pq)}" autocomplete="off"><div id="posts">${postsHTML()}</div>`;
 }
 function verifyHTML(){const u=auth&&auth.currentUser;return u&&!u.emailVerified?`<section class="card composer" style="display:flex;gap:10px;align-items:center"><span style="flex:1;font-size:14px">📧 Имэйлээ баталгаажуулна уу. Баталгаажуулах холбоос имэйл рүү чинь илгээгдсэн.</span><button class="btn sm line" data-a="verify">Дахин илгээх</button></section>`:''}
 function personAction(uid,name){
@@ -917,9 +928,9 @@ function friendLists(){
   const ri=S.reqIn.filter(r=>f(r.fromName)&&!hid(r.from));
   if(ri.length)h+=`<div class="sec">Найзын хүсэлт</div>`+ri.map(r=>row(r.from,r.fromName,`<button class="btn sm" data-a="accept" data-id="${esc(r.id)}">Зөвшөөрөх</button><button class="btn sm line" data-a="decline" data-id="${esc(r.id)}">Устгах</button>`)).join('');
   const fr=[...S.friends.entries()].filter(([u,n])=>f(n)&&!hid(u));
-  h+=`<div class="sec">Найзууд (${fr.length})</div>`+(fr.length?fr.map(([u,n])=>row(u,n,personAction(u,n))).join(''):`<div class="empty">${q?'Ийм найз олдсонгүй.':'Найз байхгүй байна. Доороос хүн хайж нэмээрэй.'}</div>`);
+  h+=`<div class="sec">Найзууд (${fr.length})</div>`+(fr.length?fr.map(([u,n])=>row(u,n,personAction(u,n))).join(''):`<div class="empty">${q?'Ийм найз олдсонгүй.':'Найз байхгүй байна. Доорх «Хүмүүс» хэсгээс «Нэмэх» дарж найзын хүсэлт илгээ.'}</div>`);
   const pp=[...U.entries()].map(([uid,x])=>({uid,name:x.name})).filter(p=>p.uid!==S.me.uid&&!S.friends.has(p.uid)&&!S.reqIn.some(r=>r.from===p.uid)&&!hid(p.uid)&&f(p.name)).slice(0,60);
-  h+=`<div class="sec">Хүмүүс</div>`+(pp.length?pp.map(p=>row(p.uid,p.name,personAction(p.uid,p.name))).join(''):`<div class="empty">${q?'Ийм хүн олдсонгүй.':'Одоохондоо өөр хэрэглэгч алга.'}</div>`);
+  h+=`<div class="sec">Хүмүүс</div><p class="mute" style="padding:0 18px 8px;font-size:13px;line-height:1.5">«Нэмэх» — найзын хүсэлт илгээнэ. «Чат» — найз болохгүйгээр ч зурвас бичиж, залгаж болно. Нэр дээр дарж профайлыг нь үз.</p>`+(pp.length?pp.map(p=>row(p.uid,p.name,personAction(p.uid,p.name))).join(''):`<div class="empty">${q?'Ийм хүн олдсонгүй.':'Одоохондоо өөр хэрэглэгч алга.'}</div>`);
   return h;
 }
 function friendsHTML(){return `<input class="search" id="fq" placeholder="Нэрээр хайх" aria-label="Нэрээр хайх" value="${esc(S.q)}" autocomplete="off"><div id="flist">${friendLists()}</div>`}
@@ -1513,6 +1524,7 @@ document.addEventListener('click',async e=>{
   if(a==='vresend'){b.disabled=true;try{await sendVerify(auth.currentUser);amsg('Баталгаажуулах имэйл дахин илгээлээ. Ирэхгүй бол Spam / Promotions хавтсаа шалгаарай.',true)}catch(x){console.warn('verify resend',x&&x.code||x);amsg(x.code==='auth/too-many-requests'?'Хэт олон удаа илгээлээ. Түр хүлээгээд дахин оролдоно уу.':'Илгээж чадсангүй ('+(x.code||'алдаа')+'). Дахин оролдоно уу.')}b.disabled=false;return}
   if(a==='vout'){vfStop();await AU.signOut(auth);return}
   if(!S.me)return;
+  if(a==='wdis'){lsSet('maze-welcome-'+S.me.uid,true);render();return}
   if(a==='ucall'){startCall(id,b.dataset.n,!!b.dataset.au);return}
   const {doc,updateDoc,deleteDoc,setDoc,addDoc,collection,writeBatch,serverTimestamp,arrayUnion,arrayRemove,increment,query,orderBy,limit,onSnapshot,deleteField}=FS;
   const allPosts=()=>[...S.posts,...S.mine,...S.vposts],nmOf=u=>(U.get(u)||{}).name||S.friends.get(u)||'Хэрэглэгч';
