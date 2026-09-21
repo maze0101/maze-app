@@ -636,6 +636,8 @@ body{letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
 // Firebase console → Project settings → Your apps → Web → "firebaseConfig"-ийг энд буулгана
 // Push сервер (push-worker/ -г Cloudflare дээр deploy хийсний дараа энд URL-ийг бичнэ). Хоосон бол ажиллахгүй.
 const PUSH_URL = "";
+// Имэйл кодоор баталгаажуулах сервер (api/verify.js-ийн Vercel хаяг, жишээ: "https://xxx.vercel.app/api/verify"). Хоосон бол Firebase-ийн холбоосоор баталгаажуулна.
+const VERIFY_URL = "";
 const CFG = {
   apiKey: "AIzaSyCJEwPemIWrJcHq7MxVhnWXVDG0aF4qg4U",
   authDomain: "tsogtoo-42b99.firebaseapp.com",
@@ -881,7 +883,7 @@ function storiesHTML(){
 }
 function postHTML(p){
   const open=S.open.has(p.id),liked=p.likes.includes(S.me.uid),img=safeImg(p.img),ims=p.imgs.map(safeImg).filter(Boolean).slice(0,4);
-  const cms=open?`<div class="cms">${(S.cm.get(p.id)||[]).map(c=>`<div class="cm">${av(c.uid,c.name,30)}<div class="bb"><b>${esc(c.name)}</b>${esc(c.text)}</div></div>`).join('')}<form class="cmf" data-f="comment" data-id="${esc(p.id)}"><input data-cin="${esc(p.id)}" placeholder="Сэтгэгдэл бичих" aria-label="Сэтгэгдэл бичих" autocomplete="off" maxlength="500"><button class="btn sm" type="submit">Илгээх</button></form></div>`:'';
+  const cms=open?`<div class="cms">${(S.cm.get(p.id)||[]).map(c=>`<div class="cm">${av(c.uid,c.name,30)}<div class="bb"><b>${esc(c.name)}</b>${hashLink(esc(c.text))}</div></div>`).join('')}<form class="cmf" data-f="comment" data-id="${esc(p.id)}"><input data-cin="${esc(p.id)}" placeholder="Сэтгэгдэл бичих" aria-label="Сэтгэгдэл бичих" autocomplete="off" maxlength="500"><button class="btn sm" type="submit">Илгээх</button></form></div>`:'';
   const nm=(U.get(p.uid)||{}).name||p.name,uattr=`data-a="user" data-id="${esc(p.uid)}" data-n="${esc(nm)}"`,mine=p.uid===S.me.uid;
   return `<article class="post"><div class="ph"><span ${uattr}>${av(p.uid,nm,42)}</span><div ${uattr}><b>${esc(nm)}</b><span class="mute">${ago(p.t)}${p.ed?' · засварласан':''}</span></div>${mine?`<button class="del" data-a="editpost" data-id="${esc(p.id)}">Засах</button><button class="del" data-a="delpost" data-id="${esc(p.id)}">Устгах</button>`:`<button class="del" data-a="pmenu" data-id="${esc(p.uid)}" data-p="${esc(p.id)}" data-n="${esc(nm)}" aria-label="Цэс">${ic('more',20)}</button>`}</div>${p.text?`<p>${hashLink(esc(p.text))}</p>`:''}${ims.length>1?`<div class="igrid n${ims.length}">${ims.map((s,i)=>`<img src="${s}" alt="" data-a="pzoom" data-id="${esc(p.id)}" data-i="${i}">`).join('')}</div>`:img?`<div class="art"><img src="${img}" alt="" data-a="pzoom" data-id="${esc(p.id)}" data-i="0" style="cursor:zoom-in"></div>`:''}<div class="pa"><button data-a="like" data-id="${esc(p.id)}" class="${liked?'liked':''}" aria-pressed="${liked}">${ic('heart',20,liked)}${p.likes.length}</button><button data-a="cm" data-id="${esc(p.id)}">${ic('chat',20)}${p.cc}</button><button data-a="rxo" data-id="${esc(p.id)}" aria-label="Реакц">${ic('smile',20)}</button><span class="rxs">${rxSum(p.rx)}</span><button data-a="bm" data-id="${esc(p.id)}" class="bmb${bmGet().has(p.id)?' liked':''}" aria-label="Хадгалах" style="margin-left:auto">${ic('bookmark',20,bmGet().has(p.id))}</button></div>${S.rxOpen===p.id?rxPick('p',p.id):''}${cms}</article>`;
 }
@@ -943,7 +945,7 @@ function msgsHTML(){
   let lm=-1;vis.forEach((m,i)=>{if(m.f===S.me.uid)lm=i});
   return vis.map((m,i)=>{
     const me=m.f===S.me.uid,dl=m.del,im=dl?'':safeImg(m.img),au=dl?'':safeAud(m.aud);
-    const body=(dl?'':(m.fw?'<span class="fwl">↪ Дамжуулсан</span>':'')+(m.re?`<div class="qt"><b>${esc(m.re.n||'')}</b>${esc(m.re.t||'')}</div>`:''))+(im?`<img class="mimg" src="${im}" data-a="zoom" data-id="${esc(m.id)}" alt="Зураг">`:'')+(au?`<audio controls preload="none" src="${au}"></audio>`:'')+(m.t&&!dl?`<span>${esc(m.t)}</span>`:'')+(dl?'<span class="mdel">🚫 Мессеж устгагдсан</span>':'');
+    const body=(dl?'':(m.fw?'<span class="fwl">↪ Дамжуулсан</span>':'')+(m.re?`<div class="qt"><b>${esc(m.re.n||'')}</b>${esc(m.re.t||'')}</div>`:''))+(im?`<img class="mimg" src="${im}" data-a="zoom" data-id="${esc(m.id)}" alt="Зураг">`:'')+(au?`<audio controls preload="none" src="${au}"></audio>`:'')+(m.t&&!dl?`<span>${hashLink(esc(m.t))}</span>`:'')+(dl?'<span class="mdel">🚫 Мессеж устгагдсан</span>':'');
     let seen='';
     if(i===lm){const os=(th.group?(c.members||[]):[th.uid]).filter(u=>u!==S.me.uid),n=os.filter(u=>(sn[u]||0)>=m.ms).length;if(n)seen=`<span class="seenl">${th.group?'Үзсэн '+n:'Үзсэн ✓'}</span>`}
     const rb=dl?'':rxSum(m.rx),who=th.group&&!me?`<span class="mn">${esc((U.get(m.f)||{}).name||m.fn||'')}</span>`:'';
@@ -994,7 +996,7 @@ function profileHTML(){
 }
 function userHTML(){
   const v=S.view,u=U.get(v.uid)||{name:v.name,bio:''},bl=S.blocked.has(v.uid);
-  return `<div class="cover">${cover()}</div><div class="pinfo"><span class="av">${av(v.uid,u.name,84,'new')}</span><h2>${esc(u.name)}</h2>${u.bio?`<p>${esc(u.bio)}</p>`:''}<div class="stats"><div><b>${S.vposts.length}</b><span>Нийтлэл</span></div></div><div class="pbtns">${bl?'':personAction(v.uid,u.name)}<button class="btn line" data-a="${bl?'unblock':'block'}" data-id="${esc(v.uid)}">${bl?'Блокоос гаргах':'Блоклох'}</button><button class="btn line" data-a="report" data-id="${esc(v.uid)}" data-n="${esc(u.name)}">Гомдол</button></div></div><div class="sec">Нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
+  return `<div class="cover">${cover()}</div><div class="pinfo"><span class="av">${av(v.uid,u.name,84,'new')}</span><h2>${esc(u.name)}</h2>${u.bio?`<p>${esc(u.bio)}</p>`:''}<div class="stats"><div><b>${S.vposts.length}</b><span>Нийтлэл</span></div></div><div class="pbtns">${bl?'':personAction(v.uid,u.name)+`<button class="btn sm line" data-a="ucall" data-id="${esc(v.uid)}" data-n="${esc(u.name)}" data-au="1" aria-label="Дуут дуудлага">${ic('phone',18)}</button><button class="btn sm line" data-a="ucall" data-id="${esc(v.uid)}" data-n="${esc(u.name)}" aria-label="Видео дуудлага">${ic('video',20)}</button>`}<button class="btn line" data-a="${bl?'unblock':'block'}" data-id="${esc(v.uid)}">${bl?'Блокоос гаргах':'Блоклох'}</button><button class="btn line" data-a="report" data-id="${esc(v.uid)}" data-n="${esc(u.name)}">Гомдол</button></div></div><div class="sec">Нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
 }
 function render(){
   if(!S.me){authRender();return}
@@ -1075,6 +1077,13 @@ function setupRender(){
   <li>Файлыг <code>http://</code> эсвэл <code>https://</code> хаягаар нээ (жишээ: <code>python3 -m http.server</code> ажиллуулаад <code>localhost:8000</code>). <code>file://</code> хаягаар Firebase нэвтрэлт ажиллахгүй</li></ol></div>`;
 }
 
+/* ---------- имэйл баталгаажуулах: VERIFY_URL байвал 6 оронтой код, үгүй бол Firebase холбоос ---------- */
+async function vcall(u,body){
+  const t=await u.getIdToken(),r=await fetch(VERIFY_URL,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+t},body:JSON.stringify(body)});
+  if(!r.ok){const e=new Error('verify '+r.status);e.status=r.status;e.code=r.status===429?'auth/too-many-requests':'http/'+r.status;throw e}
+}
+const sendVerify=u=>VERIFY_URL?vcall(u,{kind:'send'}):AU.sendEmailVerification(u);
+
 /* ---------- бүртгэл ---------- */
 const AUTH_ERR={'auth/email-already-in-use':'Энэ имэйл бүртгэлтэй байна. Нэвтрэх хэсгээр орно уу.','auth/invalid-email':'Имэйл хаяг буруу байна.','auth/weak-password':'Нууц үг хэт сул байна.','auth/password-does-not-meet-requirements':'Нууц үг хамгийн багадаа 8 тэмдэгт, том үсэг, жижиг үсэг болон тоо агуулсан байх ёстой.','auth/invalid-credential':'Имэйл эсвэл нууц үг буруу байна.','auth/user-not-found':'Имэйл эсвэл нууц үг буруу байна.','auth/wrong-password':'Имэйл эсвэл нууц үг буруу байна.','auth/too-many-requests':'Хэт олон оролдлого хийлээ. Түр хүлээгээд дахин оролдоно уу.','auth/network-request-failed':'Интернэт холболтоо шалгана уу.','auth/operation-not-allowed':'Firebase дээр Email/Password нэвтрэлт идэвхжээгүй байна.','auth/operation-not-supported-in-this-environment':'Файлыг http:// эсвэл https:// хаягаар нээнэ үү (file:// ажиллахгүй).'};
 const amsg=(m,ok)=>{A.msg=m;A.ok=!!ok;const e=$('#amsg');if(e){e.textContent=m;e.className=ok?'aok':'aerr'}};
@@ -1093,8 +1102,11 @@ async function doAuth(f){
     const cred=await AU.createUserWithEmailAndPassword(auth,e,p);
     try{
       await FS.setDoc(FS.doc(db,'users',cred.user.uid),{name:n,nameLower:n.toLowerCase(),bio:'',createdAt:FS.serverTimestamp()});
-    }catch(x){regBusy=false;await AU.signOut(auth);amsg('Профайл үүсгэж чадсангүй. Firestore-ийн дүрмээ (rules) шалгана уу.');btn.disabled=false;return}
-    regBusy=false;AU.sendEmailVerification(cred.user).catch(()=>{});await startSession(cred.user);
+    }catch(x){console.warn('profile create',x&&x.code||x);try{await AU.signOut(auth)}catch(_){}regBusy=false;amsg('Профайл үүсгэж чадсангүй. Firestore-ийн дүрмээ (rules) шалгана уу.');btn.disabled=false;return}
+    let vErr=null;try{await sendVerify(cred.user)}catch(y){vErr=y;console.warn('verify email',y&&y.code||y)}
+    regBusy=false;await startSession(cred.user);
+    if(vErr)amsg(vErr.code==='auth/too-many-requests'?'Хэт олон удаа илгээлээ. Түр хүлээгээд "Дахин илгээх" дарна уу.':'Имэйл илгээж чадсангүй. "Дахин илгээх" товчийг дарна уу.');
+    else if(VERIFY_URL)amsg('Баталгаажуулах кодыг имэйл рүү илгээлээ.',true);
   }catch(x){regBusy=false;amsg(AUTH_ERR[x.code]||'Бүртгэл үүсгэж чадсангүй. Дахин оролдоно уу.');btn.disabled=false}
 }
 
@@ -1117,9 +1129,9 @@ function verifyScreen(u){
   $('#hd').style.display='none';$('#hd').innerHTML='';$('#nav').style.display='none';
   const m=$('#main');m.className='';
   m.innerHTML=`<div class="auth"><div class="logo">${LOGO}MAZE APP</div><h2 style="margin:8px 0 0">📧 Имэйлээ баталгаажуулна уу</h2>
-  <p class="lead">Баталгаажуулах холбоосыг <b>${esc(u.email||'')}</b> хаяг руу илгээлээ. Имэйлээ нээгээд холбоос дээр дарна уу (Spam хавтсыг мөн шалгаарай).</p>
+  <p class="lead">Баталгаажуулах ${VERIFY_URL?'кодыг':'холбоосыг'} <b>${esc(u.email||'')}</b> хаяг руу илгээлээ. Имэйлээ нээгээд ${VERIFY_URL?'кодыг оруулна уу':'холбоос дээр дарна уу'} (Spam хавтсыг мөн шалгаарай).</p>
   <div id="amsg" class="aok" role="alert"></div>
-  <button class="btn" data-a="vcheck">Баталгаажуулсан</button>
+  ${VERIFY_URL?`<label class="fld">6 оронтой код<input id="vcode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*" placeholder="000000"></label><button class="btn" data-a="vcode">Баталгаажуулах</button>`:`<button class="btn" data-a="vcheck">Баталгаажуулсан</button>`}
   <button class="btn line" data-a="vresend" style="margin-top:10px">Дахин илгээх</button>
   <button class="link" data-a="vout">Өөр акаунтаар нэвтрэх</button></div>`;
   vfT=setInterval(()=>vfCheck(true),4000);
@@ -1318,7 +1330,10 @@ const presence=u=>{if(isOnline(u))return '<span class="pres on">● Онлайн
 const avd=(u,nm,s)=>'<span class="avd">'+av(u,nm,s)+(isOnline(u)?'<i></i>':'')+'</span>';
 const cpref=cid=>S.prefs[cid]||{};
 const setPref=(cid,k,v)=>{const p=Object.assign({},S.prefs[cid]);if(v)p[k]=1;else delete p[k];if(Object.keys(p).length)S.prefs[cid]=p;else delete S.prefs[cid];lsSet('maze-cp-'+S.me.uid,S.prefs)};
-const hashLink=s=>s.replace(/(^|[\s>])#([\p{L}\p{N}_]{1,30})/gu,'$1<a class="ht" data-a="tag" data-t="$2">#$2</a>');
+/* escape хийсэн текст доторх http(s) холбоос болон #tag-ийг дарж болох болгоно */
+const hashLink=s=>s.replace(/(https?:\/\/(?:(?!&quot;|&#39;|&lt;|&gt;)\S)+)|(^|[\s>])#([\p{L}\p{N}_]{1,30})/gu,(m,u,pre,t)=>{
+  if(u){const x=u.match(/[.,!?;:)\]]+$/),tr=x?x[0]:'',url=tr?u.slice(0,-tr.length):u;return '<a class="ht" href="'+url+'" target="_blank" rel="noopener noreferrer nofollow">'+url+'</a>'+tr}
+  return pre+'<a class="ht" data-a="tag" data-t="'+t+'">#'+t+'</a>'});
 async function startCall(uid,name,audio){
   if(CALL||INC)return;
   const {doc,setDoc,onSnapshot,serverTimestamp}=FS;let local;
@@ -1491,9 +1506,14 @@ document.addEventListener('click',async e=>{
       if(c!=='auth/popup-closed-by-user'&&c!=='auth/cancelled-popup-request')amsg(c==='auth/operation-not-allowed'||c==='auth/configuration-not-found'?'Google нэвтрэлт Firebase дээр идэвхжээгүй байна.':c==='auth/unauthorized-domain'?'Энэ домэйн Firebase дээр зөвшөөрөгдөөгүй байна.':c==='auth/network-request-failed'?'Интернэт холболтоо шалгана уу.':'Google-ээр нэвтэрч чадсангүй. Дахин оролдоно уу.')}
     b.disabled=false;return}
   if(a==='vcheck'){b.disabled=true;await vfCheck(false);b.disabled=false;return}
-  if(a==='vresend'){b.disabled=true;try{await AU.sendEmailVerification(auth.currentUser);amsg('Баталгаажуулах имэйл дахин илгээлээ.',true)}catch(x){amsg(x.code==='auth/too-many-requests'?'Хэт олон удаа илгээлээ. Түр хүлээгээд дахин оролдоно уу.':'Илгээж чадсангүй. Дахин оролдоно уу.')}b.disabled=false;return}
+  if(a==='vcode'){const c=(($('#vcode')||{}).value||'').trim();if(!/^\d{6}$/.test(c))return amsg('6 оронтой кодоо оруулна уу.');b.disabled=true;
+    try{await vcall(auth.currentUser,{kind:'check',code:c});await vfCheck(false)}
+    catch(x){amsg(x.status===403?'Код буруу байна.':x.status===410?'Кодын хугацаа дууссан. "Дахин илгээх" дарна уу.':x.status===429?'Хэт олон оролдлоо. Түр хүлээгээд "Дахин илгээх" дарж шинэ код аваарай.':'Баталгаажуулж чадсангүй. Дахин оролдоно уу.')}
+    b.disabled=false;return}
+  if(a==='vresend'){b.disabled=true;try{await sendVerify(auth.currentUser);amsg('Баталгаажуулах имэйл дахин илгээлээ. Ирэхгүй бол Spam / Promotions хавтсаа шалгаарай.',true)}catch(x){console.warn('verify resend',x&&x.code||x);amsg(x.code==='auth/too-many-requests'?'Хэт олон удаа илгээлээ. Түр хүлээгээд дахин оролдоно уу.':'Илгээж чадсангүй ('+(x.code||'алдаа')+'). Дахин оролдоно уу.')}b.disabled=false;return}
   if(a==='vout'){vfStop();await AU.signOut(auth);return}
   if(!S.me)return;
+  if(a==='ucall'){startCall(id,b.dataset.n,!!b.dataset.au);return}
   const {doc,updateDoc,deleteDoc,setDoc,addDoc,collection,writeBatch,serverTimestamp,arrayUnion,arrayRemove,increment,query,orderBy,limit,onSnapshot,deleteField}=FS;
   const allPosts=()=>[...S.posts,...S.mine,...S.vposts],nmOf=u=>(U.get(u)||{}).name||S.friends.get(u)||'Хэрэглэгч';
   try{

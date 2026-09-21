@@ -296,7 +296,7 @@ service cloud.firestore {
         && isStr(request.resource.data.fromName, 40)
         && isStr(request.resource.data.toName, 40)
         && stamped()
-        && exists(/databases/$(database)/documents/friendships/$(pairId(request.resource.data.from, request.resource.data.to)))
+        // найз биш ч дуудаж болно (блоклоогүй л бол)
         && !exists(/databases/$(database)/documents/blocks/$(request.resource.data.from + '_' + request.resource.data.to))
         && !exists(/databases/$(database)/documents/blocks/$(request.resource.data.to + '_' + request.resource.data.from));
       allow update: if signedIn()
