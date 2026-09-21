@@ -272,6 +272,26 @@ html,body{touch-action:manipulation}
 .rpb{display:flex;align-items:center;gap:8px;margin:0 14px;padding:8px 12px;border-left:3px solid var(--sky);background:var(--surface);border-radius:10px;font-size:13px}
 .rpb span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rpb button{color:var(--mute);padding:2px 6px}
+/* товчийг дарахад хялбар болгох: том дарагдах талбар, тод дарагдсан байдал, идэвхгүй төлөв */
+button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.ib{width:44px;height:44px}
+.btn{min-height:40px}.btn.sm{min-height:36px}
+.del,.rpb button,.mrxb,.pa button,.tabs2 button,.seg button,.link{position:relative}
+.del::after,.rpb button::after,.mrxb::after,.pa button::after,.link::after{content:"";position:absolute;inset:-8px}
+.pa button{min-height:40px}
+button:disabled,.btn:disabled{opacity:.5;cursor:default;pointer-events:none;box-shadow:none}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.btn:active,.ib:active,.chip:active,.seg button:active,.tabs2 button:active,.del:active,.link:active{opacity:.8}
+.rpb{animation:rpin .22s cubic-bezier(.2,.8,.2,1)}
+@keyframes rpin{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+/* мессежийг баруун тийш шудрахад хариулах */
+.mw[data-mid]{position:relative}
+.mw[data-mid] .mline{touch-action:pan-y}
+.mw.swp{user-select:none;-webkit-user-select:none}
+.swr{position:absolute;left:-34px;top:50%;margin-top:-15px;width:30px;height:30px;border-radius:50%;background:var(--surface);border:1px solid var(--line);color:var(--sky);display:grid;place-items:center;font-size:16px;opacity:0;pointer-events:none;transition:background .15s,color .15s}
+.mw.me .swr{left:auto;right:auto;left:-34px}
+.swr.hit{background:var(--sky);color:#fff;animation:swpop .25s ease}
+@keyframes swpop{50%{transform:scale(1.25)}}
 .qt{border-left:3px solid currentColor;opacity:.85;padding:2px 8px;margin-bottom:5px;font-size:12.5px;border-radius:4px;background:rgba(127,127,127,.15);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .qt b{display:block;font-weight:600}
 .fwl{display:block;font-size:11.5px;opacity:.75;margin-bottom:3px}
@@ -960,7 +980,7 @@ function msgsHTML(){
     let seen='';
     if(i===lm){const os=(th.group?(c.members||[]):[th.uid]).filter(u=>u!==S.me.uid),n=os.filter(u=>(sn[u]||0)>=m.ms).length;if(n)seen=`<span class="seenl">${th.group?'Үзсэн '+n:'Үзсэн ✓'}</span>`}
     const rb=dl?'':rxSum(m.rx),who=th.group&&!me?`<span class="mn">${esc((U.get(m.f)||{}).name||m.fn||'')}</span>`:'';
-    return `<div class="mw ${me?'me':'them'}">${who}<div class="mline"><div class="b ${me?'me':'them'}">${body}<span class="bt">${hhmm(m.ms)}${m.ed&&!dl?' · засварласан':''}</span></div>${dl?'':`<button class="mrxb" data-a="mrx" data-id="${esc(m.id)}" aria-label="Реакц">${ic('smile',16)}</button>`}${!dl?`<button class="mrxb" data-a="mmenu" data-id="${esc(m.id)}" aria-label="Цэс">${ic('more',16)}</button>`:''}</div>${rb?`<div class="rxs">${rb}</div>`:''}${S.rxOpen===m.id&&!dl?rxPick('m',m.id):''}${seen}</div>`}).join('');
+    return `<div class="mw ${me?'me':'them'}"${dl?'':` data-mid="${esc(m.id)}"`}>${who}<div class="mline"><div class="b ${me?'me':'them'}">${body}<span class="bt">${hhmm(m.ms)}${m.ed&&!dl?' · засварласан':''}</span></div>${dl?'':`<button class="mrxb" data-a="mrx" data-id="${esc(m.id)}" aria-label="Реакц">${ic('smile',16)}</button>`}${!dl?`<button class="mrxb" data-a="mmenu" data-id="${esc(m.id)}" aria-label="Цэс">${ic('more',16)}</button>`:''}</div>${rb?`<div class="rxs">${rb}</div>`:''}${S.rxOpen===m.id&&!dl?rxPick('m',m.id):''}${seen}</div>`}).join('');
 }
 function mfInner(){
   if(rec)return `<button type="button" class="ib" data-a="reccancel" aria-label="Болих">${ic('close',20)}</button><div class="recbar"><i></i><span id="rt">0:00</span>&nbsp;бичиж байна</div><button type="button" data-a="recsend" aria-label="Илгээх">${ic('send',20)}</button>`;
@@ -973,6 +993,53 @@ function reqBarHTML(){
 const renderReq=()=>{const e=$('#reqb');if(e){const h=reqBarHTML();if(e.innerHTML!==h)e.innerHTML=h}};
 const replyBarHTML=()=>S.reply?`<div class="rpb"><span><b>↩ ${esc(S.reply.n)}</b>: ${esc(S.reply.t)}</span><button data-a="rpx" aria-label="Болих">✕</button></div>`:'';
 const renderReply=()=>{const e=$('#rpb');if(e)e.innerHTML=replyBarHTML()};
+function doReply(id){
+  const m=S.msgs.find(x=>x.id===id);if(!m||m.del)return;
+  S.reply={id,n:m.f===S.me.uid?'Та':((U.get(m.f)||{}).name||m.fn||'Хэрэглэгч'),t:m.t?m.t.slice(0,100):m.img?'📷 Зураг':'🎤 Дуут мессеж'};
+  renderReply();const mi=$('#mi');if(mi&&!(window.matchMedia&&matchMedia('(pointer:coarse)').matches))mi.focus({preventScroll:true});
+}
+/* мессежийг баруун тийш шудрахад хариулна (гар утас, хулгана хоёуланд) */
+let SW=null,swBlock=0;
+document.addEventListener('pointerdown',e=>{
+  const w=e.target.closest&&e.target.closest('.mw[data-mid]');
+  if(!w||e.button>0||e.target.closest('audio,a,input,textarea,.mrxb'))return;
+  SW={w,l:w.querySelector('.mline'),x:e.clientX,y:e.clientY,on:false,hit:false,id:e.pointerId};
+});
+document.addEventListener('pointermove',e=>{
+  if(!SW||e.pointerId!==SW.id)return;
+  const dx=e.clientX-SW.x,dy=e.clientY-SW.y;
+  if(!SW.on){
+    if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){SW=null;return}
+    if(!(dx>10&&dx>Math.abs(dy)*1.5))return;
+    SW.on=true;SW.l.style.transition='none';SW.w.classList.add('swp');
+    const i=document.createElement('span');i.className='swr';i.textContent='↩';SW.w.appendChild(i);SW.i=i;
+  }
+  const d=dx>60?60+Math.min(dx-60,120)*.3:Math.max(dx,0);
+  SW.l.style.transform='translateX('+d+'px)';
+  SW.i.style.opacity=Math.min(1,d/46);SW.i.style.transform='translateX('+Math.min(d*.5,28)+'px)';
+  const hit=d>=56;
+  if(hit&&!SW.hit){try{navigator.vibrate&&navigator.vibrate(12)}catch(_){}}
+  SW.hit=hit;SW.i.classList.toggle('hit',hit);
+});
+function swEnd(){
+  if(!SW)return;const s=SW;SW=null;if(!s.on)return;
+  swBlock=Date.now()+350;
+  s.l.style.transition='transform .28s cubic-bezier(.2,.8,.2,1)';s.l.style.transform='';
+  setTimeout(()=>{if(s.i)s.i.remove();s.l.style.transition='';s.w.classList.remove('swp')},290);
+  if(s.hit)doReply(s.w.dataset.mid);
+}
+document.addEventListener('pointerup',swEnd);
+document.addEventListener('pointercancel',swEnd);
+/* шудрасны дараах санамсаргүй дарагдалтыг (мессежийн цэс нээгдэхийг) хаана */
+document.addEventListener('click',e=>{if(Date.now()<swBlock){e.stopPropagation();e.preventDefault()}},true);
+/* давхар дарахаас хамгаалах: нэг товчийг 400мс дотор дахин дарвал үл тооно (дараалан дарах шаардлагатай товчнуудаас бусад) */
+const REPEAT_OK=new Set(['snext','sprev','zoom','pzoom']);let lastBtn=null,lastBtnT=0;
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('button[data-a],.btn[data-a]');if(!b||REPEAT_OK.has(b.dataset.a))return;
+  const now=Date.now();
+  if(b===lastBtn&&now-lastBtnT<400){e.stopPropagation();e.preventDefault();return}
+  lastBtn=b;lastBtnT=now;
+},true);
 function setTyping(){
   const e=$('#typ');if(!e||!S.thread)return;
   const c=S.chats.get(S.thread.cid),now=Date.now();let names=[];
@@ -1544,9 +1611,7 @@ document.addEventListener('click',async e=>{
       break}
     case 'mmenu':{const m=S.msgs.find(x=>x.id===id);if(!m||m.del)break;const mine=m.f===S.me.uid;
       openSheet(`<h3>Мессеж</h3><button class="btn line" data-a="mreply" data-id="${esc(id)}">↩ Хариулах</button><button class="btn line" data-a="mfwd" data-id="${esc(id)}">↪ Дамжуулах</button>${mine&&m.t?`<button class="btn line" data-a="medit" data-id="${esc(id)}">✏️ Засах</button>`:''}${mine?`<button class="btn line" data-a="mdel" data-id="${esc(id)}">🗑 Бүгдээс устгах</button>`:''}`);break}
-    case 'mreply':{const m=S.msgs.find(x=>x.id===id);if(!m)break;
-      S.reply={id,n:m.f===S.me.uid?'Та':((U.get(m.f)||{}).name||m.fn||'Хэрэглэгч'),t:m.t?m.t.slice(0,100):m.img?'📷 Зураг':'🎤 Дуут мессеж'};
-      closeOv();renderReply();const mi=$('#mi');if(mi&&!(window.matchMedia&&matchMedia('(pointer:coarse)').matches))mi.focus({preventScroll:true});break}
+    case 'mreply':closeOv();doReply(id);break;
     case 'rpx':S.reply=null;renderReply();break;
     case 'mfwd':{const m=S.msgs.find(x=>x.id===id);if(!m)break;S.fwd=id;
       const opts=[];const seen=new Set();
