@@ -688,7 +688,30 @@ function openUser(uid,name){
   render();$('#main').scrollTop=0;
 }
 function unsubAll(){clearView();subs.forEach(f=>{try{f()}catch(_){}});subs=[];cmSubs.forEach(f=>{try{f()}catch(_){}});cmSubs.clear();if(msgSub){try{msgSub()}catch(_){}msgSub=null}}
+/* ---------- имэйл баталгаажуулалт: баталгаажаагүй бол апп руу оруулахгүй ---------- */
+let vfT=null;
+function vfStop(){clearInterval(vfT);vfT=null}
+function verifyScreen(u){
+  vfStop();S.me=null;
+  $('#hd').style.display='none';$('#hd').innerHTML='';$('#nav').style.display='none';
+  const m=$('#main');m.className='';
+  m.innerHTML=`<div class="auth"><div class="logo">${LOGO}MAZE APP</div><h2 style="margin:8px 0 0">📧 Имэйлээ баталгаажуулна уу</h2>
+  <p class="lead">Баталгаажуулах холбоосыг <b>${esc(u.email||'')}</b> хаяг руу илгээлээ. Имэйлээ нээгээд холбоос дээр дарна уу (Spam хавтсыг мөн шалгаарай).</p>
+  <div id="amsg" class="aok" role="alert"></div>
+  <button class="btn" data-a="vcheck">Баталгаажуулсан</button>
+  <button class="btn line" data-a="vresend" style="margin-top:10px">Дахин илгээх</button>
+  <button class="link" data-a="vout">Өөр акаунтаар нэвтрэх</button></div>`;
+  vfT=setInterval(()=>vfCheck(true),4000);
+}
+async function vfCheck(quiet){
+  const u=auth&&auth.currentUser;if(!u){vfStop();return}
+  try{await u.reload()}catch(_){if(!quiet)amsg('Интернэт холболтоо шалгана уу.')}
+  if(u.emailVerified){vfStop();try{await u.getIdToken(true)}catch(_){}await startSession(u)}
+  else if(!quiet)amsg('Имэйл хараахан баталгаажаагүй байна. Холбоос дээр дарсны дараа дахин оролдоно уу.');
+}
 async function startSession(u){
+  if(!u.emailVerified){verifyScreen(u);return}
+  vfStop();
   try{
     const ref=FS.doc(db,'users',u.uid);let sn=await FS.getDoc(ref),p;
     if(sn.exists())p=sn.data();
@@ -699,7 +722,7 @@ async function startSession(u){
     subscribe();heartbeat();registerPush();render();toast('Тавтай морил, '+S.me.name);
   }catch(e){onErr(e);A.mode='login';amsg('Профайлаа уншиж чадсангүй. Firestore-ийн тохиргоогоо шалгана уу.');S.me=null;render()}
 }
-function endSession(){clearInterval(hbT);endCall(true);INC=null;recStop(false);unsubAll();clearTimeout(svT);const o=$('#ov');o.className='';o.innerHTML='';S.me=null;S.thread=null;A.mode='login';A.msg='';A.ok=false}
+function endSession(){vfStop();clearInterval(hbT);endCall(true);INC=null;recStop(false);unsubAll();clearTimeout(svT);const o=$('#ov');o.className='';o.innerHTML='';S.me=null;S.thread=null;A.mode='login';A.msg='';A.ok=false}
 function subscribe(){
   const {collection,query,where,orderBy,limit,onSnapshot,Timestamp}=FS,uid=S.me.uid,on=(q,fn)=>subs.push(onSnapshot(q,fn,onErr));
   on(query(collection(db,'posts'),orderBy('createdAt','desc'),limit(50)),sn=>{S.posts=sn.docs.map(mapPost);refreshPosts()});
@@ -1013,6 +1036,9 @@ document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-a]');if(!b)return;
   const a=b.dataset.a,id=b.dataset.id;
   if(a==='amode'){A.mode=b.dataset.m;A.msg='';A.ok=false;authRender();return}
+  if(a==='vcheck'){b.disabled=true;await vfCheck(false);b.disabled=false;return}
+  if(a==='vresend'){b.disabled=true;try{await AU.sendEmailVerification(auth.currentUser);amsg('Баталгаажуулах имэйл дахин илгээлээ.',true)}catch(x){amsg(x.code==='auth/too-many-requests'?'Хэт олон удаа илгээлээ. Түр хүлээгээд дахин оролдоно уу.':'Илгээж чадсангүй. Дахин оролдоно уу.')}b.disabled=false;return}
+  if(a==='vout'){vfStop();await AU.signOut(auth);return}
   if(!S.me)return;
   const {doc,updateDoc,deleteDoc,setDoc,addDoc,collection,writeBatch,serverTimestamp,arrayUnion,arrayRemove,increment,query,orderBy,limit,onSnapshot,deleteField}=FS;
   const allPosts=()=>[...S.posts,...S.mine,...S.vposts],nmOf=u=>(U.get(u)||{}).name||S.friends.get(u)||'Хэрэглэгч';
