@@ -97,7 +97,8 @@ async function push(tok, uids, data, ttl) {
 }
 
 async function handle(req) {
-  const uid = await verifyIdToken((req.headers.authorization || '').replace(/^Bearer /, ''));
+  let uid;
+  try { uid = await verifyIdToken((req.headers.authorization || '').replace(/^Bearer /, '')); } catch (e) { throw new Error('bad token'); }
   const b = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
   const tok = await accessToken();
   const me = await fsGet(tok, 'users/' + uid);
