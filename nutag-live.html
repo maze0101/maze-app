@@ -709,7 +709,7 @@ function prevStory(){if(S.sv.i>0)S.sv.i--;drawStory()}
 // Жишээ: metered.ca эсвэл Cloudflare-ийн үнэгүй TURN бүртгэл авч энд оруулна:
 // const TURN=[{urls:['turn:HOST:443?transport=tcp','turns:HOST:443?transport=tcp'],username:'...',credential:'...'}];
 const TURN=[];
-const ICE={iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']},...TURN]};
+const ICE={iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302','stun:stun.cloudflare.com:3478']},...TURN]};
 let CALL=null,INC=null,ringCtx=null,ringT=null;
 function callStatus(t){const s=$('.cinfo span');if(s)s.textContent=t}
 function ringStart(){
@@ -728,24 +728,27 @@ function playRemote(){
 function drawCall(st){
   const c=CALL;
   ov.innerHTML=`<div class="call"><video id="rv" autoplay playsinline></video><video id="lv" autoplay playsinline muted></video><div class="cinfo"><b>${esc(c.name)}</b><span>${st}</span></div><div class="cbar"><button class="cb" data-a="cmute" aria-label="Микрофон">${ic('mic',24)}</button><button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button><button class="cb end" data-a="cend" aria-label="Таслах">${ic('phone',24)}</button></div></div>`;
-  ov.className='open';$('#lv').srcObject=c.local;$('#rv').srcObject=c.remote;
+  ov.className='open';$('#lv').srcObject=c.local;if(!c.local.getVideoTracks().length)$('#lv').style.display='none';$('#rv').srcObject=c.remote;
   $('#rv').onloadedmetadata=playRemote;playRemote();
 }
 function connWatch(ms=25000){
   const c=CALL;if(!c)return;clearTimeout(c.ct);
   c.ct=setTimeout(()=>{if(CALL===c&&c.pc.connectionState!=='connected'){
-    toast(TURN.length?'Холбогдож чадсангүй. Интернэтээ шалгана уу.':'Сүлжээ холбогдсонгүй. Та хоёр өөр сүлжээнд (WiFi/дата) байвал TURN сервер хэрэгтэй.',5000);endCall(true)}},ms);
+    const cs=c.cs||{},dg=' ['+['host','srflx','relay'].map(k=>k+':'+(cs[k]||0)).join(' ')+']';console.warn('call failed',dg,c.pc.iceConnectionState);toast((TURN.length?'Холбогдож чадсангүй. Интернэтээ шалгана уу.':'Сүлжээ холбогдсонгүй. Та хоёр өөр сүлжээнд (WiFi/дата) байвал TURN сервер хэрэгтэй.')+dg,6000);endCall(true)}},ms);
 }
 function makeCall(id,peer,name,local,mine){
   const pc=new RTCPeerConnection(ICE),remote=new MediaStream(),{collection,addDoc}=FS,q=[];
   CALL={id,peer,name,local,remote,pc,unsubs:[],q,ready:false,mine,over:false};
   local.getTracks().forEach(t=>pc.addTrack(t,local));
+  if(!local.getAudioTracks().length)pc.addTransceiver('audio',{direction:'recvonly'});
+  if(!local.getVideoTracks().length)pc.addTransceiver('video',{direction:'recvonly'});
+  CALL.cs={};
   pc.ontrack=e=>{
     const s=e.streams&&e.streams[0];if(!s)return;
     if(CALL&&CALL.pc===pc)CALL.remote=s;
     const rv=$('#rv');if(rv){if(rv.srcObject!==s)rv.srcObject=s;playRemote()}};
   const send=c=>addDoc(collection(db,'calls',id,mine),{c:JSON.stringify(c)}).catch(()=>{});
-  pc.onicecandidate=e=>{if(!e.candidate)return;if(CALL&&CALL.pc===pc&&CALL.ready)send(e.candidate);else q.push(e.candidate)};
+  pc.onicecandidate=e=>{if(!e.candidate)return;if(CALL&&CALL.cs)CALL.cs[e.candidate.type]=(CALL.cs[e.candidate.type]||0)+1;if(CALL&&CALL.pc===pc&&CALL.ready)send(e.candidate);else q.push(e.candidate)};
   CALL.flush=()=>{CALL.ready=true;q.splice(0).forEach(send)};
   pc.onconnectionstatechange=()=>{if(!CALL||CALL.pc!==pc)return;const s=pc.connectionState;
     if(s==='connected'){clearTimeout(CALL.ct);clearTimeout(CALL.dt);callStatus('Холбогдсон')}
@@ -756,30 +759,50 @@ function makeCall(id,peer,name,local,mine){
 function watchCands(col){const {collection,onSnapshot}=FS,pc=CALL.pc;
   CALL.unsubs.push(onSnapshot(collection(db,'calls',CALL.id,col),sn=>sn.docChanges().forEach(ch=>{if(ch.type==='added')pc.addIceCandidate(JSON.parse(ch.doc.data().c)).catch(()=>{})}),onErr))}
 async function getMedia(){
-  if(!navigator.mediaDevices||!window.RTCPeerConnection)throw new Error('unsupported');
-  try{return await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:true})}
-  catch(e){if(e&&(e.name==='NotFoundError'||e.name==='OverconstrainedError'))return navigator.mediaDevices.getUserMedia({audio:true});throw e}
+  if(!window.isSecureContext)throw Object.assign(new Error('insecure'),{name:'Insecure'});
+  if(!navigator.mediaDevices||!window.RTCPeerConnection)throw Object.assign(new Error('unsupported'),{name:'Unsupported'});
+  let last;
+  for(const c of [{video:{facingMode:'user'},audio:true},{video:true,audio:true},{audio:true}]){
+    try{return await navigator.mediaDevices.getUserMedia(c)}
+    catch(e){last=e;if(e&&(e.name==='NotAllowedError'||e.name==='SecurityError'))throw e}
+  }
+  // камер, микрофон хоёул ашиглах боломжгүй (өөр апп эзэлсэн г.м): зөвхөн харах/сонсох горим
+  const s=new MediaStream();s.__none=last;return s;
+}
+function mediaErr(e){
+  const n=e&&e.name;
+  if(n==='NotAllowedError'||n==='SecurityError')return 'Камер/микрофоны зөвшөөрөл өгнө үү (хөтчийн хаягийн мөрний 🔒 → Зөвшөөрөл)';
+  if(n==='Insecure')return 'Дуудлага зөвхөн https:// хаяг дээр ажиллана';
+  if(n==='Unsupported')return 'Энэ хөтөч видео дуудлага дэмжихгүй байна. Chrome эсвэл Safari ашиглана уу';
+  return 'Камер/микрофон ашиглаж чадсангүй';
+}
+function callErr(e){
+  const c=e&&e.code;
+  if(c==='permission-denied')return 'Энэ хүнтэй дуудлага хийх эрх байхгүй (найз биш эсвэл блоклогдсон байж магадгүй)';
+  if(c==='unavailable'||c==='deadline-exceeded'||(e&&e.name==='FirebaseError'&&/offline/i.test(e.message)))return 'Интернэт холболтоо шалгана уу';
+  return 'Дуудлага эхлүүлж чадсангүй'+(e&&e.message?' ('+String(e.message).slice(0,60)+')':'');
 }
 const isOnline=u=>{const x=U.get(u);return !!(x&&x.ls&&Date.now()-x.ls<240000)};
 async function startCall(uid,name){
   if(CALL||INC)return;
   const {doc,setDoc,onSnapshot,serverTimestamp}=FS;let local;
-  try{local=await getMedia()}catch(e){toast(e&&e.name==='NotAllowedError'?'Камер/микрофоны зөвшөөрөл өгнө үү':'Камер/микрофон олдсонгүй',3500);return}
+  try{local=await getMedia()}catch(e){toast(mediaErr(e),4500);return}
+  if(local.__none)toast('Камер/микрофон ашиглах боломжгүй тул зөвхөн харах/сонсох горимд орлоо',4500);
   if(!isOnline(uid))toast(name+' одоогоор онлайн биш байна. Апп нээлттэй үед л дуудлага хүлээн авна.',4500);
   const id=chatId(S.me.uid,uid)+'_'+Date.now(),ref=doc(db,'calls',id);
   try{
     const pc=makeCall(id,uid,name,local,'callerCandidates');drawCall('Залгаж байна...');
     const offer=await pc.createOffer();await pc.setLocalDescription(offer);
     await setDoc(ref,{from:S.me.uid,to:uid,fromName:S.me.name,toName:name,status:'ringing',offer:{type:offer.type,sdp:offer.sdp},createdAt:serverTimestamp()});
-    CALL.flush();
+    CALL.flush();CALL.caller=true;CALL.uid=uid;
     let got=false;
     CALL.unsubs.push(onSnapshot(ref,async sn=>{const d=sn.data();if(!d||!CALL||CALL.id!==id)return;
-      if(d.answer&&!got){got=true;await pc.setRemoteDescription(d.answer);watchCands('calleeCandidates');callStatus('Холбогдож байна...');connWatch()}
+      if(d.answer&&!got){got=true;CALL.answered=true;await pc.setRemoteDescription(d.answer);watchCands('calleeCandidates');callStatus('Холбогдож байна...');connWatch()}
       if(d.status==='declined'){toast('Татгалзлаа');endCall(false)}
       else if(d.status==='ended'){toast('Дуудлага дууслаа');endCall(false)}},onErr));
     CALL.hint=setTimeout(()=>{if(CALL&&CALL.id===id&&!got)callStatus('Хариу хүлээж байна… (нөгөө тал апп-аа нээгээгүй байж магадгүй)')},12000);
     CALL.timer=setTimeout(()=>{if(CALL&&CALL.id===id&&!got){toast('Хариулсангүй');endCall(true)}},45000);
-  }catch(e){console.error(e);toast('Дуудлага эхлүүлж чадсангүй',3000);endCall(true)}
+  }catch(e){console.error(e);toast(callErr(e),5000);endCall(false)}
 }
 function showIncoming(id,d){
   INC={id,d};notify('📹 Видео дуудлага',d.fromName+' залгаж байна','call-'+id);ringStart();
@@ -790,14 +813,15 @@ function showIncoming(id,d){
 function closeIncoming(){ringStop();INC=null;if(!CALL){ov.className='';ov.innerHTML=''}}
 async function acceptCall(){
   if(!INC||CALL)return;ringStop();const {id,d}=INC;INC=null;const {doc,updateDoc,onSnapshot}=FS;let local;
-  try{local=await getMedia()}catch(e){toast('Камер/микрофоны зөвшөөрөл өгнө үү',3500);await updateDoc(doc(db,'calls',id),{status:'declined'}).catch(()=>{});ov.className='';ov.innerHTML='';return}
+  try{local=await getMedia()}catch(e){toast(mediaErr(e),4500);await updateDoc(doc(db,'calls',id),{status:'declined'}).catch(()=>{});ov.className='';ov.innerHTML='';return}
+  if(local.__none)toast('Камер/микрофон ашиглах боломжгүй тул зөвхөн харах/сонсох горимд орлоо',4500);
   try{
     const ref=doc(db,'calls',id),pc=makeCall(id,d.from,d.fromName,local,'calleeCandidates');drawCall('Холбогдож байна...');
     await pc.setRemoteDescription(d.offer);const ans=await pc.createAnswer();await pc.setLocalDescription(ans);
     await updateDoc(ref,{answer:{type:ans.type,sdp:ans.sdp},status:'active'});
     CALL.flush();watchCands('callerCandidates');connWatch();
     CALL.unsubs.push(onSnapshot(ref,sn=>{const x=sn.data();if(CALL&&CALL.id===id&&x&&x.status==='ended'){toast('Дуудлага дууслаа');endCall(false)}},onErr));
-  }catch(e){console.error(e);toast('Холбогдож чадсангүй',3000);endCall(true)}
+  }catch(e){console.error(e);toast('Холбогдож чадсангүй ('+(e&&(e.code||e.name)||'алдаа')+')',4000);endCall(true)}
 }
 async function declineCall(){
   if(!INC)return;ringStop();const {id}=INC;INC=null;ov.className='';ov.innerHTML='';
@@ -807,6 +831,7 @@ function endCall(tell){
   const c=CALL;if(!c||c.over)return;c.over=true;CALL=null;[c.timer,c.hint,c.ct,c.dt].forEach(clearTimeout);
   c.unsubs.forEach(u=>u());try{c.pc.close()}catch(_){}c.local.getTracks().forEach(t=>t.stop());
   if(tell&&db)FS.updateDoc(FS.doc(db,'calls',c.id),{status:'ended'}).catch(()=>{});
+  if(tell&&c.caller&&!c.answered&&c.uid)sendTo({uid:c.uid,name:c.name,cid:chatId(S.me.uid,c.uid),group:false},{text:'📞 Аваагүй видео дуудлага'}).catch(()=>{});
   ov.className='';ov.innerHTML='';
 }
 window.addEventListener('pagehide',()=>{if(CALL)endCall(true)});
@@ -831,8 +856,8 @@ function openThread(uid,name,gid){
   markRead(cid);const mi=$('#mi');if(mi)mi.focus();
 }
 function closeThread(){recStop(false);S.rxOpen=null;if(msgSub){msgSub();msgSub=null}S.thread=null;S.msgs=[];render()}
-async function sendMsg(p){
-  const th=S.thread;if(!th)return;
+async function sendMsg(p){if(S.thread)return sendTo(S.thread,p)}
+async function sendTo(th,p){
   const {doc,collection,writeBatch,serverTimestamp}=FS,me=S.me,cid=th.cid,b=writeBatch(db);
   const cd={last:p.text?p.text.slice(0,200):p.img?'📷 Зураг':'🎤 Дуут мессеж',lastAt:serverTimestamp(),lastFrom:me.uid};
   if(!th.group){cd.members=[me.uid,th.uid].sort();cd.names={[me.uid]:me.name,[th.uid]:th.name}}
