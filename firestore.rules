@@ -21,6 +21,14 @@ service cloud.firestore {
       allow read: if signedIn();
       allow create, update: if mine(uid) && validUser(request.resource.data);
       allow delete: if false;
+
+      // push мэдэгдлийн токен (зөвхөн өөрийнх, сервер функц уншина)
+      match /fcm/{tid} {
+        allow read, delete: if mine(uid);
+        allow create, update: if mine(uid)
+          && request.resource.data.keys().hasOnly(['t', 'ua'])
+          && isStr(request.resource.data.get('ua', ''), 200);
+      }
     }
 
     // ---------- Нийтлэл ----------

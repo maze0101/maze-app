@@ -278,6 +278,7 @@ const CFG = {
   apiKey: "AIzaSyCJEwPemIWrJcHq7MxVhnWXVDG0aF4qg4U",
   authDomain: "tsogtoo-42b99.firebaseapp.com",
   projectId: "tsogtoo-42b99",
+  messagingSenderId: "362506270318",
   appId: "1:362506270318:web:0f512981a850aa47ba587f"
 };
 const FBV = '12.19.0';
@@ -291,7 +292,7 @@ const GR=['linear-gradient(160deg,#FF5C8A,#7B5CFF)','linear-gradient(160deg,#2B7
 const configured=!String(CFG.apiKey).startsWith('PASTE');
 
 /* ---------- Firebase (динамикаар ачаална) ---------- */
-let auth,db,AU={},FS={};
+let auth,db,AU={},FS={},FBAPP=null;
 async function loadFirebase(){
   if(window.__FB_MOCK)return window.__FB_MOCK;
   const b=`https://www.gstatic.com/firebasejs/${FBV}/`;
@@ -374,10 +375,28 @@ function notify(title,body,tag){
     try{if(swReg&&swReg.showNotification)swReg.showNotification(title,o);else new Notification(title,o)}catch(_){toast(title+': '+body,3500)}
   }else toast(title+': '+body,3500);
 }
+/* ---------- push (апп хаалттай үед): FCM токен бүртгэх ---------- */
+let pushTok=null;
+async function registerPush(){
+  try{
+    if(!canNotify()||Notification.permission!=='granted'||!('serviceWorker' in navigator)||!S.me||!FBAPP||location.protocol==='file:')return;
+    const reg=swReg||await navigator.serviceWorker.ready;
+    const m=await import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-messaging.js`);
+    if(!(await m.isSupported()))return;
+    const token=await m.getToken(m.getMessaging(FBAPP),{serviceWorkerRegistration:reg});
+    if(!token||!S.me)return;
+    pushTok=token;
+    await FS.setDoc(FS.doc(db,'users',S.me.uid,'fcm',token),{t:FS.serverTimestamp(),ua:navigator.userAgent.slice(0,120)});
+  }catch(e){console.warn('push register',e&&e.code||e)}
+}
+async function dropPush(){
+  try{if(pushTok&&S.me)await FS.deleteDoc(FS.doc(db,'users',S.me.uid,'fcm',pushTok))}catch(_){}
+  pushTok=null;
+}
 async function askNotify(){
   if(!canNotify()){toast('Энэ төхөөрөмж мэдэгдэл дэмжихгүй байна');return}
   const p=await Notification.requestPermission();
-  toast(p==='granted'?'Мэдэгдэл асалаа':'Мэдэгдэл зөвшөөрөгдсөнгүй');
+  toast(p==='granted'?'Мэдэгдэл асалаа':'Мэдэгдэл зөвшөөрөгдсөнгүй');if(p==='granted')registerPush();
   $('#hd').innerHTML=headerHTML();
 }
 const ic=(n,s=22,f)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="${f?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
@@ -643,7 +662,7 @@ async function startSession(u){
     unsubAll();U.clear();seenSent.clear();
     Object.assign(S,{me:{uid:u.uid,name:p.name,bio:p.bio||''},tab:'feed',thread:null,posts:[],mine:[],stories:[],friends:new Map(),reqIn:[],reqOut:new Set(),chats:new Map(),msgs:[],cm:new Map(),open:new Set(),people:[],q:'',draftImg:null,errShown:false,view:null,vposts:[],pq:'',cq:'',rxOpen:null,blocked:new Set(),blockedBy:new Set(),draftPhoto:null,stick:false,
       readMap:lsGet('nutag-read-'+u.uid,{}),seenMap:lsGet('nutag-seen-'+u.uid,{})});
-    subscribe();heartbeat();render();toast('Тавтай морил, '+S.me.name);
+    subscribe();heartbeat();registerPush();render();toast('Тавтай морил, '+S.me.name);
   }catch(e){onErr(e);A.mode='login';amsg('Профайлаа уншиж чадсангүй. Firestore-ийн тохиргоогоо шалгана уу.');S.me=null;render()}
 }
 function endSession(){clearInterval(hbT);endCall(true);INC=null;recStop(false);unsubAll();clearTimeout(svT);const o=$('#ov');o.className='';o.innerHTML='';S.me=null;S.thread=null;A.mode='login';A.msg='';A.ok=false}
@@ -989,7 +1008,7 @@ document.addEventListener('click',async e=>{
       r.dataset.theme=dark?'light':'dark';try{localStorage.setItem('nutag-theme',r.dataset.theme)}catch(_){}break}
     case 'notif':await askNotify();break;
     case 'verify':await AU.sendEmailVerification(auth.currentUser);toast('Баталгаажуулах имэйл илгээлээ');break;
-    case 'logout':await AU.signOut(auth);break;
+    case 'logout':await dropPush();await AU.signOut(auth);break;
   }
   }catch(err){console.error(err);toast(err&&err.code==='permission-denied'?'Эрх хүрэхгүй байна.':'Үйлдэл амжилтгүй боллоо. Дахин оролдоно уу.',3000)}
 });
@@ -1048,7 +1067,7 @@ async function main(){
   $('#main').innerHTML='<div class="empty">Ачаалж байна…</div>';
   try{
     const fb=await loadFirebase();
-    const app=fb.app.initializeApp(CFG);AU=fb.auth;FS=fb.fs;auth=AU.getAuth(app);db=FS.getFirestore(app);
+    const app=fb.app.initializeApp(CFG);FBAPP=app;AU=fb.auth;FS=fb.fs;auth=AU.getAuth(app);db=FS.getFirestore(app);
   }catch(e){console.error(e);$('#main').innerHTML='<div class="empty">Firebase ачаалж чадсангүй. Интернэт холболтоо шалгаад хуудсаа дахин ачаална уу.</div>';return}
   AU.onAuthStateChanged(auth,async u=>{
     if(regBusy)return;
