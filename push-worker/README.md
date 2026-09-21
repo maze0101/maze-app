@@ -1,24 +1,11 @@
-# MAZE push сервер (Cloudflare Worker, үнэгүй)
+# Push сервер
 
-Апп хаалттай үед мэдэгдэл (зурвас, дуудлага, найзын хүсэлт) илгээнэ. Firebase Blaze хэрэггүй.
+Үндсэн хувилбар: **Vercel Function** (`/api/push.js`, үнэгүй). Cloudflare Worker (`push-worker/`) нь хувилбар.
 
-## Суулгах (нэг удаа, ~10 минут)
+## Vercel дээр суулгах
+1. vercel.com → GitHub-аар нэвтэрнэ → **Add New Project** → `maze0101/maze-app`-г сонгоод Deploy.
+2. Firebase Console → Project settings → Service accounts → **Generate new private key** (JSON татна).
+3. Vercel → Project → Settings → Environment Variables → `SERVICE_ACCOUNT` нэрээр JSON-ийн БҮХ агуулгыг буулгаж Save → Redeploy.
+4. Hostname-аа (`https://<төсөл>.vercel.app/api/push`) `index.html` ба `nutag-live.html` доторх `PUSH_URL`-д бичнэ.
 
-1. https://dash.cloudflare.com дээр үнэгүй бүртгэл үүсгэнэ (карт шаардахгүй).
-2. Firebase Console → Project settings → **Service accounts** → **Generate new private key** → JSON файл татна.
-   Энэ файлыг ХЭЗЭЭ Ч GitHub-д оруулахгүй, хэнд ч өгөхгүй.
-3. Терминалд:
-   ```
-   cd push-worker
-   npx wrangler login
-   npx wrangler secret put SERVICE_ACCOUNT     # JSON файлын БҮХ агуулгыг буулгана
-   npx wrangler deploy
-   ```
-4. Deploy хийсний дараа гарсан хаягийг (`https://maze-push.<нэр>.workers.dev`) `index.html` ба `nutag-live.html` доторх `PUSH_URL`-д бичнэ, дараа нь GitHub руу оруулна.
-5. Хүсвэл `wrangler.toml` доторх `ALLOWED_ORIGIN`-д аппын домэйнийг бичнэ (жишээ: `https://maze0101.github.io`).
-
-## Ашиглах
-Хэрэглэгч Тохиргоо → "Мэдэгдэл асаах" дарж зөвшөөрнө. iPhone дээр апп Home Screen-д нэмэгдсэн байх ёстой.
-
-## Хамгаалалт
-Worker нь Firebase ID token (баталгаажсан имэйл)-ийг шалгаж, илгээгч тухайн чат/дуудлага/хүсэлтийн жинхэнэ оролцогч мөн эсэхийг Firestore-оос шалгасны дараа л push илгээнэ.
+Түлхүүр файлыг хэзээ ч GitHub-д оруулахгүй.
