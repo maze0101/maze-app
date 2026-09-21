@@ -53,7 +53,7 @@
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:border-box}
-html,body{height:100%;margin:0}
+html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none;-webkit-text-size-adjust:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 input,textarea{font:inherit;color:inherit}
@@ -337,17 +337,23 @@ if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWo
 /* ---------- гар утасны гар (keyboard) ---------- */
 (function(){
   const vv=window.visualViewport,root=document.documentElement;
-  const fit=()=>{
-    if(vv){root.style.setProperty('--vh',Math.round(vv.height)+'px');root.style.setProperty('--vt',Math.round(vv.offsetTop)+'px');if(window.scrollY>0)window.scrollTo(0,0)}
-  };
-  if(vv){vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit);fit()}
+  let ph=-1,pt=-1,raf=0,fT=null;
+  // Хэмжээг frame бүрд ганц удаа, мэдэгдэхүйц өөрчлөгдсөн үед л шинэчилнэ (чичиргээ гарахгүй)
+  const apply=()=>{raf=0;
+    const h=Math.round(vv.height),t=Math.max(0,Math.round(vv.offsetTop));
+    if(Math.abs(h-ph)>=2){root.style.setProperty('--vh',h+'px');ph=h}
+    if(Math.abs(t-pt)>=2){root.style.setProperty('--vt',t+'px');pt=t}};
+  const fit=()=>{if(!raf)raf=requestAnimationFrame(apply)};
+  if(vv){vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit);apply()}
+  // Талбар харагдахгүй байвал л, нэг удаа, хөдөлгөөнгүйгээр гүйлгэнэ
   document.addEventListener('focusin',e=>{
     const t=e.target;if(!t||!/^(INPUT|TEXTAREA)$/.test(t.tagName)||t.id==='mi'||!t.closest('.auth,.sheet,.cmf,.composer,.search,.fld'))return;
-    [250,600].forEach(ms=>setTimeout(()=>{if(document.activeElement===t)t.scrollIntoView({block:'center',behavior:'smooth'})},ms));
+    clearTimeout(fT);
+    fT=setTimeout(()=>{if(document.activeElement!==t)return;
+      const r=t.getBoundingClientRect(),H=vv?vv.height:innerHeight;
+      if(r.top<8||r.bottom>H-8)t.scrollIntoView({block:'center',behavior:'auto'})},380);
   });
-  document.addEventListener('focusout',()=>setTimeout(()=>{if(!/^(INPUT|TEXTAREA)$/.test((document.activeElement||{}).tagName||''))window.scrollTo(0,0)},100));
-})();
-/* ---------- автомат шинэчлэлт ---------- */
+})();/* ---------- автомат шинэчлэлт ---------- */
 let pageHash=null,updT=null;
 const hashStr=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return h+':'+s.length};
 async function checkUpdate(){
