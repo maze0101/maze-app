@@ -329,6 +329,27 @@ const I={
 /* ---------- мэдэгдэл (апп нээлттэй үед) ---------- */
 let swReg=null;
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').then(r=>{swReg=r}).catch(()=>{});
+/* ---------- автомат шинэчлэлт ---------- */
+let pageHash=null,updT=null;
+const hashStr=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return h+':'+s.length};
+async function checkUpdate(){
+  if(location.protocol==='file:'||!navigator.onLine)return;
+  try{
+    const r=await fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'});if(!r.ok)return;
+    const h=hashStr(await r.text());
+    if(pageHash===null){pageHash=h;return}
+    if(h===pageHash)return;
+    const a=document.activeElement,typing=a&&/^(INPUT|TEXTAREA)$/.test(a.tagName)&&a.type!=='file'&&a.value;
+    if((typeof CALL!=='undefined'&&CALL)||(typeof INC!=='undefined'&&INC)||rec||typing){toast('Шинэ хувилбар бэлэн боллоо. Дараа нь автоматаар шинэчлэгдэнэ.',3500);return}
+    toast('Шинэчилж байна…',1500);setTimeout(()=>location.reload(),600);
+  }catch(_){}
+}
+function startUpdater(){
+  if(location.protocol==='file:')return;
+  checkUpdate();clearInterval(updT);updT=setInterval(checkUpdate,5*60*1000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});
+  if(swReg)swReg.update().catch(()=>{});
+}
 const canNotify=()=>'Notification' in window;
 function notify(title,body,tag){
   if(document.hidden&&canNotify()&&Notification.permission==='granted'){
@@ -940,6 +961,7 @@ async function main(){
   });
 }
 main();
+startUpdater();
 
 </script>
 </body>
