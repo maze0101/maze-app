@@ -973,7 +973,7 @@ function secInfo(){
 function settingsHTML(){
   const dm=S.me.dm==='friends'?'friends':'all',np=canNotify()?Notification.permission:null;
   const sec=x=>`<div class="sec" style="margin:8px 0 0">${x}</div>`;
-  return `<h3>⚙ Тохиргоо</h3>`+
+  return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><h3 style="margin:0">⚙ Тохиргоо</h3><button class="ib" data-a="closeov" aria-label="Хаах">${ic('close',20)}</button></div>`+
   sec('Аккаунт')+`<button class="btn line" data-a="editprofile">Профайл засах</button>`+
   sec('Хувийн байдал')+`<p class="mute" style="margin:0;font-size:13px">Хэн танд чатаар шууд бичиж болох вэ?</p><div style="display:flex;gap:8px"><button class="btn ${dm==='all'?'':'line'}" style="flex:1" data-a="dmset" data-v="all">Бүгд${dm==='all'?' ✓':''}</button><button class="btn ${dm==='friends'?'':'line'}" style="flex:1" data-a="dmset" data-v="friends">Зөвхөн найзууд${dm==='friends'?' ✓':''}</button></div><button class="btn line" data-a="blocklist">Блоклосон хэрэглэгчид (${S.blocked.size})</button>`+
   sec('Дуудлага ба мэдэгдэл')+`<button class="btn line" data-a="ringset">Дуудлагын дуу</button>`+(np?`<button class="btn line" data-a="notif" ${np==='granted'?'disabled':''}>${np==='granted'?'🔔 Мэдэгдэл асаалттай':np==='denied'?'🔕 Мэдэгдэл хаалттай (браузерийн тохиргооноос нээнэ)':'🔔 Мэдэгдэл асаах'}</button>`:'')+
