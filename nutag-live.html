@@ -9,7 +9,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<meta name="theme-color" content="#2F7D5B">
+<meta name="theme-color" content="#070B16">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="MAZE APP">
@@ -343,6 +343,39 @@ html,body{touch-action:manipulation}
 .ld .mk{position:absolute;width:24px;height:24px;animation:breathe 1.4s ease-in-out infinite}
 .ld.sm{padding:24px 0}.ld.sm .ring{width:34px;height:34px}.ld.sm .mk{width:16px;height:16px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.sb.on i{width:100%}}
+
+/* ===== Орчин үеийн засал ===== */
+:root{--r:24px;--shadow:0 1px 0 rgba(255,255,255,.04) inset,0 10px 30px -12px rgba(0,0,0,.35);--ease:cubic-bezier(.22,.8,.3,1)}
+body{letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
+#hd{background:var(--glass);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid var(--line)}
+.card,.post,.row{box-shadow:var(--shadow);border-color:color-mix(in srgb,var(--line) 70%,transparent)}
+.post{margin:14px 14px;padding-top:16px}
+.post .ph b{font-size:15px}
+.post p{font-size:15.5px;line-height:1.55}
+.pa{padding:6px 10px 8px;gap:2px}
+.pa button{border-radius:999px;padding:9px 14px;transition:background .18s var(--ease),color .18s,transform .15s var(--ease)}
+.pa button:active{transform:scale(.92);background:var(--bg)}
+.btn{transition:transform .18s var(--ease),box-shadow .18s,filter .18s}
+.btn:hover{filter:brightness(1.08)}
+.btn.line:hover,.chip:hover,.ib:hover{border-color:var(--sky)}
+.ib{border-radius:16px;transition:transform .15s var(--ease),border-color .18s}
+.ib:active{transform:scale(.92)}
+.row{border-radius:20px;transition:transform .15s var(--ease),background .18s}
+.row:active{transform:scale(.985)}
+.composer{padding:16px 18px}
+.chip{transition:border-color .18s,background .18s}
+.search,.cmf input,.mf input{transition:border-color .18s,box-shadow .18s}
+.tabs2{gap:6px}
+.tabs2 button{border-radius:999px;transition:background .18s,color .18s}
+.sheet{border-radius:32px 32px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,.45);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px)}
+.b{border-radius:20px;line-height:1.4}
+.b.me{border-bottom-right-radius:6px;box-shadow:0 6px 18px -8px rgba(43,123,255,.55)}
+.b.them{border-bottom-left-radius:6px}
+.mf{background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-top:1px solid var(--line)}
+.stats>*{border-radius:20px;box-shadow:var(--shadow)}
+.sec{letter-spacing:.09em;font-size:12px}
+::-webkit-scrollbar{width:0;height:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
