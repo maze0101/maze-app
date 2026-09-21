@@ -1,0 +1,9 @@
+name = "maze-verify"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+PROJECT_ID = "tsogtoo-42b99"
+# BREVO_SENDER нь нууц: npx wrangler secret put BREVO_SENDER
+# Апп байрлаж буй домэйн. "*" бол бүгдийг зөвшөөрнө.
+ALLOWED_ORIGIN = "*"
