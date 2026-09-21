@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="mn">
+<html lang="mn" data-style="nomad">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-title" content="MAZE APP">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&subset=cyrillic&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@400;500;600&subset=cyrillic&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Минимал суурь (цайвар) */
@@ -414,6 +414,57 @@ body{letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
 :root[data-style="card"] .search,:root[data-style="card"] .cmf input{border-color:transparent;background:var(--surface);box-shadow:var(--shadow)}
 :root[data-style="card"] .chip,:root[data-style="card"] .tabs2 button{border-color:transparent;background:var(--surface);box-shadow:var(--shadow)}
 :root[data-style="card"] .tabs2 button.on{background:var(--grad)}
+
+/* ===== Загвар "Нутаг" (үндсэн): дулаан цаас, хавтгай хэвлэлийн маяг, дугуй аватар ===== */
+:root[data-style="nomad"]{--bg:#F3EEE3;--surface:#FBF8F1;--ink:#1D1B16;--mute:#7C7565;--line:#E1D8C6;--dune:#C8912B;--sky:#1E48C8;--green:#2E9E6B;--like:#D2453D;--bubble-me:#1E48C8;--bubble-them:#E8E0CE;--glass:#F3EEE3;--glow:none;--grad:linear-gradient(#1E48C8,#1E48C8);--ring:conic-gradient(#C8912B,#D2453D,#1E48C8,#C8912B);--r:6px;--shadow:none;--display:'Unbounded','Montserrat',system-ui,sans-serif;--body:'Manrope','Montserrat',system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root[data-style="nomad"]:not([data-theme="light"]){--bg:#12100D;--surface:#1B1813;--ink:#F2EBDB;--mute:#A0967F;--line:#2C2720;--dune:#E4B15A;--sky:#7C97FF;--green:#5FD39B;--like:#FF6B62;--bubble-me:#3F5FE0;--bubble-them:#262119;--glass:#12100D;--glow:none;--grad:linear-gradient(#3F5FE0,#3F5FE0);--ring:conic-gradient(#E4B15A,#FF6B62,#7C97FF,#E4B15A)}}
+:root[data-style="nomad"][data-theme="dark"]{--bg:#12100D;--surface:#1B1813;--ink:#F2EBDB;--mute:#A0967F;--line:#2C2720;--dune:#E4B15A;--sky:#7C97FF;--green:#5FD39B;--like:#FF6B62;--bubble-me:#3F5FE0;--bubble-them:#262119;--glass:#12100D;--glow:none;--grad:linear-gradient(#3F5FE0,#3F5FE0);--ring:conic-gradient(#E4B15A,#FF6B62,#7C97FF,#E4B15A)}
+:root[data-style="nomad"] body{font-family:var(--body);font-size:15.5px}
+:root[data-style="nomad"] #app::before{display:none}
+:root[data-style="nomad"] #hd{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom:1px solid var(--line)}
+:root[data-style="nomad"] .logo{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--ink);font-weight:500;font-size:17px;letter-spacing:.02em}
+:root[data-style="nomad"] .logo svg path{stroke:var(--sky)}
+:root[data-style="nomad"] #nav{margin:0;border:0;border-top:1px solid var(--line);border-radius:0;background:var(--bg);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0}
+:root[data-style="nomad"] #nav button{border-radius:0;padding:11px 0 10px;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
+:root[data-style="nomad"] #nav button.on{background:transparent;box-shadow:inset 0 2px 0 var(--ink);color:var(--ink)}
+:root[data-style="nomad"] #nav button.on svg{color:var(--ink);filter:none}
+:root[data-style="nomad"] .card,:root[data-style="nomad"] .post,:root[data-style="nomad"] .row,:root[data-style="nomad"] .stats>*{background:transparent;box-shadow:none;border-radius:0;border-width:0 0 1px;border-color:var(--line);margin-left:0;margin-right:0}
+:root[data-style="nomad"] .post{margin-top:0;margin-bottom:0;padding:18px 0 6px}
+:root[data-style="nomad"] .ph,:root[data-style="nomad"] .post p,:root[data-style="nomad"] .pa{padding-left:18px;padding-right:18px}
+:root[data-style="nomad"] .post p{margin-left:18px;margin-right:18px;font-size:16px;line-height:1.6}
+:root[data-style="nomad"] .art,:root[data-style="nomad"] .igrid{margin:14px 18px 0;border-radius:4px}
+:root[data-style="nomad"] .composer{padding:16px 18px;background:var(--surface)}
+:root[data-style="nomad"] .row{width:100%;padding:14px 18px}
+:root[data-style="nomad"] .stats{gap:0;margin:16px 0;border:1px solid var(--line)}
+:root[data-style="nomad"] .stats>*{border-width:0;border-right:1px solid var(--line);padding:14px 16px}
+:root[data-style="nomad"] .stats>*:last-child{border-right:0}
+:root[data-style="nomad"] .stats b{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--ink);font-size:22px;font-family:var(--display);font-weight:500}
+:root[data-style="nomad"] .sec{font-family:var(--body);font-weight:800;letter-spacing:.14em;font-size:11px;color:var(--mute);border-top:1px solid var(--line);margin-top:6px}
+:root[data-style="nomad"] .btn{border-radius:4px;box-shadow:none;background:var(--ink);color:var(--bg);font-weight:700;letter-spacing:.02em}
+:root[data-style="nomad"] .btn.line{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+:root[data-style="nomad"] .btn.ghost{color:var(--ink);border-color:var(--ink)}
+:root[data-style="nomad"] .ib{border-radius:50%;background:transparent;border-color:transparent}
+:root[data-style="nomad"] .chip,:root[data-style="nomad"] .search,:root[data-style="nomad"] .cmf input,:root[data-style="nomad"] .mf input{border-radius:4px;background:var(--surface);color:var(--ink)}
+:root[data-style="nomad"] .tabs2{gap:20px;padding:6px 18px 0;border-bottom:1px solid var(--line)}
+:root[data-style="nomad"] .tabs2 button{border:0;border-radius:0;padding:10px 0;background:transparent;color:var(--mute);font-weight:700;letter-spacing:.04em}
+:root[data-style="nomad"] .tabs2 button.on{background:transparent;color:var(--ink);box-shadow:inset 0 -2px 0 var(--ink)}
+:root[data-style="nomad"] .pa button{border-radius:4px;padding:9px 12px}
+:root[data-style="nomad"] .pa button.liked{filter:none}
+:root[data-style="nomad"] .b{border-radius:4px;padding:10px 14px}
+:root[data-style="nomad"] .b.me{background:var(--bubble-me);color:#fff;box-shadow:none;border-bottom-right-radius:4px}
+:root[data-style="nomad"] .b.them{background:var(--bubble-them);color:var(--ink);border-bottom-left-radius:4px}
+:root[data-style="nomad"] .mf{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none;border-top:1px solid var(--line)}
+:root[data-style="nomad"] .sheet{border-radius:12px 12px 0 0;background:var(--bg);box-shadow:none;border-color:var(--ink)}
+:root[data-style="nomad"] .badge{box-shadow:none;background:var(--like)}
+:root[data-style="nomad"] .unread{background:var(--ink);color:var(--bg)}
+:root[data-style="nomad"] .dot{box-shadow:none}
+:root[data-style="nomad"] h2,:root[data-style="nomad"] h3,:root[data-style="nomad"] .title{font-family:var(--display);font-weight:500;letter-spacing:-.01em}
+/* дугуй аватар */
+:root[data-style="nomad"] .hx{height:var(--s);clip-path:circle(50% at 50% 50%)}
+:root[data-style="nomad"] .hx-a{inset:calc(var(--s)*.045);clip-path:circle(50% at 50% 50%)}
+:root[data-style="nomad"] .hx-b{inset:calc(var(--s)*.09);clip-path:circle(50% at 50% 50%)}
+:root[data-style="nomad"] .st .plus i{background:var(--ink);color:var(--bg);box-shadow:none}
+:root[data-style="nomad"] .cover{margin:0;border-radius:0;height:120px}
 </style>
 </head>
 <body>
@@ -774,7 +825,7 @@ function settingsHTML(){
   sec('Аккаунт')+`<button class="btn line" data-a="editprofile">Профайл засах</button>`+
   sec('Хувийн байдал')+`<p class="mute" style="margin:0;font-size:13px">Хэн танд чатаар шууд бичиж болох вэ?</p><div style="display:flex;gap:8px"><button class="btn ${dm==='all'?'':'line'}" style="flex:1" data-a="dmset" data-v="all">Бүгд${dm==='all'?' ✓':''}</button><button class="btn ${dm==='friends'?'':'line'}" style="flex:1" data-a="dmset" data-v="friends">Зөвхөн найзууд${dm==='friends'?' ✓':''}</button></div><button class="btn line" data-a="blocklist">Блоклосон хэрэглэгчид (${S.blocked.size})</button>`+
   sec('Дуудлага ба мэдэгдэл')+`<button class="btn line" data-a="ringset">Дуудлагын дуу</button>`+(np?`<button class="btn line" data-a="notif" ${np==='granted'?'disabled':''}>${np==='granted'?'🔔 Мэдэгдэл асаалттай':np==='denied'?'🔕 Мэдэгдэл хаалттай (браузерийн тохиргооноос нээнэ)':'🔔 Мэдэгдэл асаах'}</button>`:'')+
-  sec('Харагдац')+`<button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><div class="tabs2" style="padding:8px 0 0">${[['glass','Шилэн'],['minimal','Минимал'],['card','Карт']].map(([v,n])=>`<button data-a="dstyle" data-v="${v}" class="${(document.documentElement.dataset.style||'glass')===v?'on':''}">${n}</button>`).join('')}</div>`+
+  sec('Харагдац')+`<button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><div class="tabs2" style="padding:8px 0 0">${[['nomad','Нутаг'],['glass','Шилэн'],['minimal','Минимал'],['card','Карт']].map(([v,n])=>`<button data-a="dstyle" data-v="${v}" class="${(document.documentElement.dataset.style||'nomad')===v?'on':''}">${n}</button>`).join('')}</div>`+
   sec('Аюулгүй байдал')+secInfo()+`<button class="btn line" data-a="logout">Гарах</button><button class="btn line" data-a="delaccask" style="color:var(--like)">Акаунт устгах</button>`;
 }
 function profileHTML(){
