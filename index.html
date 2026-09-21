@@ -946,7 +946,7 @@ function personAction(uid,name){
   if(S.friends.has(uid))return chat;
   const dm=(U.get(uid)||{}).dm!=='friends'?chat:'',inc=S.reqIn.find(r=>r.from===uid);
   if(inc)return dm+`<button class="btn sm" data-a="accept" data-id="${esc(inc.id)}">Зөвшөөрөх</button>`;
-  if(S.reqOut.has(uid))return dm+`<button class="btn sm line" disabled>Илгээсэн</button>`;
+  if(S.reqOut.has(uid))return dm+`<button class="btn sm line" data-a="cancelreq" data-id="${esc(uid)}">Цуцлах</button>`;
   return dm+`<button class="btn sm ghost" data-a="add" data-id="${esc(uid)}" data-n="${esc(name)}">Нэмэх</button>`;
 }
 function friendLists(){
@@ -1082,7 +1082,7 @@ function profileHTML(){
 }
 function userHTML(){
   const v=S.view,u=U.get(v.uid)||{name:v.name,bio:''},bl=S.blocked.has(v.uid);
-  return `<div class="cover">${cover()}</div><div class="pinfo"><span class="av">${av(v.uid,u.name,84,'new')}</span><h2>${esc(u.name)}</h2>${u.bio?`<p>${esc(u.bio)}</p>`:''}<div class="stats"><div><b>${S.vposts.length}</b><span>Нийтлэл</span></div></div><div class="pbtns">${bl?'':personAction(v.uid,u.name)+`<button class="btn sm line" data-a="ucall" data-id="${esc(v.uid)}" data-n="${esc(u.name)}" data-au="1" aria-label="Дуут дуудлага">${ic('phone',18)}</button><button class="btn sm line" data-a="ucall" data-id="${esc(v.uid)}" data-n="${esc(u.name)}" aria-label="Видео дуудлага">${ic('video',20)}</button>`}<button class="btn line" data-a="${bl?'unblock':'block'}" data-id="${esc(v.uid)}">${bl?'Блокоос гаргах':'Блоклох'}</button><button class="btn line" data-a="report" data-id="${esc(v.uid)}" data-n="${esc(u.name)}">Гомдол</button></div></div><div class="sec">Нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
+  return `<div class="cover">${cover()}</div><div class="pinfo"><span class="av">${av(v.uid,u.name,84,'new')}</span><h2>${esc(u.name)}</h2>${u.bio?`<p>${esc(u.bio)}</p>`:''}<div class="stats"><div><b>${S.vposts.length}</b><span>Нийтлэл</span></div></div><div class="pbtns">${bl?'':personAction(v.uid,u.name)+`<button class="btn sm line" data-a="ucall" data-id="${esc(v.uid)}" data-n="${esc(u.name)}" data-au="1" aria-label="Дуут дуудлага">${ic('phone',18)}</button><button class="btn sm line" data-a="ucall" data-id="${esc(v.uid)}" data-n="${esc(u.name)}" aria-label="Видео дуудлага">${ic('video',20)}</button>`}${S.friends.has(v.uid)&&!bl?`<button class="btn line" data-a="unfriend" data-id="${esc(v.uid)}">Найзаас хасах</button>`:''}<button class="btn line" data-a="${bl?'unblock':'block'}" data-id="${esc(v.uid)}">${bl?'Блокоос гаргах':'Блоклох'}</button><button class="btn line" data-a="report" data-id="${esc(v.uid)}" data-n="${esc(u.name)}">Гомдол</button></div></div><div class="sec">Нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
 }
 function render(){
   if(!S.me){authRender();return}
@@ -1263,7 +1263,7 @@ function subscribe(){
     if(rdy.req)sn.docChanges().forEach(ch=>{if(ch.type==='added')notify('👋 Найзын хүсэлт',(ch.doc.data().fromName||'Хэн нэгэн')+' найз болохыг хүсч байна','req-'+ch.doc.id)});
     rdy.req=true;
     S.reqIn=sn.docs.map(d=>{const x=d.data();return {id:d.id,from:x.from,fromName:x.fromName||'Хэрэглэгч'}});refreshFriends();refreshNav()});
-  on(query(collection(db,'requests'),where('from','==',uid)),sn=>{S.reqOut=new Set(sn.docs.map(d=>d.data().to));refreshFriends()});
+  on(query(collection(db,'requests'),where('from','==',uid)),sn=>{S.reqOut=new Set(sn.docs.filter(d=>d.data().status==='pending').map(d=>d.data().to));refreshFriends()});
   on(query(collection(db,'chats'),where('members','array-contains',uid)),sn=>{
     if(rdy.chats)sn.docChanges().forEach(ch=>{if(ch.type==='removed')return;const x=ch.doc.data({serverTimestamps:'estimate'}),g=!!x.group,prev=S.chats.get(ch.doc.id);
       if(!x.lastFrom||x.lastFrom===uid||!x.last||hid(x.lastFrom))return;
@@ -1768,12 +1768,24 @@ document.addEventListener('click',async e=>{
       openSheet(`<h3>👁 Үзсэн (${v.length})</h3>${v.length?v.map(u=>`<div class="row" style="margin:0 0 6px;width:100%">${av(u,nmOf(u),36)}<div class="rt"><b>${esc(nmOf(u))}</b></div></div>`).join(''):'<p class="mute" style="margin:0">Одоохондоо хэн ч үзээгүй байна.</p>'}`);break}
     case 'rmimg':{S.draftImgs.splice(+b.dataset.i,1);drawPrev();break}
     case 'pzoom':{const p=allPosts().find(x=>x.id===id),im=p&&safeImg((p.imgs.length?p.imgs:[p.img])[+b.dataset.i||0]);if(im){ov.innerHTML=`<div class="scrim" data-a="closeov"></div><img class="zoom" src="${im}" alt="">`;ov.className='open'}break}
-    case 'add':{const to=id,nm=b.dataset.n;
-      await setDoc(doc(db,'requests',S.me.uid+'_'+to),{from:S.me.uid,to,fromName:S.me.name,toName:nm,status:'pending',createdAt:serverTimestamp()});pushPing({kind:'req',id:S.me.uid+'_'+to});toast('Хүсэлт илгээгдлээ');break}
+    case 'add':{const to=id,nm=b.dataset.n,rid=S.me.uid+'_'+to;
+      if(S.friends.has(to)||S.reqOut.has(to)){toast('Хүсэлт өмнө нь илгээгдсэн');break}
+      try{
+        /* өмнө зөвшөөрөгдсөн (одоо найз биш) хуучин хүсэлт үлдсэн бол устгаад шинээр илгээнэ */
+        try{const old=await FS.getDoc(doc(db,'requests',rid));if(old.exists())await deleteDoc(old.ref)}catch(_){}
+        await setDoc(doc(db,'requests',rid),{from:S.me.uid,to,fromName:S.me.name,toName:nm,status:'pending',createdAt:serverTimestamp()});
+      }catch(x){console.error(x);toast(x&&x.code==='permission-denied'?'Хүсэлт илгээж чадсангүй (блоклогдсон байж магадгүй)':'Хүсэлт илгээж чадсангүй. Дахин оролдоно уу.',3500);break}
+      pushPing({kind:'req',id:rid});toast('Хүсэлт илгээгдлээ');break}
+    case 'cancelreq':{await deleteDoc(doc(db,'requests',S.me.uid+'_'+id));toast('Хүсэлт цуцлагдлаа');break}
+    case 'unfriend':{if(!confirm('Найзуудаас хасах уу?'))break;const me=S.me.uid;
+      await deleteDoc(doc(db,'friendships',chatId(me,id)));
+      for(const rid of [me+'_'+id,id+'_'+me]){try{const q=await FS.getDoc(doc(db,'requests',rid));if(q.exists())await deleteDoc(q.ref)}catch(_){}}
+      toast('Найзуудаас хаслаа');break}
     case 'accept':{const r=S.reqIn.find(x=>x.id===id);if(!r)break;const me=S.me.uid,bt=writeBatch(db);
       bt.update(doc(db,'requests',id),{status:'accepted'});
       bt.set(doc(db,'friendships',chatId(me,r.from)),{members:[me,r.from].sort(),names:{[me]:S.me.name,[r.from]:r.fromName},createdAt:serverTimestamp()});
-      await bt.commit();toast(r.fromName+' найз боллоо');break}
+      try{await bt.commit()}catch(x){console.error(x);toast('Зөвшөөрч чадсангүй. Дахин оролдоно уу.',3500);break}
+      toast(r.fromName+' найз боллоо');break}
     case 'decline':await deleteDoc(doc(db,'requests',id));break;
     case 'thread':openThread(id,b.dataset.n,b.dataset.g||null);break;
     case 'editprofile':S.draftPhoto=null;openSheet(`<h3>Профайл засах</h3><div class="phrow">${av(S.me.uid,S.me.name,56)}<label class="chip" id="pchip">${ic('image',18)}Зураг солих<input type="file" id="pfile" accept="image/*" class="vh"></label></div><label>Нэр<input id="pn" value="${esc(S.me.name)}" maxlength="40"></label><label>Танилцуулга<textarea id="pb" maxlength="140">${esc(S.me.bio)}</textarea></label><button class="btn" data-a="saveprofile">Хадгалах</button>`);break;
