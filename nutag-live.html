@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Нутаг</title>
+<title>MAZE APP</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#2F7D5B">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Нутаг">
+<meta name="apple-mobile-web-app-title" content="MAZE APP">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Unbounded:wght@500;600&display=swap" rel="stylesheet">
@@ -327,7 +327,7 @@ const mapMsg=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,f
 function unreadChats(){let n=0;S.chats.forEach((c,cid)=>{if(c.lastFrom&&c.lastFrom!==S.me.uid&&c.lastAt>(S.readMap[cid]||0))n++});return n}
 function headerHTML(){
   if(S.thread)return `<button class="ib" data-a="back" aria-label="Буцах">${ic('back',24)}</button>${av(S.thread.uid,S.thread.name,38)}<b style="font-weight:600">${esc(S.thread.name)}</b>`;
-  if(S.tab==='feed')return `<div class="logo"><svg width="28" height="25" viewBox="0 0 28 25" aria-hidden="true"><path d="M7 1h14l7 11.5L21 24H7L0 12.5z" fill="none" stroke="var(--sky)" stroke-width="2.4"/><circle cx="14" cy="12.5" r="3.4" fill="var(--green)"/></svg>Нутаг</div>${canNotify()&&Notification.permission==='default'?`<button class="ib" style="margin-left:auto" data-a="notif" aria-label="Мэдэгдэл асаах">${ic('bell',22)}</button>`:''}`;
+  if(S.tab==='feed')return `<div class="logo"><svg width="28" height="25" viewBox="0 0 28 25" aria-hidden="true"><path d="M7 1h14l7 11.5L21 24H7L0 12.5z" fill="none" stroke="var(--sky)" stroke-width="2.4"/><circle cx="14" cy="12.5" r="3.4" fill="var(--green)"/></svg>MAZE APP</div>${canNotify()&&Notification.permission==='default'?`<button class="ib" style="margin-left:auto" data-a="notif" aria-label="Мэдэгдэл асаах">${ic('bell',22)}</button>`:''}`;
   return `<div class="title">${{friends:'Найзууд',chat:'Чат',profile:'Профайл'}[S.tab]}</div>`;
 }
 function navHTML(){
@@ -426,7 +426,7 @@ const LOGO='<svg width="36" height="32" viewBox="0 0 28 25" aria-hidden="true"><
 function authHTML(){
   const reg=A.mode==='register',rst=A.mode==='reset';
   const fld=(l,n,type,extra,hint)=>`<label class="fld">${l}<input name="${n}" type="${type}" ${extra||''}>${hint?`<span>${hint}</span>`:''}</label>`;
-  return `<div class="auth"><div class="logo">${LOGO}Нутаг</div><p class="lead">Найз нөхөдтэйгээ холбогдох газар.</p>
+  return `<div class="auth"><div class="logo">${LOGO}MAZE APP</div><p class="lead">Найз нөхөдтэйгээ холбогдох газар.</p>
   ${rst?'':`<div class="seg" role="tablist"><button data-a="amode" data-m="login" class="${reg?'':'on'}" role="tab" aria-selected="${!reg}">Нэвтрэх</button><button data-a="amode" data-m="register" class="${reg?'on':''}" role="tab" aria-selected="${reg}">Бүртгүүлэх</button></div>`}
   <form data-f="${A.mode}" novalidate>
     ${reg?fld('Нэр','n','text','maxlength="40" autocomplete="name" required'):''}
@@ -445,7 +445,7 @@ function authRender(){
 }
 function setupRender(){
   $('#hd').style.display='none';$('#nav').style.display='none';
-  $('#main').innerHTML=`<div class="setup"><div class="logo">${LOGO}Нутаг</div><h2>Firebase-ээ холбоно уу</h2><p class="mute">Энэ файл бэлэн боловч өгөгдлийн сангаа холбох хэрэгтэй. Үнэгүй.</p><ol>
+  $('#main').innerHTML=`<div class="setup"><div class="logo">${LOGO}MAZE APP</div><h2>Firebase-ээ холбоно уу</h2><p class="mute">Энэ файл бэлэн боловч өгөгдлийн сангаа холбох хэрэгтэй. Үнэгүй.</p><ol>
   <li><code>console.firebase.google.com</code> → <b>Add project</b></li>
   <li><b>Build → Authentication → Get started</b> → <b>Email/Password</b>-ийг идэвхжүүл</li>
   <li><b>Build → Firestore Database → Create database</b> (production mode)</li>

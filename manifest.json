@@ -1,6 +1,6 @@
-﻿{
-  "name": "Нутаг",
-  "short_name": "Нутаг",
+{
+  "name": "MAZE APP",
+  "short_name": "MAZE",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
