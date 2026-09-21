@@ -386,10 +386,14 @@ const A={mode:'login',msg:'',ok:false};
 let subs=[],cmSubs=new Map(),msgSub=null,svT=null,regBusy=false,tt,peopleT,vSub=null,uT,rec=null;
 const lsGet=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(_){return d}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}};
+const bmKey=()=>'maze-bm-'+(S.me?S.me.uid:'');
+const bmGet=()=>new Set(lsGet(bmKey(),[]));
+const bmToggle=id=>{const b=bmGet();b.has(id)?b.delete(id):b.add(id);lsSet(bmKey(),[...b].slice(-500));return b.has(id)};
 const chatId=(a,b)=>[a,b].sort().join('_');
 
 /* ---------- icons ---------- */
 const I={
+  bookmark:'<path d="M6 3h12v18l-6-4-6 4z"/>',
  home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
  users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c2.7 0 4.5 1.8 4.5 4.5"/>',
  chat:'<path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-8l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/>',
@@ -589,12 +593,13 @@ function postHTML(p){
   const open=S.open.has(p.id),liked=p.likes.includes(S.me.uid),img=safeImg(p.img),ims=p.imgs.map(safeImg).filter(Boolean).slice(0,4);
   const cms=open?`<div class="cms">${(S.cm.get(p.id)||[]).map(c=>`<div class="cm">${av(c.uid,c.name,30)}<div class="bb"><b>${esc(c.name)}</b>${esc(c.text)}</div></div>`).join('')}<form class="cmf" data-f="comment" data-id="${esc(p.id)}"><input data-cin="${esc(p.id)}" placeholder="Сэтгэгдэл бичих" aria-label="Сэтгэгдэл бичих" autocomplete="off" maxlength="500"><button class="btn sm" type="submit">Илгээх</button></form></div>`:'';
   const nm=(U.get(p.uid)||{}).name||p.name,uattr=`data-a="user" data-id="${esc(p.uid)}" data-n="${esc(nm)}"`,mine=p.uid===S.me.uid;
-  return `<article class="post"><div class="ph"><span ${uattr}>${av(p.uid,nm,42)}</span><div ${uattr}><b>${esc(nm)}</b><span class="mute">${ago(p.t)}${p.ed?' · засварласан':''}</span></div>${mine?`<button class="del" data-a="editpost" data-id="${esc(p.id)}">Засах</button><button class="del" data-a="delpost" data-id="${esc(p.id)}">Устгах</button>`:`<button class="del" data-a="pmenu" data-id="${esc(p.uid)}" data-p="${esc(p.id)}" data-n="${esc(nm)}" aria-label="Цэс">${ic('more',20)}</button>`}</div>${p.text?`<p>${hashLink(esc(p.text))}</p>`:''}${ims.length>1?`<div class="igrid n${ims.length}">${ims.map((s,i)=>`<img src="${s}" alt="" data-a="pzoom" data-id="${esc(p.id)}" data-i="${i}">`).join('')}</div>`:img?`<div class="art"><img src="${img}" alt="" data-a="pzoom" data-id="${esc(p.id)}" data-i="0" style="cursor:zoom-in"></div>`:''}<div class="pa"><button data-a="like" data-id="${esc(p.id)}" class="${liked?'liked':''}" aria-pressed="${liked}">${ic('heart',20,liked)}${p.likes.length}</button><button data-a="cm" data-id="${esc(p.id)}">${ic('chat',20)}${p.cc}</button><button data-a="rxo" data-id="${esc(p.id)}" aria-label="Реакц">${ic('smile',20)}</button><span class="rxs">${rxSum(p.rx)}</span></div>${S.rxOpen===p.id?rxPick('p',p.id):''}${cms}</article>`;
+  return `<article class="post"><div class="ph"><span ${uattr}>${av(p.uid,nm,42)}</span><div ${uattr}><b>${esc(nm)}</b><span class="mute">${ago(p.t)}${p.ed?' · засварласан':''}</span></div>${mine?`<button class="del" data-a="editpost" data-id="${esc(p.id)}">Засах</button><button class="del" data-a="delpost" data-id="${esc(p.id)}">Устгах</button>`:`<button class="del" data-a="pmenu" data-id="${esc(p.uid)}" data-p="${esc(p.id)}" data-n="${esc(nm)}" aria-label="Цэс">${ic('more',20)}</button>`}</div>${p.text?`<p>${hashLink(esc(p.text))}</p>`:''}${ims.length>1?`<div class="igrid n${ims.length}">${ims.map((s,i)=>`<img src="${s}" alt="" data-a="pzoom" data-id="${esc(p.id)}" data-i="${i}">`).join('')}</div>`:img?`<div class="art"><img src="${img}" alt="" data-a="pzoom" data-id="${esc(p.id)}" data-i="0" style="cursor:zoom-in"></div>`:''}<div class="pa"><button data-a="like" data-id="${esc(p.id)}" class="${liked?'liked':''}" aria-pressed="${liked}">${ic('heart',20,liked)}${p.likes.length}</button><button data-a="cm" data-id="${esc(p.id)}">${ic('chat',20)}${p.cc}</button><button data-a="rxo" data-id="${esc(p.id)}" aria-label="Реакц">${ic('smile',20)}</button><span class="rxs">${rxSum(p.rx)}</span><button data-a="bm" data-id="${esc(p.id)}" class="bmb${bmGet().has(p.id)?' liked':''}" aria-label="Хадгалах" style="margin-left:auto">${ic('bookmark',20,bmGet().has(p.id))}</button></div>${S.rxOpen===p.id?rxPick('p',p.id):''}${cms}</article>`;
 }
 function postsHTML(){
   let list=S.view?S.vposts:S.tab==='profile'?S.mine:S.posts;
   if(!S.view)list=list.filter(p=>p.uid===S.me.uid||!hid(p.uid));
   if(S.tab==='feed'&&!S.view&&S.feedTab==='friends')list=list.filter(p=>p.uid===S.me.uid||S.friends.has(p.uid));
+  if(S.tab==='feed'&&!S.view&&S.feedTab==='saved'){const b=bmGet();list=list.filter(p=>b.has(p.id))}
   const q=S.tab==='feed'&&!S.view?S.pq.trim().toLowerCase():'';
   if(q)list=list.filter(p=>(p.text+' '+p.name).toLowerCase().includes(q));
   return list.length?list.map(postHTML).join(''):`<div class="empty">${q?'Ийм нийтлэл олдсонгүй.':'Нийтлэл байхгүй.'}${!q&&S.tab==='feed'&&!S.view?' Дээрх талбарт анхны нийтлэлээ бич.':''}</div>`;
@@ -602,7 +607,7 @@ function postsHTML(){
 const prevHTML=()=>S.draftImgs.map((d,i)=>`<div class="pv"><img src="${d}" alt="Сонгосон зураг"><button type="button" data-a="rmimg" data-i="${i}" aria-label="Хасах">✕</button></div>`).join('');
 const drawPrev=()=>{const e=$('#prev');if(e)e.innerHTML=prevHTML()};
 function feedHTML(){
-  return verifyHTML()+storiesHTML()+`<section class="card composer"><form data-f="post"><div class="top">${av(S.me.uid,S.me.name,42)}<textarea id="cmp" rows="2" maxlength="2000" placeholder="Юу бодож байна?" aria-label="Шинэ нийтлэл"></textarea></div><div id="prev">${prevHTML()}</div><div class="bar"><label class="chip">${ic('image',18)}Зураг<input type="file" id="file" accept="image/*" multiple class="vh"></label><button class="btn" type="submit">Нийтлэх</button></div></form></section><div class="tabs2" role="tablist"><button data-a="ftab" data-v="all" class="${S.feedTab==='all'?'on':''}">Бүгд</button><button data-a="ftab" data-v="friends" class="${S.feedTab==='friends'?'on':''}">Найзууд</button></div><input class="search" id="pq" placeholder="Нийтлэл хайх (#таг)" aria-label="Нийтлэл хайх" value="${esc(S.pq)}" autocomplete="off"><div id="posts">${postsHTML()}</div>`;
+  return verifyHTML()+storiesHTML()+`<section class="card composer"><form data-f="post"><div class="top">${av(S.me.uid,S.me.name,42)}<textarea id="cmp" rows="2" maxlength="2000" placeholder="Юу бодож байна?" aria-label="Шинэ нийтлэл"></textarea></div><div id="prev">${prevHTML()}</div><div class="bar"><label class="chip">${ic('image',18)}Зураг<input type="file" id="file" accept="image/*" multiple class="vh"></label><button class="btn" type="submit">Нийтлэх</button></div></form></section><div class="tabs2" role="tablist"><button data-a="ftab" data-v="all" class="${S.feedTab==='all'?'on':''}">Бүгд</button><button data-a="ftab" data-v="friends" class="${S.feedTab==='friends'?'on':''}">Найзууд</button><button data-a="ftab" data-v="saved" class="${S.feedTab==='saved'?'on':''}">Хадгалсан</button></div><input class="search" id="pq" placeholder="Нийтлэл хайх (#таг)" aria-label="Нийтлэл хайх" value="${esc(S.pq)}" autocomplete="off"><div id="posts">${postsHTML()}</div>`;
 }
 function verifyHTML(){const u=auth&&auth.currentUser;return u&&!u.emailVerified?`<section class="card composer" style="display:flex;gap:10px;align-items:center"><span style="flex:1;font-size:14px">📧 Имэйлээ баталгаажуулна уу. Баталгаажуулах холбоос имэйл рүү чинь илгээгдсэн.</span><button class="btn sm line" data-a="verify">Дахин илгээх</button></section>`:''}
 function personAction(uid,name){
@@ -642,8 +647,9 @@ function chatListHTML(){
   return `<div class="chatbar"><input class="search" id="cq" placeholder="Чатаас хайх" aria-label="Чатаас хайх" value="${esc(S.cq)}" autocomplete="off"><button class="ib" data-a="newgroup" aria-label="Бүлэг үүсгэх">${ic('users',20)}</button></div><div id="clist">${chatItems()}</div>`;
 }
 function msgsHTML(){
-  const th=S.thread,c=S.chats.get(th.cid)||{},sn=c.seen||{},vis=S.msgs.filter(m=>m.f===S.me.uid||!hid(m.f));
-  if(!vis.length)return S.msgsLoaded?`<div class="empty">Мессеж бичээд эхэл.</div>`:loader(true);
+  const th=S.thread,c=S.chats.get(th.cid)||{},sn=c.seen||{};let vis=S.msgs.filter(m=>m.f===S.me.uid||!hid(m.f)),mq=(S.mq||'').trim().toLowerCase();
+  if(mq)vis=vis.filter(m=>!m.del&&(m.t||'').toLowerCase().includes(mq));
+  if(!vis.length)return mq?`<div class="empty">Ийм мессеж олдсонгүй.</div>`:S.msgsLoaded?`<div class="empty">Мессеж бичээд эхэл.</div>`:loader(true);
   let lm=-1;vis.forEach((m,i)=>{if(m.f===S.me.uid)lm=i});
   return vis.map((m,i)=>{
     const me=m.f===S.me.uid,dl=m.del,im=dl?'':safeImg(m.img),au=dl?'':safeAud(m.aud);
@@ -673,7 +679,7 @@ function setTyping(){
 const renderMf=()=>{const f=$('.mf');if(f)f.innerHTML=mfInner()};
 function threadHTML(){
   const th=S.thread,blocked=!th.group&&hid(th.uid);
-  return `<div class="msgs" id="msgs">${msgsHTML()}</div><div id="reqb">${blocked?'':reqBarHTML()}</div><div class="typ" id="typ" aria-live="polite"></div><div id="rpb">${replyBarHTML()}</div>`+(blocked?`<div class="empty">Энэ хэрэглэгчтэй харилцах боломжгүй.</div>`:`<form class="mf" data-f="msg">${mfInner()}</form>`);
+  return (S.mqOn?`<input class="search" id="mq" placeholder="Чатаас хайх" aria-label="Чатаас хайх" value="${esc(S.mq||'')}" autocomplete="off">`:'')+`<div class="msgs" id="msgs">${msgsHTML()}</div><div id="reqb">${blocked?'':reqBarHTML()}</div><div class="typ" id="typ" aria-live="polite"></div><div id="rpb">${replyBarHTML()}</div>`+(blocked?`<div class="empty">Энэ хэрэглэгчтэй харилцах боломжгүй.</div>`:`<form class="mf" data-f="msg">${mfInner()}</form>`);
 }
 const n0=()=>'Б';
 function hasPw(){const u=auth&&auth.currentUser;return !!u&&u.providerData.some(p=>p.providerId==='password')}
@@ -1127,12 +1133,12 @@ function openThread(uid,name,gid){
   const {collection,query,orderBy,limitToLast,onSnapshot}=FS,cid=gid||chatId(S.me.uid,uid);
   clearView();recStop(false);S.rxOpen=null;
   if(msgSub){msgSub();msgSub=null}
-  S.thread={uid:gid?cid:uid,name,cid,group:!!gid};S.tab='chat';S.msgs=[];S.stick=true;S.msgsLoaded=false;lastMsgsHtml='';render();clearTimeout(S.ldT);S.ldT=setTimeout(()=>{if(S.thread&&S.thread.cid===cid&&!S.msgsLoaded){S.msgsLoaded=true;refreshMsgs()}},1500);
+  S.mq="";S.mqOn=false;S.thread={uid:gid?cid:uid,name,cid,group:!!gid};S.tab='chat';S.msgs=[];S.stick=true;S.msgsLoaded=false;lastMsgsHtml='';render();clearTimeout(S.ldT);S.ldT=setTimeout(()=>{if(S.thread&&S.thread.cid===cid&&!S.msgsLoaded){S.msgsLoaded=true;refreshMsgs()}},1500);
   msgSub=onSnapshot(query(collection(db,'chats',cid,'messages'),orderBy('createdAt','asc'),limitToLast(100)),sn=>{
     S.msgs=sn.docs.map(mapMsg);if(sn.metadata&&sn.metadata.fromCache&&!sn.docs.length&&!S.msgsLoaded)return;S.msgsLoaded=true;if(S.thread&&S.thread.cid===cid){refreshMsgs();markRead(cid)}},onErr);
   markRead(cid);const mi=$('#mi');if(mi&&!(window.matchMedia&&matchMedia('(pointer:coarse)').matches))mi.focus({preventScroll:true});
 }
-function closeThread(){recStop(false);S.rxOpen=null;if(msgSub){msgSub();msgSub=null}S.thread=null;S.msgs=[];render()}
+function closeThread(){S.mq='';S.mqOn=false;recStop(false);S.rxOpen=null;if(msgSub){msgSub();msgSub=null}S.thread=null;S.msgs=[];render()}
 async function sendMsg(p){
   if(!S.thread)return;
   if(S.reply){p=Object.assign({},p,{re:S.reply})}
@@ -1225,7 +1231,9 @@ document.addEventListener('click',async e=>{
     case 'reqok':{if(!S.thread)break;await updateDoc(doc(db,'chats',S.thread.cid),{ok:true});toast('Зөвшөөрлөө');break}
     case 'reqdel':{if(!S.thread||!confirm('Энэ чатыг устгах уу?'))break;const cid=S.thread.cid;closeThread();await deleteDoc(doc(db,'chats',cid));toast('Устгагдлаа');break}
     case 'cmenu':{if(!S.thread)break;const cid=S.thread.cid,pr=cpref(cid);
-      openSheet(`<h3>${esc(S.thread.name)}</h3><button class="btn line" data-a="cpin">${pr.p?'📌 Тогтоосныг болиулах':'📌 Чатыг дээр тогтоох'}</button><button class="btn line" data-a="cmute">${pr.m?'🔔 Дууг нээх':'🔇 Дуу хаах'}</button>${S.thread.group?`<button class="btn line" data-a="ginfo">👥 Бүлгийн мэдээлэл</button>`:`<button class="btn line" data-a="report" data-id="${esc(S.thread.uid)}" data-n="${esc(S.thread.name)}">Гомдол өгөх</button><button class="btn line" data-a="block" data-id="${esc(S.thread.uid)}" style="color:var(--like)">Блоклох</button>`}`);break}
+      openSheet(`<h3>${esc(S.thread.name)}</h3><button class="btn line" data-a="msearch">🔍 Мессеж хайх</button><button class="btn line" data-a="mgal">🖼 Зурагнууд</button><button class="btn line" data-a="cpin">${pr.p?'📌 Тогтоосныг болиулах':'📌 Чатыг дээр тогтоох'}</button><button class="btn line" data-a="cmute">${pr.m?'🔔 Дууг нээх':'🔇 Дуу хаах'}</button>${S.thread.group?`<button class="btn line" data-a="ginfo">👥 Бүлгийн мэдээлэл</button>`:`<button class="btn line" data-a="report" data-id="${esc(S.thread.uid)}" data-n="${esc(S.thread.name)}">Гомдол өгөх</button><button class="btn line" data-a="block" data-id="${esc(S.thread.uid)}" style="color:var(--like)">Блоклох</button>`}`);break}
+    case 'msearch':{closeOv();S.mqOn=true;S.mq='';render();const q=$('#mq');if(q)q.focus();break}
+    case 'mgal':{const ims=S.msgs.filter(m=>!m.del&&safeImg(m.img));openSheet(`<h3>Зурагнууд</h3>`+(ims.length?`<div class="igrid n4" style="max-height:60vh;overflow:auto">${ims.map(m=>`<img src="${safeImg(m.img)}" alt="" data-a="zoom" data-id="${esc(m.id)}">`).join('')}</div>`:'<div class="empty">Зураг илгээгээгүй байна.</div>'));break}
     case 'cpin':{const cid=S.thread.cid;setPref(cid,'p',!cpref(cid).p);closeOv();setHd();break}
     case 'cmute':{const cid=S.thread.cid;setPref(cid,'m',!cpref(cid).m);closeOv();setHd();refreshNav();break}
     case 'notes':{const list=notes();
@@ -1308,6 +1316,7 @@ document.addEventListener('click',async e=>{
     case 'savepost':{const p=allPosts().find(x=>x.id===id),t=$('#ep').value.trim();
       if(!t&&!(p&&p.img)){toast('Текст хоосон байна');break}
       await updateDoc(doc(db,'posts',id),{text:t,edited:true});closeOv();toast('Хадгалагдлаа');break}
+    case 'bm':{const on=bmToggle(id);toast(on?'Хадгаллаа':'Хадгалснаас хаслаа');refreshPosts();break}
     case 'like':{const p=allPosts().find(x=>x.id===id);if(!p)break;
       await updateDoc(doc(db,'posts',id),{likes:p.likes.includes(S.me.uid)?arrayRemove(S.me.uid):arrayUnion(S.me.uid)});break}
     case 'cm':{
@@ -1398,6 +1407,7 @@ document.addEventListener('submit',async e=>{
 document.addEventListener('input',e=>{
   if(e.target.id==='rvol'){RING.vol=+e.target.value;lsSet('maze-ring',RING)}
   if(e.target.id==='fq'){S.q=e.target.value;refreshFriends()}
+  if(e.target.id==='mq'){S.mq=e.target.value;refreshMsgs()}
   if(e.target.id==='pq'){S.pq=e.target.value;refreshPosts()}
   if(e.target.id==='cq'){S.cq=e.target.value;refreshChats()}
   if(e.target.id==='mi'&&e.target.value)typingPing();
