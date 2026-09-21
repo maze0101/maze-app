@@ -341,7 +341,7 @@ if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWo
   };
   if(vv){vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit);fit()}
   document.addEventListener('focusin',e=>{
-    const t=e.target;if(!t||!/^(INPUT|TEXTAREA)$/.test(t.tagName))return;
+    const t=e.target;if(!t||!/^(INPUT|TEXTAREA)$/.test(t.tagName)||!t.closest('.auth,.sheet'))return;
     [250,600].forEach(ms=>setTimeout(()=>{if(document.activeElement===t)t.scrollIntoView({block:'center',behavior:'smooth'})},ms));
   });
   document.addEventListener('focusout',()=>setTimeout(()=>{if(!/^(INPUT|TEXTAREA)$/.test((document.activeElement||{}).tagName||''))window.scrollTo(0,0)},100));
@@ -497,7 +497,7 @@ function chatListHTML(){
 }
 function msgsHTML(){
   const th=S.thread,c=S.chats.get(th.cid)||{},sn=c.seen||{},vis=S.msgs.filter(m=>m.f===S.me.uid||!hid(m.f));
-  if(!vis.length)return `<div class="empty">Мессеж бичээд эхэл.</div>`;
+  if(!vis.length)return S.msgsLoaded?`<div class="empty">Мессеж бичээд эхэл.</div>`:'';
   let lm=-1;vis.forEach((m,i)=>{if(m.f===S.me.uid)lm=i});
   return vis.map((m,i)=>{
     const me=m.f===S.me.uid,im=safeImg(m.img),au=safeAud(m.aud);
@@ -526,7 +526,7 @@ function userHTML(){
 }
 function render(){
   if(!S.me){authRender();return}
-  $('#hd').style.display='';$('#hd').innerHTML=headerHTML();
+  $('#hd').style.display='';lastHd=headerHTML();$('#hd').innerHTML=lastHd;
   const m=$('#main');m.className=S.thread?'thread':'';
   m.innerHTML=S.thread?threadHTML():S.view?userHTML():{feed:feedHTML,friends:friendsHTML,chat:chatListHTML,profile:profileHTML}[S.tab]();
   $('#nav').style.display=S.thread?'none':'';$('#nav').innerHTML=navHTML();
@@ -547,8 +547,17 @@ const refreshStories=()=>{const e=$('#stories');if(e)e.outerHTML=storiesHTML()};
 const refreshFriends=()=>{const e=$('#flist');if(e)e.innerHTML=friendLists();if(S.view)refreshProfile()};
 const refreshChats=()=>{if(S.tab==='chat'&&!S.thread&&!S.view){const e=$('#clist');if(e)e.innerHTML=chatItems();else $('#main').innerHTML=chatListHTML()}};
 function scrollMsgs(){const e=$('#msgs');if(e)e.scrollTop=e.scrollHeight}
-function refreshMsgs(){const e=$('#msgs');if(e){const nb=e.scrollHeight-e.scrollTop-e.clientHeight<90;e.innerHTML=msgsHTML();if(S.stick||nb)scrollMsgs();S.stick=false}}
-let hbT=null;
+let lastMsgsHtml='';
+function refreshMsgs(){
+  const e=$('#msgs');if(!e)return;
+  const h=msgsHTML();if(h===lastMsgsHtml&&e.childElementCount)return;
+  const nb=e.scrollHeight-e.scrollTop-e.clientHeight<90,stick=S.stick||nb;
+  e.innerHTML=h;lastMsgsHtml=h;
+  if(stick){scrollMsgs();e.querySelectorAll('img').forEach(im=>{if(!im.complete)im.addEventListener('load',()=>scrollMsgs(),{once:true})})}
+  S.stick=false;
+}
+let hbT=null,lastHd='';
+function setHd(){const h=headerHTML();if(h!==lastHd){lastHd=h;$('#hd').innerHTML=h}}
 function heartbeat(){
   const ping=()=>{if(S.me&&!document.hidden)FS.updateDoc(FS.doc(db,'users',S.me.uid),{lastSeen:FS.serverTimestamp()}).catch(()=>{})};
   ping();clearInterval(hbT);hbT=setInterval(ping,60000);
@@ -556,7 +565,7 @@ function heartbeat(){
 document.addEventListener('visibilitychange',()=>{if(S.me&&!document.hidden&&FS.updateDoc)FS.updateDoc(FS.doc(db,'users',S.me.uid),{lastSeen:FS.serverTimestamp()}).catch(()=>{})});
 function refreshAll(){
   if(!S.me)return;refreshPosts();refreshStories();refreshFriends();refreshChats();refreshNav();
-  if(S.thread){$('#hd').innerHTML=headerHTML();refreshMsgs()}else if(S.tab==='profile'||S.view)refreshProfile();
+  if(S.thread){setHd();refreshMsgs()}else if(S.tab==='profile'||S.view)refreshProfile();
 }
 
 /* ---------- нэвтрэх / бүртгүүлэх дэлгэц ---------- */
@@ -673,7 +682,7 @@ function subscribe(){
     sn.docChanges().forEach(ch=>{if(ch.type==='removed'){U.delete(ch.doc.id);vis=true}else{
       const x=ch.doc.data(),o=U.get(ch.doc.id),n={name:x.name||'Хэрэглэгч',bio:x.bio||'',photo:safeImg(x.photo),ls:tv(x.lastSeen)};
       U.set(ch.doc.id,n);if(!o||o.name!==n.name||o.bio!==n.bio||o.photo!==n.photo)vis=true}});
-    if(vis){clearTimeout(uT);uT=setTimeout(refreshAll,120)}else if(S.thread&&!S.thread.group)$('#hd').innerHTML=headerHTML()});
+    if(vis){clearTimeout(uT);uT=setTimeout(refreshAll,120)}else if(S.thread&&!S.thread.group)setHd()});
   on(query(collection(db,'blocks'),where('by','==',uid)),sn=>{S.blocked=new Set(sn.docs.map(d=>d.data().target));refreshAll()});
   on(query(collection(db,'blocks'),where('target','==',uid)),sn=>{S.blockedBy=new Set(sn.docs.map(d=>d.data().by));refreshAll()});
   on(query(collection(db,'calls'),where('to','==',uid),where('status','==','ringing')),sn=>sn.docChanges().forEach(ch=>{
@@ -850,10 +859,10 @@ function openThread(uid,name,gid){
   const {collection,query,orderBy,limitToLast,onSnapshot}=FS,cid=gid||chatId(S.me.uid,uid);
   clearView();recStop(false);S.rxOpen=null;
   if(msgSub){msgSub();msgSub=null}
-  S.thread={uid:gid?cid:uid,name,cid,group:!!gid};S.tab='chat';S.msgs=[];S.stick=true;render();
+  S.thread={uid:gid?cid:uid,name,cid,group:!!gid};S.tab='chat';S.msgs=[];S.stick=true;S.msgsLoaded=false;lastMsgsHtml='';render();clearTimeout(S.ldT);S.ldT=setTimeout(()=>{if(S.thread&&S.thread.cid===cid&&!S.msgsLoaded){S.msgsLoaded=true;refreshMsgs()}},1500);
   msgSub=onSnapshot(query(collection(db,'chats',cid,'messages'),orderBy('createdAt','asc'),limitToLast(100)),sn=>{
-    S.msgs=sn.docs.map(mapMsg);if(S.thread&&S.thread.cid===cid){refreshMsgs();markRead(cid)}},onErr);
-  markRead(cid);const mi=$('#mi');if(mi)mi.focus();
+    S.msgs=sn.docs.map(mapMsg);if(sn.metadata&&sn.metadata.fromCache&&!sn.docs.length&&!S.msgsLoaded)return;S.msgsLoaded=true;if(S.thread&&S.thread.cid===cid){refreshMsgs();markRead(cid)}},onErr);
+  markRead(cid);const mi=$('#mi');if(mi&&!(window.matchMedia&&matchMedia('(pointer:coarse)').matches))mi.focus({preventScroll:true});
 }
 function closeThread(){recStop(false);S.rxOpen=null;if(msgSub){msgSub();msgSub=null}S.thread=null;S.msgs=[];render()}
 async function sendMsg(p){if(S.thread)return sendTo(S.thread,p)}
