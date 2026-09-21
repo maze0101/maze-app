@@ -11,7 +11,7 @@ service cloud.firestore {
     // ---------- Хэрэглэгчийн профайл ----------
     function validUser(d) {
       return d.name is string && d.name.size() > 0 && d.name.size() <= 40
-        && (!('nameLower' in d) || d.nameLower == d.name.lower())
+        && (!('nameLower' in d) || isStr(d.nameLower, 40))
         && (!('bio' in d) || isStr(d.bio, 140))
         && (!('photo' in d) || isStr(d.photo, 60000))
         && (!('lastSeen' in d) || d.lastSeen is number || d.lastSeen is timestamp)
