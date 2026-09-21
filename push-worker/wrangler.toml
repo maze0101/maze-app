@@ -1,0 +1,8 @@
+name = "maze-push"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+PROJECT_ID = "tsogtoo-42b99"
+# Апп байрлаж буй домэйн (жишээ: https://maze0101.github.io). "*" бол бүгдийг зөвшөөрнө.
+ALLOWED_ORIGIN = "*"

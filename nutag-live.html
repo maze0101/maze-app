@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>MAZE APP</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob: mediastream:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://www.gstatic.com; frame-src https://*.firebaseapp.com https://*.web.app https://accounts.google.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob: mediastream:; connect-src 'self' https://*.workers.dev https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://www.gstatic.com; frame-src https://*.firebaseapp.com https://*.web.app https://accounts.google.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
 <meta name="referrer" content="no-referrer">
 <link rel="icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -634,6 +634,8 @@ body{letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
 ["gesturestart","gesturechange","gestureend"].forEach(e=>document.addEventListener(e,x=>x.preventDefault()));
 /* ===================== ТОХИРГОО ===================== */
 // Firebase console → Project settings → Your apps → Web → "firebaseConfig"-ийг энд буулгана
+// Push сервер (push-worker/ -г Cloudflare дээр deploy хийсний дараа энд URL-ийг бичнэ). Хоосон бол ажиллахгүй.
+const PUSH_URL = "";
 const CFG = {
   apiKey: "AIzaSyCJEwPemIWrJcHq7MxVhnWXVDG0aF4qg4U",
   authDomain: "tsogtoo-42b99.firebaseapp.com",
@@ -673,6 +675,10 @@ const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}};
 const bmKey=()=>'maze-bm-'+(S.me?S.me.uid:'');
 const bmGet=()=>new Set(lsGet(bmKey(),[]));
 const bmToggle=id=>{const b=bmGet();b.has(id)?b.delete(id):b.add(id);lsSet(bmKey(),[...b].slice(-500));return b.has(id)};
+function pushPing(b){
+  try{const u=auth&&auth.currentUser;if(!PUSH_URL||!u)return;
+    u.getIdToken().then(t=>fetch(PUSH_URL,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+t},body:JSON.stringify(b),keepalive:true})).catch(()=>{})}catch(_){}
+}
 const chatId=(a,b)=>[a,b].sort().join('_');
 
 /* ---------- icons ---------- */
@@ -1324,6 +1330,7 @@ async function startCall(uid,name,audio){
     const pc=makeCall(id,uid,name,local,'callerCandidates',audio);drawCall('Залгаж байна...');
     const offer=await pc.createOffer();await pc.setLocalDescription(offer);
     await setDoc(ref,{from:S.me.uid,to:uid,fromName:S.me.name,toName:name,status:'ringing',offer:{type:offer.type,sdp:offer.sdp},...(audio?{audio:true}:{}),createdAt:serverTimestamp()});
+    pushPing({kind:'call',id});
     CALL.flush();CALL.caller=true;CALL.uid=uid;
     let got=false;
     CALL.unsubs.push(onSnapshot(ref,async sn=>{const d=sn.data();if(!d||!CALL||CALL.id!==id)return;
@@ -1449,6 +1456,7 @@ async function sendTo(th,p){
   const md={from:me.uid,fn:me.name,text:p.text||'',createdAt:serverTimestamp()};if(p.img)md.img=p.img;if(p.aud)md.aud=p.aud;if(p.re)md.re={n:String(p.re.n||'').slice(0,40),t:String(p.re.t||'').slice(0,100)};if(p.fw)md.fw=true;
   b.set(doc(collection(db,'chats',cid,'messages')),md);
   await b.commit();
+  pushPing({kind:'msg',cid,preview:p.text||(p.img?'📷 Зураг':'🎤 Дуут мессеж')});
 }
 
 /* ---------- дуут мессеж ---------- */
@@ -1646,7 +1654,7 @@ document.addEventListener('click',async e=>{
     case 'rmimg':{S.draftImgs.splice(+b.dataset.i,1);drawPrev();break}
     case 'pzoom':{const p=allPosts().find(x=>x.id===id),im=p&&safeImg((p.imgs.length?p.imgs:[p.img])[+b.dataset.i||0]);if(im){ov.innerHTML=`<div class="scrim" data-a="closeov"></div><img class="zoom" src="${im}" alt="">`;ov.className='open'}break}
     case 'add':{const to=id,nm=b.dataset.n;
-      await setDoc(doc(db,'requests',S.me.uid+'_'+to),{from:S.me.uid,to,fromName:S.me.name,toName:nm,status:'pending',createdAt:serverTimestamp()});toast('Хүсэлт илгээгдлээ');break}
+      await setDoc(doc(db,'requests',S.me.uid+'_'+to),{from:S.me.uid,to,fromName:S.me.name,toName:nm,status:'pending',createdAt:serverTimestamp()});pushPing({kind:'req',id:S.me.uid+'_'+to});toast('Хүсэлт илгээгдлээ');break}
     case 'accept':{const r=S.reqIn.find(x=>x.id===id);if(!r)break;const me=S.me.uid,bt=writeBatch(db);
       bt.update(doc(db,'requests',id),{status:'accepted'});
       bt.set(doc(db,'friendships',chatId(me,r.from)),{members:[me,r.from].sort(),names:{[me]:S.me.name,[r.from]:r.fromName},createdAt:serverTimestamp()});
