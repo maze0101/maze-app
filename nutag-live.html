@@ -465,6 +465,40 @@ body{letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
 :root[data-style="nomad"] .hx-b{inset:calc(var(--s)*.09);clip-path:circle(50% at 50% 50%)}
 :root[data-style="nomad"] .st .plus i{background:var(--ink);color:var(--bg);box-shadow:none}
 :root[data-style="nomad"] .cover{margin:0;border-radius:0;height:120px}
+
+/* ===== Загвар "Поп": пастел, том дугуй, өнгөлөг ===== */
+:root[data-style="pop"]{--bg:#F1EDFF;--surface:#FFFFFF;--ink:#2A2350;--mute:#8A82B5;--line:#E4DEFA;--dune:#FFB84D;--sky:#7A5CFF;--green:#22C993;--like:#FF5C93;--bubble-me:linear-gradient(135deg,#8A6BFF,#FF6FB1);--bubble-them:#FFFFFF;--glass:rgba(241,237,255,.85);--glow:0 10px 24px -8px rgba(122,92,255,.5);--grad:linear-gradient(135deg,#8A6BFF,#FF6FB1);--ring:conic-gradient(#FFB84D,#FF5C93,#7A5CFF,#22C993,#FFB84D);--r:30px;--shadow:0 12px 28px -14px rgba(90,60,200,.35)}
+@media (prefers-color-scheme:dark){:root[data-style="pop"]:not([data-theme="light"]){--bg:#17132B;--surface:#221C3F;--ink:#F3EFFF;--mute:#A79FD6;--line:#302853;--dune:#FFC766;--sky:#A28BFF;--green:#4BE3B0;--like:#FF74A6;--bubble-me:linear-gradient(135deg,#8A6BFF,#FF6FB1);--bubble-them:#2C2450;--glass:rgba(23,19,43,.85);--glow:0 10px 24px -8px rgba(162,139,255,.5);--grad:linear-gradient(135deg,#8A6BFF,#FF6FB1);--ring:conic-gradient(#FFC766,#FF74A6,#A28BFF,#4BE3B0,#FFC766);--shadow:0 12px 28px -14px rgba(0,0,0,.6)}}
+:root[data-style="pop"][data-theme="dark"]{--bg:#17132B;--surface:#221C3F;--ink:#F3EFFF;--mute:#A79FD6;--line:#302853;--dune:#FFC766;--sky:#A28BFF;--green:#4BE3B0;--like:#FF74A6;--bubble-me:linear-gradient(135deg,#8A6BFF,#FF6FB1);--bubble-them:#2C2450;--glass:rgba(23,19,43,.85);--glow:0 10px 24px -8px rgba(162,139,255,.5);--grad:linear-gradient(135deg,#8A6BFF,#FF6FB1);--ring:conic-gradient(#FFC766,#FF74A6,#A28BFF,#4BE3B0,#FFC766);--shadow:0 12px 28px -14px rgba(0,0,0,.6)}
+:root[data-style="pop"] #app::before{background:radial-gradient(closest-side,rgba(255,111,177,.28),transparent),radial-gradient(closest-side at 80% 30%,rgba(122,92,255,.25),transparent)}
+:root[data-style="pop"] #hd{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom:0}
+:root[data-style="pop"] .logo{font-weight:700}
+:root[data-style="pop"] #nav{border-radius:999px;margin:0 16px 14px;background:var(--surface);border-color:transparent;box-shadow:var(--shadow);padding:6px}
+:root[data-style="pop"] #nav button{border-radius:999px}
+:root[data-style="pop"] #nav button.on{background:var(--grad);color:#fff;box-shadow:var(--glow)}
+:root[data-style="pop"] #nav button.on svg{color:#fff;filter:none}
+:root[data-style="pop"] .card,:root[data-style="pop"] .post,:root[data-style="pop"] .row,:root[data-style="pop"] .stats>*{background:var(--surface);border-color:transparent;box-shadow:var(--shadow)}
+:root[data-style="pop"] .post{margin:16px 14px;padding-top:18px}
+:root[data-style="pop"] .row{border-radius:26px;padding:14px 16px;margin-bottom:12px}
+:root[data-style="pop"] .art,:root[data-style="pop"] .igrid{margin:14px 14px 0;border-radius:24px;overflow:hidden}
+:root[data-style="pop"] .btn{border-radius:999px;padding:12px 24px;font-weight:700;box-shadow:var(--glow)}
+:root[data-style="pop"] .btn.line{background:var(--surface);color:var(--ink);border-color:var(--line);box-shadow:none}
+:root[data-style="pop"] .ib{border-radius:50%;background:var(--surface);border-color:transparent;box-shadow:var(--shadow)}
+:root[data-style="pop"] .chip,:root[data-style="pop"] .search,:root[data-style="pop"] .cmf input,:root[data-style="pop"] .mf input{border-color:transparent;background:var(--surface);box-shadow:var(--shadow);border-radius:999px}
+:root[data-style="pop"] .tabs2 button{border-color:transparent;background:var(--surface);box-shadow:var(--shadow);color:var(--mute)}
+:root[data-style="pop"] .tabs2 button.on{background:var(--grad);color:#fff}
+:root[data-style="pop"] .pa button{border-radius:999px}
+:root[data-style="pop"] .pa button.liked{filter:none;background:color-mix(in srgb,var(--like) 14%,transparent)}
+:root[data-style="pop"] .b{border-radius:24px;padding:11px 16px}
+:root[data-style="pop"] .b.me{border-bottom-right-radius:8px;box-shadow:var(--glow)}
+:root[data-style="pop"] .b.them{background:var(--bubble-them);border-bottom-left-radius:8px;box-shadow:var(--shadow)}
+:root[data-style="pop"] .mf{background:var(--surface);border-radius:999px;margin:0 12px 10px;border-top:0;box-shadow:var(--shadow);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root[data-style="pop"] .mf input{box-shadow:none;background:transparent}
+:root[data-style="pop"] .sheet{border-radius:38px 38px 0 0;background:var(--surface);box-shadow:0 -20px 60px rgba(70,40,180,.35)}
+:root[data-style="pop"] .stats>*{border-radius:26px}
+:root[data-style="pop"] .cover{border-radius:30px}
+:root[data-style="pop"] .unread{background:var(--like)}
+:root[data-style="pop"] .sec{color:var(--sky);letter-spacing:.1em}
 </style>
 </head>
 <body>
@@ -825,7 +859,7 @@ function settingsHTML(){
   sec('Аккаунт')+`<button class="btn line" data-a="editprofile">Профайл засах</button>`+
   sec('Хувийн байдал')+`<p class="mute" style="margin:0;font-size:13px">Хэн танд чатаар шууд бичиж болох вэ?</p><div style="display:flex;gap:8px"><button class="btn ${dm==='all'?'':'line'}" style="flex:1" data-a="dmset" data-v="all">Бүгд${dm==='all'?' ✓':''}</button><button class="btn ${dm==='friends'?'':'line'}" style="flex:1" data-a="dmset" data-v="friends">Зөвхөн найзууд${dm==='friends'?' ✓':''}</button></div><button class="btn line" data-a="blocklist">Блоклосон хэрэглэгчид (${S.blocked.size})</button>`+
   sec('Дуудлага ба мэдэгдэл')+`<button class="btn line" data-a="ringset">Дуудлагын дуу</button>`+(np?`<button class="btn line" data-a="notif" ${np==='granted'?'disabled':''}>${np==='granted'?'🔔 Мэдэгдэл асаалттай':np==='denied'?'🔕 Мэдэгдэл хаалттай (браузерийн тохиргооноос нээнэ)':'🔔 Мэдэгдэл асаах'}</button>`:'')+
-  sec('Харагдац')+`<button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><div class="tabs2" style="padding:8px 0 0">${[['nomad','Нутаг'],['glass','Шилэн'],['minimal','Минимал'],['card','Карт']].map(([v,n])=>`<button data-a="dstyle" data-v="${v}" class="${(document.documentElement.dataset.style||'nomad')===v?'on':''}">${n}</button>`).join('')}</div>`+
+  sec('Харагдац')+`<button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><div class="tabs2" style="padding:8px 0 0">${[['nomad','Нутаг'],['pop','Поп'],['glass','Шилэн'],['minimal','Минимал'],['card','Карт']].map(([v,n])=>`<button data-a="dstyle" data-v="${v}" class="${(document.documentElement.dataset.style||'nomad')===v?'on':''}">${n}</button>`).join('')}</div>`+
   sec('Аюулгүй байдал')+secInfo()+`<button class="btn line" data-a="logout">Гарах</button><button class="btn line" data-a="delaccask" style="color:var(--like)">Акаунт устгах</button>`;
 }
 function profileHTML(){
