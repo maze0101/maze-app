@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>MAZE APP</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob: mediastream:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://www.gstatic.com; frame-src https://*.firebaseapp.com https://*.web.app; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob: mediastream:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://www.gstatic.com; frame-src https://*.firebaseapp.com https://*.web.app https://accounts.google.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
 <meta name="referrer" content="no-referrer">
 <link rel="icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -253,6 +253,7 @@ input,textarea{font:inherit;color:inherit}
 .auth .btn:disabled{opacity:.6}
 .note{font-size:12.5px;color:var(--mute);margin:0}
 
+.or{display:flex;align-items:center;gap:10px;color:var(--mute,#8a94a6);font-size:13px;margin:4px 0}.or:before,.or:after{content:"";flex:1;height:1px;background:currentColor;opacity:.3}.gbtn{display:flex;align-items:center;justify-content:center;gap:10px}
 .link{color:var(--sky);font-size:14px;text-decoration:underline;align-self:flex-start;padding:4px 0}
 .aok{color:var(--green);font-size:14px;min-height:20px}
 .setup{padding:28px 22px 48px;background:var(--surface);min-height:100%}
@@ -635,6 +636,7 @@ function authHTML(){
     ${reg?fld('Нууц үг давтах','p2','password','autocomplete="new-password" required'):''}
     <div id="amsg" class="${A.ok?'aok':'aerr'}" role="alert">${esc(A.msg)}</div>
     <button class="btn" type="submit">${reg?'Бүртгүүлэх':rst?'Сэргээх холбоос илгээх':'Нэвтрэх'}</button>
+    ${rst?'':'<div class="or"><span>эсвэл</span></div><button type="button" class="btn line gbtn" data-a="google"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Google-ээр үргэлжлүүлэх</button>'}
     ${A.mode==='login'?'<button type="button" class="link" data-a="amode" data-m="reset">Нууц үгээ мартсан уу?</button>':''}
     ${rst?'<button type="button" class="link" data-a="amode" data-m="login">Нэвтрэх рүү буцах</button>':''}
   </form></div>`;
@@ -715,7 +717,7 @@ async function startSession(u){
   try{
     const ref=FS.doc(db,'users',u.uid);let sn=await FS.getDoc(ref),p;
     if(sn.exists())p=sn.data();
-    else{const nm=u.displayName||(u.email||'Хэрэглэгч').split('@')[0];p={name:nm,bio:''};await FS.setDoc(ref,{name:nm,nameLower:nm.toLowerCase(),bio:'',createdAt:FS.serverTimestamp()})}
+    else{const nm=(u.displayName||(u.email||'Хэрэглэгч').split('@')[0]).slice(0,40);p={name:nm,bio:''};await FS.setDoc(ref,{name:nm,nameLower:nm.toLowerCase(),bio:'',createdAt:FS.serverTimestamp()})}
     unsubAll();U.clear();seenSent.clear();
     Object.assign(S,{me:{uid:u.uid,name:p.name,bio:p.bio||''},tab:'feed',thread:null,posts:[],mine:[],stories:[],friends:new Map(),reqIn:[],reqOut:new Set(),chats:new Map(),msgs:[],cm:new Map(),open:new Set(),people:[],q:'',draftImg:null,errShown:false,view:null,vposts:[],pq:'',cq:'',rxOpen:null,blocked:new Set(),blockedBy:new Set(),draftPhoto:null,stick:false,
       readMap:lsGet('nutag-read-'+u.uid,{}),seenMap:lsGet('nutag-seen-'+u.uid,{})});
@@ -1036,6 +1038,10 @@ document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-a]');if(!b)return;
   const a=b.dataset.a,id=b.dataset.id;
   if(a==='amode'){A.mode=b.dataset.m;A.msg='';A.ok=false;authRender();return}
+  if(a==='google'){b.disabled=true;try{const pr=new AU.GoogleAuthProvider();pr.setCustomParameters({prompt:'select_account'});await AU.signInWithPopup(auth,pr)}
+    catch(x){const c=x&&x.code;if(c==='auth/popup-blocked'||c==='auth/operation-not-supported-in-this-environment'){try{await AU.signInWithRedirect(auth,new AU.GoogleAuthProvider());return}catch(_){}}
+      if(c!=='auth/popup-closed-by-user'&&c!=='auth/cancelled-popup-request')amsg(c==='auth/operation-not-allowed'||c==='auth/configuration-not-found'?'Google нэвтрэлт Firebase дээр идэвхжээгүй байна.':c==='auth/unauthorized-domain'?'Энэ домэйн Firebase дээр зөвшөөрөгдөөгүй байна.':c==='auth/network-request-failed'?'Интернэт холболтоо шалгана уу.':'Google-ээр нэвтэрч чадсангүй. Дахин оролдоно уу.')}
+    b.disabled=false;return}
   if(a==='vcheck'){b.disabled=true;await vfCheck(false);b.disabled=false;return}
   if(a==='vresend'){b.disabled=true;try{await AU.sendEmailVerification(auth.currentUser);amsg('Баталгаажуулах имэйл дахин илгээлээ.',true)}catch(x){amsg(x.code==='auth/too-many-requests'?'Хэт олон удаа илгээлээ. Түр хүлээгээд дахин оролдоно уу.':'Илгээж чадсангүй. Дахин оролдоно уу.')}b.disabled=false;return}
   if(a==='vout'){vfStop();await AU.signOut(auth);return}
