@@ -20,7 +20,7 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if signedIn();
       allow create, update: if mine(uid) && validUser(request.resource.data);
-      allow delete: if false;
+      allow delete: if mine(uid);
 
       // push мэдэгдлийн токен (зөвхөн өөрийнх, сервер функц уншина)
       match /fcm/{tid} {
@@ -80,8 +80,13 @@ service cloud.firestore {
           && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 500
           && stamped()
           && exists(/databases/$(database)/documents/posts/$(postId));
-        allow delete: if mine(resource.data.uid);
+        allow delete: if mine(resource.data.uid)
+          || get(/databases/$(database)/documents/posts/$(postId)).data.uid == request.auth.uid;
       }
+    }
+
+    match /{path=**}/comments/{cid} {
+      allow read: if signedIn();
     }
 
     // ---------- Story ----------
@@ -177,6 +182,11 @@ service cloud.firestore {
         // "Үзсэн": зөвхөн өөрийн түлхүүр
         (changed().hasOnly(['seen'])
           && request.resource.data.seen.diff(resource.data.get('seen', {})).affectedKeys().hasOnly([request.auth.uid])) ||
+        // мессеж засах/устгахад сүүлийн мессежийн урьдчилсан харагдацыг шинэчлэх (зөвхөн илгээгч)
+        (changed().hasOnly(['last']) && resource.data.lastFrom == request.auth.uid && isStr(request.resource.data.last, 200)) ||
+        // бүлгээс гарах: зөвхөн өөрийгөө хасна
+        (resource.data.get('group', false) == true && changed().hasOnly(['members'])
+          && request.resource.data.members.toSet() == resource.data.members.toSet().difference([request.auth.uid].toSet())) ||
         // шинэ мессежийн мэдээлэл
         (changed().hasOnly(['members', 'names', 'last', 'lastAt', 'lastFrom'])
           && request.resource.data.members == resource.data.members
@@ -185,6 +195,8 @@ service cloud.firestore {
           && isStr(request.resource.data.last, 200)
           && (resource.data.get('group', false) == true || pairOk(chatId)))
       );
+
+      allow delete: if signedIn() && request.auth.uid in resource.data.members && resource.data.get('group', false) != true;
 
       match /messages/{msgId} {
         allow read: if signedIn() && (
@@ -202,14 +214,28 @@ service cloud.firestore {
           && (!('img' in request.resource.data) || isStr(request.resource.data.img, 900000))
           && (!('aud' in request.resource.data) || isStr(request.resource.data.aud, 900000))
           && stamped();
-        allow update: if signedIn()
-          && (request.auth.uid in chatId.split('_') ||
+        allow update: if signedIn() && (
+          // реакц: гишүүн бүр зөвхөн өөрийн түлхүүрийг
+          ((request.auth.uid in chatId.split('_') ||
               request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members)
-          && changed().hasOnly(['rx'])
-          && request.resource.data.get('rx', {}).diff(resource.data.get('rx', {})).affectedKeys().hasOnly([request.auth.uid])
-          && (!(request.auth.uid in request.resource.data.get('rx', {}))
-              || isStr(request.resource.data.get('rx', {})[request.auth.uid], 8));
-        allow delete: if false;
+            && changed().hasOnly(['rx'])
+            && request.resource.data.get('rx', {}).diff(resource.data.get('rx', {})).affectedKeys().hasOnly([request.auth.uid])
+            && (!(request.auth.uid in request.resource.data.get('rx', {}))
+                || isStr(request.resource.data.get('rx', {})[request.auth.uid], 8))) ||
+          // засах: зөвхөн илгээгч, текстийг
+          (resource.data.from == request.auth.uid
+            && !('deleted' in resource.data)
+            && changed().hasOnly(['text', 'edited'])
+            && isStr(request.resource.data.text, 2000) && request.resource.data.text.size() > 0
+            && request.resource.data.edited == true) ||
+          // устгах (бүгдэд): зөвхөн илгээгч, агуулгыг нь арилгана
+          (resource.data.from == request.auth.uid
+            && changed().hasOnly(['text', 'img', 'aud', 'deleted'])
+            && request.resource.data.deleted == true
+            && request.resource.data.text == ''
+            && !('img' in request.resource.data) && !('aud' in request.resource.data))
+        );
+        allow delete: if mine(resource.data.from);
       }
     }
 
@@ -232,7 +258,8 @@ service cloud.firestore {
         && request.resource.data.to is string
         && request.resource.data.to != request.resource.data.from
         && request.resource.data.status == 'ringing'
-        && request.resource.data.keys().hasOnly(['from', 'to', 'fromName', 'toName', 'status', 'offer', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['from', 'to', 'fromName', 'toName', 'status', 'offer', 'audio', 'createdAt'])
+        && (!('audio' in request.resource.data) || request.resource.data.audio is bool)
         && isStr(request.resource.data.fromName, 40)
         && isStr(request.resource.data.toName, 40)
         && stamped()
@@ -246,9 +273,12 @@ service cloud.firestore {
         // хариулт, зөвшөөрөл, татгалзахыг зөвхөн дуудлага хүлээн авагч хийнэ
         && (request.resource.data.status == 'ended' || resource.data.to == request.auth.uid)
         && (!('answer' in changed()) || resource.data.to == request.auth.uid);
-      allow delete: if false;
+      allow delete: if signedIn() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
 
       match /{col}/{candId} {
+        allow delete: if signedIn() && (
+          get(/databases/$(database)/documents/calls/$(callId)).data.from == request.auth.uid ||
+          get(/databases/$(database)/documents/calls/$(callId)).data.to == request.auth.uid);
         allow read: if signedIn() && (
           get(/databases/$(database)/documents/calls/$(callId)).data.from == request.auth.uid ||
           get(/databases/$(database)/documents/calls/$(callId)).data.to == request.auth.uid);

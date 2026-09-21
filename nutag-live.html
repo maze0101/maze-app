@@ -200,6 +200,9 @@ input,textarea{font:inherit;color:inherit}
 .cb.off{background:#fff;color:#111}
 .cb.end{background:#F0456B}
 .cb.end svg{transform:rotate(135deg)}
+.call.audio{background:radial-gradient(circle at 50% 35%,#1b2a55,#05070E 70%)}
+.call.audio #rv{width:1px;height:1px;opacity:0;pointer-events:none}
+.call .cav{position:absolute;left:0;right:0;top:26%;display:flex;justify-content:center;z-index:1}
 .tapplay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3}
 .crow{display:flex;gap:10px}.crow .btn{flex:1;padding:13px}
 .ph .del+.del{margin-left:0}
@@ -218,6 +221,7 @@ input,textarea{font:inherit;color:inherit}
 .mline .b{align-self:auto;max-width:100%}
 .mrxb{color:var(--mute);opacity:.55;padding:4px;border-radius:50%;flex:none}
 .mrxb:hover{opacity:1}
+.mdel{font-style:italic;color:var(--mute);font-size:14px}
 .mn{font-size:12px;color:var(--mute);margin:0 8px 2px}
 .seenl{font-size:11px;color:var(--mute);margin:2px 6px 0}
 .b audio{display:block;width:210px;max-width:100%;height:36px;margin-bottom:2px}
@@ -435,7 +439,7 @@ function downscale(file){return new Promise((res,rej)=>{
 /* ---------- өгөгдлийн хөрвүүлэгч ---------- */
 const mapPost=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,uid:x.uid,name:x.name||'',text:x.text||'',img:x.img||'',likes:Array.isArray(x.likes)?x.likes:[],cc:x.cc||0,rx:x.rx||{},ed:!!x.edited,t:tms(x.createdAt)}};
 const mapStory=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,uid:x.uid,name:x.name||'',text:x.text||'',g:x.g|0,t:tms(x.createdAt)}};
-const mapMsg=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,f:x.from,t:x.text||'',img:x.img||'',aud:x.aud||'',fn:x.fn||'',rx:x.rx||{},ms:tms(x.createdAt)}};
+const mapMsg=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,f:x.from,t:x.text||'',img:x.img||'',aud:x.aud||'',fn:x.fn||'',rx:x.rx||{},ed:!!x.edited,del:!!x.deleted,ms:tms(x.createdAt)}};
 const hid=u=>S.blocked.has(u)||S.blockedBy.has(u);
 const safeAud=s=>typeof s==='string'&&/^data:audio\/[^,;]{1,60}(;[^,]{1,60})?;base64,[A-Za-z0-9+\/=]+$/.test(s)?s:'';
 const EMO=['👍','❤️','😂','😮','😢','🔥'];
@@ -449,7 +453,7 @@ function cropSq(file,n){return new Promise((res,rej)=>{const r=new FileReader();
 /* ---------- views ---------- */
 function unreadChats(){let n=0;S.chats.forEach((c,cid)=>{if(c.lastFrom&&c.lastFrom!==S.me.uid&&c.lastAt>(S.readMap[cid]||0))n++});return n}
 function headerHTML(){
-  if(S.thread)return `<button class="ib" data-a="back" aria-label="Буцах">${ic('back',24)}</button>${av(S.thread.uid,S.thread.name,38)}<b style="font-weight:600">${S.thread.group?'👥 ':''}${esc(S.thread.name)}${!S.thread.group&&typeof isOnline==='function'&&isOnline(S.thread.uid)?'<span class="dot" title="Онлайн"></span>':''}</b>${S.thread.group||hid(S.thread.uid)?'':`<button class="ib" style="margin-left:auto" data-a="call" aria-label="Видео дуудлага">${ic('video',22)}</button>`}`;
+  if(S.thread)return `<button class="ib" data-a="back" aria-label="Буцах">${ic('back',24)}</button>${av(S.thread.uid,S.thread.name,38)}<b style="font-weight:600">${S.thread.group?'👥 ':''}${esc(S.thread.name)}${!S.thread.group&&typeof isOnline==='function'&&isOnline(S.thread.uid)?'<span class="dot" title="Онлайн"></span>':''}</b>${S.thread.group||hid(S.thread.uid)?'':`<span style="margin-left:auto;display:flex;gap:8px"><button class="ib" data-a="acall" aria-label="Дуут дуудлага">${ic('phone',20)}</button><button class="ib" data-a="call" aria-label="Видео дуудлага">${ic('video',22)}</button></span>`}`;
   if(S.view)return `<button class="ib" data-a="uback" aria-label="Буцах">${ic('back',24)}</button>${av(S.view.uid,S.view.name,38)}<b style="font-weight:600">${esc((U.get(S.view.uid)||S.view).name)}</b>`;
   if(S.tab==='feed')return `<div class="logo"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M4 24V4h20v20H10V10h8v6" fill="none" stroke="var(--sky)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="14" cy="19" r="2.2" fill="var(--green)"/></svg>MAZE APP</div>${canNotify()&&Notification.permission==='default'?`<button class="ib" style="margin-left:auto" data-a="notif" aria-label="Мэдэгдэл асаах">${ic('bell',22)}</button>`:''}`;
   return `<div class="title">${{friends:'Найзууд',chat:'Чат',profile:'Профайл'}[S.tab]}</div>`;
@@ -525,12 +529,12 @@ function msgsHTML(){
   if(!vis.length)return S.msgsLoaded?`<div class="empty">Мессеж бичээд эхэл.</div>`:'';
   let lm=-1;vis.forEach((m,i)=>{if(m.f===S.me.uid)lm=i});
   return vis.map((m,i)=>{
-    const me=m.f===S.me.uid,im=safeImg(m.img),au=safeAud(m.aud);
-    const body=(im?`<img class="mimg" src="${im}" data-a="zoom" data-id="${esc(m.id)}" alt="Зураг">`:'')+(au?`<audio controls preload="none" src="${au}"></audio>`:'')+(m.t?`<span>${esc(m.t)}</span>`:'');
+    const me=m.f===S.me.uid,dl=m.del,im=dl?'':safeImg(m.img),au=dl?'':safeAud(m.aud);
+    const body=(im?`<img class="mimg" src="${im}" data-a="zoom" data-id="${esc(m.id)}" alt="Зураг">`:'')+(au?`<audio controls preload="none" src="${au}"></audio>`:'')+(m.t&&!dl?`<span>${esc(m.t)}</span>`:'')+(dl?'<span class="mdel">🚫 Мессеж устгагдсан</span>':'');
     let seen='';
     if(i===lm){const os=(th.group?(c.members||[]):[th.uid]).filter(u=>u!==S.me.uid),n=os.filter(u=>(sn[u]||0)>=m.ms).length;if(n)seen=`<span class="seenl">${th.group?'Үзсэн '+n:'Үзсэн ✓'}</span>`}
-    const rb=rxSum(m.rx),who=th.group&&!me?`<span class="mn">${esc((U.get(m.f)||{}).name||m.fn||'')}</span>`:'';
-    return `<div class="mw ${me?'me':'them'}">${who}<div class="mline"><div class="b ${me?'me':'them'}">${body}<span class="bt">${hhmm(m.ms)}</span></div><button class="mrxb" data-a="mrx" data-id="${esc(m.id)}" aria-label="Реакц">${ic('smile',16)}</button></div>${rb?`<div class="rxs">${rb}</div>`:''}${S.rxOpen===m.id?rxPick('m',m.id):''}${seen}</div>`}).join('');
+    const rb=dl?'':rxSum(m.rx),who=th.group&&!me?`<span class="mn">${esc((U.get(m.f)||{}).name||m.fn||'')}</span>`:'';
+    return `<div class="mw ${me?'me':'them'}">${who}<div class="mline"><div class="b ${me?'me':'them'}">${body}<span class="bt">${hhmm(m.ms)}${m.ed&&!dl?' · засварласан':''}</span></div>${dl?'':`<button class="mrxb" data-a="mrx" data-id="${esc(m.id)}" aria-label="Реакц">${ic('smile',16)}</button>`}${me&&!dl?`<button class="mrxb" data-a="mmenu" data-id="${esc(m.id)}" aria-label="Цэс">${ic('more',16)}</button>`:''}</div>${rb?`<div class="rxs">${rb}</div>`:''}${S.rxOpen===m.id&&!dl?rxPick('m',m.id):''}${seen}</div>`}).join('');
 }
 function mfInner(){
   if(rec)return `<button type="button" class="ib" data-a="reccancel" aria-label="Болих">${ic('close',20)}</button><div class="recbar"><i></i><span id="rt">0:00</span>&nbsp;бичиж байна</div><button type="button" data-a="recsend" aria-label="Илгээх">${ic('send',20)}</button>`;
@@ -543,7 +547,7 @@ function threadHTML(){
 }
 function profileHTML(){
   const me=S.me;
-  return `<div class="cover">${cover()}</div><div class="pinfo"><span class="av">${av(me.uid,me.name,84,'new')}</span><h2>${esc(me.name)}</h2>${me.bio?`<p>${esc(me.bio)}</p>`:'<p class="mute">Танилцуулга нэмээгүй байна.</p>'}<div class="stats"><div><b>${S.mine.length}</b><span>Нийтлэл</span></div><div><b>${S.friends.size}</b><span>Найз</span></div></div><div class="pbtns"><button class="btn" data-a="editprofile">Профайл засах</button><button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><button class="btn line" data-a="ringset">Дуудлагын дуу</button><button class="btn line" data-a="blocklist">Блоклосон</button><button class="btn line" data-a="logout">Гарах</button></div></div><div class="sec">Миний нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
+  return `<div class="cover">${cover()}</div><div class="pinfo"><span class="av">${av(me.uid,me.name,84,'new')}</span><h2>${esc(me.name)}</h2>${me.bio?`<p>${esc(me.bio)}</p>`:'<p class="mute">Танилцуулга нэмээгүй байна.</p>'}<div class="stats"><div><b>${S.mine.length}</b><span>Нийтлэл</span></div><div><b>${S.friends.size}</b><span>Найз</span></div></div><div class="pbtns"><button class="btn" data-a="editprofile">Профайл засах</button><button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><button class="btn line" data-a="ringset">Дуудлагын дуу</button><button class="btn line" data-a="blocklist">Блоклосон</button><button class="btn line" data-a="logout">Гарах</button><button class="btn line" data-a="delaccask" style="color:var(--like)">Акаунт устгах</button></div></div><div class="sec">Миний нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
 }
 function userHTML(){
   const v=S.view,u=U.get(v.uid)||{name:v.name,bio:''},bl=S.blocked.has(v.uid);
@@ -775,9 +779,9 @@ function playRemote(){
   const go=v=>{const p=v.play();if(p&&p.catch)p.catch(tap)};go(rv);if(lv)go(lv);
 }
 function drawCall(st){
-  const c=CALL;
-  ov.innerHTML=`<div class="call"><video id="rv" autoplay playsinline></video><video id="lv" autoplay playsinline muted></video><div class="cinfo"><b>${esc(c.name)}</b><span>${st}</span></div><div class="cbar"><button class="cb" data-a="cmute" aria-label="Микрофон">${ic('mic',24)}</button><button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button><button class="cb end" data-a="cend" aria-label="Таслах">${ic('phone',24)}</button></div></div>`;
-  ov.className='open';$('#lv').srcObject=c.local;if(!c.local.getVideoTracks().length)$('#lv').style.display='none';$('#rv').srcObject=c.remote;
+  const c=CALL,au=c.audio;
+  ov.innerHTML=`<div class="call${au?' audio':''}">${au?`<div class="cav">${av(c.peer,c.name,120,'new')}</div>`:''}<video id="rv" autoplay playsinline></video><video id="lv" autoplay playsinline muted></video><div class="cinfo"><b>${au?'📞 ':''}${esc(c.name)}</b><span>${st}</span></div><div class="cbar"><button class="cb" data-a="cmute" aria-label="Микрофон">${ic('mic',24)}</button>${au?'':`<button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button>`}<button class="cb end" data-a="cend" aria-label="Таслах">${ic('phone',24)}</button></div></div>`;
+  ov.className='open';$('#lv').srcObject=c.local;$('#rv').srcObject=c.remote;if(!c.local.getVideoTracks().length)$('#lv').style.display='none';
   $('#rv').onloadedmetadata=playRemote;playRemote();
 }
 function connWatch(ms=25000){
@@ -785,12 +789,12 @@ function connWatch(ms=25000){
   c.ct=setTimeout(()=>{if(CALL===c&&c.pc.connectionState!=='connected'){
     const cs=c.cs||{},dg=' ['+['host','srflx','relay'].map(k=>k+':'+(cs[k]||0)).join(' ')+']';console.warn('call failed',dg,c.pc.iceConnectionState);toast((TURN.length?'Холбогдож чадсангүй. Интернэтээ шалгана уу.':'Сүлжээ холбогдсонгүй. Та хоёр өөр сүлжээнд (WiFi/дата) байвал TURN сервер хэрэгтэй.')+dg,6000);endCall(true)}},ms);
 }
-function makeCall(id,peer,name,local,mine){
+function makeCall(id,peer,name,local,mine,audio){
   const pc=new RTCPeerConnection(ICE),remote=new MediaStream(),{collection,addDoc}=FS,q=[];
-  CALL={id,peer,name,local,remote,pc,unsubs:[],q,ready:false,mine,over:false};
+  CALL={id,peer,name,local,remote,pc,unsubs:[],q,ready:false,mine,over:false,audio:!!audio};
   local.getTracks().forEach(t=>pc.addTrack(t,local));
   if(!local.getAudioTracks().length)pc.addTransceiver('audio',{direction:'recvonly'});
-  if(!local.getVideoTracks().length)pc.addTransceiver('video',{direction:'recvonly'});
+  if(!local.getVideoTracks().length&&!audio)pc.addTransceiver('video',{direction:'recvonly'});
   CALL.cs={};
   pc.ontrack=e=>{
     const s=e.streams&&e.streams[0];if(!s)return;
@@ -807,11 +811,11 @@ function makeCall(id,peer,name,local,mine){
 }
 function watchCands(col){const {collection,onSnapshot}=FS,pc=CALL.pc;
   CALL.unsubs.push(onSnapshot(collection(db,'calls',CALL.id,col),sn=>sn.docChanges().forEach(ch=>{if(ch.type==='added')pc.addIceCandidate(JSON.parse(ch.doc.data().c)).catch(()=>{})}),onErr))}
-async function getMedia(){
+async function getMedia(audioOnly){
   if(!window.isSecureContext)throw Object.assign(new Error('insecure'),{name:'Insecure'});
   if(!navigator.mediaDevices||!window.RTCPeerConnection)throw Object.assign(new Error('unsupported'),{name:'Unsupported'});
   let last;
-  for(const c of [{video:{facingMode:'user'},audio:true},{video:true,audio:true},{audio:true}]){
+  for(const c of (audioOnly?[{audio:true}]:[{video:{facingMode:'user'},audio:true},{video:true,audio:true},{audio:true}])){
     try{return await navigator.mediaDevices.getUserMedia(c)}
     catch(e){last=e;if(e&&(e.name==='NotAllowedError'||e.name==='SecurityError'))throw e}
   }
@@ -832,17 +836,17 @@ function callErr(e){
   return 'Дуудлага эхлүүлж чадсангүй'+(e&&e.message?' ('+String(e.message).slice(0,60)+')':'');
 }
 const isOnline=u=>{const x=U.get(u);return !!(x&&x.ls&&Date.now()-x.ls<240000)};
-async function startCall(uid,name){
+async function startCall(uid,name,audio){
   if(CALL||INC)return;
   const {doc,setDoc,onSnapshot,serverTimestamp}=FS;let local;
-  try{local=await getMedia()}catch(e){toast(mediaErr(e),4500);return}
+  try{local=await getMedia(audio)}catch(e){toast(mediaErr(e),4500);return}
   if(local.__none)toast('Камер/микрофон ашиглах боломжгүй тул зөвхөн харах/сонсох горимд орлоо',4500);
   if(!isOnline(uid))toast(name+' одоогоор онлайн биш байна. Апп нээлттэй үед л дуудлага хүлээн авна.',4500);
   const id=chatId(S.me.uid,uid)+'_'+Date.now(),ref=doc(db,'calls',id);
   try{
-    const pc=makeCall(id,uid,name,local,'callerCandidates');drawCall('Залгаж байна...');
+    const pc=makeCall(id,uid,name,local,'callerCandidates',audio);drawCall('Залгаж байна...');
     const offer=await pc.createOffer();await pc.setLocalDescription(offer);
-    await setDoc(ref,{from:S.me.uid,to:uid,fromName:S.me.name,toName:name,status:'ringing',offer:{type:offer.type,sdp:offer.sdp},createdAt:serverTimestamp()});
+    await setDoc(ref,{from:S.me.uid,to:uid,fromName:S.me.name,toName:name,status:'ringing',offer:{type:offer.type,sdp:offer.sdp},...(audio?{audio:true}:{}),createdAt:serverTimestamp()});
     CALL.flush();CALL.caller=true;CALL.uid=uid;
     let got=false;
     CALL.unsubs.push(onSnapshot(ref,async sn=>{const d=sn.data();if(!d||!CALL||CALL.id!==id)return;
@@ -854,18 +858,18 @@ async function startCall(uid,name){
   }catch(e){console.error(e);toast(callErr(e),5000);endCall(false)}
 }
 function showIncoming(id,d){
-  INC={id,d};notify('📹 Видео дуудлага',d.fromName+' залгаж байна','call-'+id);ringStart();
+  INC={id,d};notify(d.audio?'📞 Дуут дуудлага':'📹 Видео дуудлага',d.fromName+' залгаж байна','call-'+id);ringStart();
   try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(_){}
-  ov.innerHTML=`<div class="scrim"></div><div class="sheet" role="alertdialog"><h3>📹 ${esc(d.fromName)} залгаж байна</h3><div class="crow"><button class="btn line" data-a="cdec">Татгалзах</button><button class="btn" data-a="cacc">Хариулах</button></div></div>`;
+  ov.innerHTML=`<div class="scrim"></div><div class="sheet" role="alertdialog"><h3>${d.audio?'📞':'📹'} ${esc(d.fromName)} ${d.audio?'дуут дуудлагаар '  :''}залгаж байна</h3><div class="crow"><button class="btn line" data-a="cdec">Татгалзах</button><button class="btn" data-a="cacc">Хариулах</button></div></div>`;
   ov.className='open';
 }
 function closeIncoming(){ringStop();INC=null;if(!CALL){ov.className='';ov.innerHTML=''}}
 async function acceptCall(){
   if(!INC||CALL)return;ringStop();const {id,d}=INC;INC=null;const {doc,updateDoc,onSnapshot}=FS;let local;
-  try{local=await getMedia()}catch(e){toast(mediaErr(e),4500);await updateDoc(doc(db,'calls',id),{status:'declined'}).catch(()=>{});ov.className='';ov.innerHTML='';return}
+  try{local=await getMedia(d.audio)}catch(e){toast(mediaErr(e),4500);await updateDoc(doc(db,'calls',id),{status:'declined'}).catch(()=>{});ov.className='';ov.innerHTML='';return}
   if(local.__none)toast('Камер/микрофон ашиглах боломжгүй тул зөвхөн харах/сонсох горимд орлоо',4500);
   try{
-    const ref=doc(db,'calls',id),pc=makeCall(id,d.from,d.fromName,local,'calleeCandidates');drawCall('Холбогдож байна...');
+    const ref=doc(db,'calls',id),pc=makeCall(id,d.from,d.fromName,local,'calleeCandidates',!!d.audio);drawCall('Холбогдож байна...');
     await pc.setRemoteDescription(d.offer);const ans=await pc.createAnswer();await pc.setLocalDescription(ans);
     await updateDoc(ref,{answer:{type:ans.type,sdp:ans.sdp},status:'active'});
     CALL.flush();watchCands('callerCandidates');connWatch();
@@ -880,13 +884,55 @@ function endCall(tell){
   const c=CALL;if(!c||c.over)return;c.over=true;CALL=null;[c.timer,c.hint,c.ct,c.dt].forEach(clearTimeout);
   c.unsubs.forEach(u=>u());try{c.pc.close()}catch(_){}c.local.getTracks().forEach(t=>t.stop());
   if(tell&&db)FS.updateDoc(FS.doc(db,'calls',c.id),{status:'ended'}).catch(()=>{});
-  if(tell&&c.caller&&!c.answered&&c.uid)sendTo({uid:c.uid,name:c.name,cid:chatId(S.me.uid,c.uid),group:false},{text:'📞 Аваагүй видео дуудлага'}).catch(()=>{});
+  if(tell&&c.caller&&!c.answered&&c.uid)sendTo({uid:c.uid,name:c.name,cid:chatId(S.me.uid,c.uid),group:false},{text:c.audio?'📞 Аваагүй дуут дуудлага':'📞 Аваагүй видео дуудлага'}).catch(()=>{});
   ov.className='';ov.innerHTML='';
 }
 window.addEventListener('pagehide',()=>{if(CALL)endCall(true)});
 function toggleTrack(kind,btn){
   if(!CALL)return;const ts=kind==='audio'?CALL.local.getAudioTracks():CALL.local.getVideoTracks();
   const on=!(ts[0]&&ts[0].enabled);ts.forEach(t=>t.enabled=on);btn.classList.toggle('off',!on);
+}
+
+/* ---------- акаунт устгах ---------- */
+async function deleteAccount(pw){
+  const u=auth.currentUser,uid=S.me.uid,{collection,collectionGroup,query,where,getDocs,doc,writeBatch,deleteDoc,updateDoc,arrayRemove,limit}=FS;
+  await AU.reauthenticateWithCredential(u,AU.EmailAuthProvider.credential(u.email,pw));   // нууц үг буруу бол энд зогсно
+  toast('Өгөгдлийг устгаж байна…',120000);
+  clearInterval(hbT);recStop(false);endCall(true);unsubAll();
+  const docs=async q=>(await getDocs(q)).docs;
+  const del=async refs=>{for(let i=0;i<refs.length;i+=400){const b=writeBatch(db);refs.slice(i,i+400).forEach(r=>b.delete(r));await b.commit()}};
+  const all=(col,f,op,v)=>docs(query(collection(db,col),where(f,op,v)));
+  const warn=[];
+  // нийтлэл + доорх сэтгэгдлүүд
+  for(const p of await all('posts','uid','==',uid)){await del((await docs(collection(db,'posts',p.id,'comments'))).map(d=>d.ref));await del([p.ref])}
+  // бусдын нийтлэл дээрх миний сэтгэгдлүүд
+  try{await del((await docs(query(collectionGroup(db,'comments'),where('uid','==',uid)))).map(d=>d.ref))}
+  catch(e){
+    // индекс бэлэн биш үед: сүүлийн нийтлэл бүрийн сэтгэгдлийг шалгана
+    console.warn('comments group query',e&&e.code);
+    try{for(const p of await docs(query(collection(db,'posts'),limit(300))))await del((await docs(query(collection(db,'posts',p.id,'comments'),where('uid','==',uid)))).map(d=>d.ref))}
+    catch(e2){warn.push('comments');console.warn('comments cleanup',e2&&e2.code)}
+  }
+  await del((await all('stories','uid','==',uid)).map(d=>d.ref));
+  await del((await all('requests','from','==',uid)).map(d=>d.ref));
+  await del((await all('requests','to','==',uid)).map(d=>d.ref));
+  await del((await all('friendships','members','array-contains',uid)).map(d=>d.ref));
+  await del((await all('blocks','by','==',uid)).map(d=>d.ref));
+  // чатууд: миний мессежүүд, 1:1 чат өөрөө; бүлгээс гарна
+  for(const c of await all('chats','members','array-contains',uid)){
+    await del((await docs(query(collection(db,'chats',c.id,'messages'),where('from','==',uid)))).map(d=>d.ref));
+    if(c.data().group)await updateDoc(c.ref,{members:arrayRemove(uid)});else await del([c.ref]);
+  }
+  // дуудлагууд (ICE мэдээлэл IP хаяг агуулдаг тул хамт устгана)
+  for(const fld of ['from','to'])for(const c of await all('calls',fld,'==',uid)){
+    for(const sub of ['callerCandidates','calleeCandidates'])await del((await docs(collection(db,'calls',c.id,sub))).map(d=>d.ref));
+    await del([c.ref]);
+  }
+  await del((await docs(collection(db,'users',uid,'fcm'))).map(d=>d.ref));
+  await deleteDoc(doc(db,'users',uid));
+  await AU.deleteUser(u);
+  try{localStorage.removeItem('nutag-read-'+uid);localStorage.removeItem('nutag-seen-'+uid)}catch(_){}
+  return warn;
 }
 
 /* ---------- чат ---------- */
@@ -960,6 +1006,23 @@ document.addEventListener('click',async e=>{
       else if(S.thread){const m=S.msgs.find(x=>x.id===id),cur=m&&m.rx[me];refreshMsgs();
         await updateDoc(doc(db,'chats',S.thread.cid,'messages',id),{['rx.'+me]:cur===e2?deleteField():e2})}
       break}
+    case 'mmenu':{const m=S.msgs.find(x=>x.id===id);if(!m||m.f!==S.me.uid||m.del)break;
+      openSheet(`<h3>Мессеж</h3>${m.t?`<button class="btn line" data-a="medit" data-id="${esc(id)}">✏️ Засах</button>`:''}<button class="btn line" data-a="mdel" data-id="${esc(id)}">🗑 Бүгдээс устгах</button>`);break}
+    case 'medit':{const m=S.msgs.find(x=>x.id===id);if(!m)break;
+      openSheet(`<h3>Мессеж засах</h3><textarea id="me-t" maxlength="2000">${esc(m.t)}</textarea><button class="btn" data-a="msave" data-id="${esc(id)}">Хадгалах</button>`);break}
+    case 'msave':{const m=S.msgs.find(x=>x.id===id),nt=$('#me-t').value.trim();if(!m||!S.thread)break;
+      if(!nt){toast('Мессеж хоосон байж болохгүй');break}
+      if(nt===m.t){closeOv();break}
+      const cid=S.thread.cid,isLast=S.msgs[S.msgs.length-1].id===id;
+      await updateDoc(doc(db,'chats',cid,'messages',id),{text:nt,edited:true});
+      if(isLast)await updateDoc(doc(db,'chats',cid),{last:nt.slice(0,200)}).catch(()=>{});
+      closeOv();toast('Засагдлаа');break}
+    case 'mdel':{const m=S.msgs.find(x=>x.id===id);if(!m||!S.thread)break;
+      if(!confirm('Энэ мессежийг хоёр талаас устгах уу?'))break;
+      const cid=S.thread.cid,isLast=S.msgs[S.msgs.length-1].id===id;
+      await updateDoc(doc(db,'chats',cid,'messages',id),{text:'',img:deleteField(),aud:deleteField(),deleted:true});
+      if(isLast)await updateDoc(doc(db,'chats',cid),{last:'Мессеж устгагдсан'}).catch(()=>{});
+      closeOv();toast('Устгагдлаа');break}
     case 'zoom':{const m=S.msgs.find(x=>x.id===id),im=m&&safeImg(m.img);if(im){ov.innerHTML=`<div class="scrim" data-a="closeov"></div><img class="zoom" src="${im}" alt="">`;ov.className='open'}break}
     case 'rec':recStart();break;
     case 'recsend':recStop(true);break;
@@ -1006,6 +1069,7 @@ document.addEventListener('click',async e=>{
     case 'snext':nextStory();break;
     case 'closeov':closeOv();break;
     case 'call':startCall(S.thread.uid,S.thread.name);break;
+    case 'acall':startCall(S.thread.uid,S.thread.name,true);break;
     case 'cacc':acceptCall();break;
     case 'cdec':declineCall();break;
     case 'cend':endCall(true);break;
@@ -1035,6 +1099,13 @@ document.addEventListener('click',async e=>{
       r.dataset.theme=dark?'light':'dark';try{localStorage.setItem('nutag-theme',r.dataset.theme)}catch(_){}break}
     case 'notif':await askNotify();break;
     case 'verify':await AU.sendEmailVerification(auth.currentUser);toast('Баталгаажуулах имэйл илгээлээ');break;
+    case 'delaccask':openSheet(`<h3 style="color:var(--like)">Акаунт устгах</h3><p class="mute" style="margin:0;font-size:14px">Таны профайл, нийтлэл, story, найзууд, илгээсэн мессежүүд болон сэтгэгдлүүд <b>бүрмөсөн устна</b>. Үүнийг буцаах боломжгүй.</p><label>Баталгаажуулахын тулд нууц үгээ оруулна уу<input id="dp" type="password" autocomplete="current-password"></label><button class="btn" style="background:var(--like)" data-a="delacc">Бүрмөсөн устгах</button>`);break;
+    case 'delacc':{const pw=$('#dp').value;if(!pw){toast('Нууц үгээ оруулна уу');break}
+      b.disabled=true;
+      try{const w=await deleteAccount(pw);closeOv();toast(w.length?'Акаунт устгагдлаа (зарим сэтгэгдэл үлдсэн байж болзошгүй)':'Акаунт устгагдлаа',5000)}
+      catch(e){b.disabled=false;console.error(e);const c=e&&e.code;
+        toast(c==='auth/wrong-password'||c==='auth/invalid-credential'?'Нууц үг буруу байна':c==='auth/too-many-requests'?'Хэт олон оролдлого. Түр хүлээнэ үү':'Устгаж дууссангүй. Дахин оролдоно уу',4500)}
+      break}
     case 'logout':await dropPush();await AU.signOut(auth);break;
   }
   }catch(err){console.error(err);toast(err&&err.code==='permission-denied'?'Эрх хүрэхгүй байна.':'Үйлдэл амжилтгүй боллоо. Дахин оролдоно уу.',3000)}

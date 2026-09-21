@@ -32,7 +32,7 @@ exports.onCall = onDocumentCreated({document: 'calls/{id}', region: REGION}, asy
   const c = ev.data && ev.data.data();
   if (!c || c.status !== 'ringing') return;
   await push([c.to], {
-    type: 'call', title: '📹 ' + short(c.fromName, 40) + ' залгаж байна',
+    type: 'call', title: (c.audio ? '📞 ' : '📹 ') + short(c.fromName, 40) + (c.audio ? ' дуут дуудлагаар залгаж байна' : ' залгаж байна'),
     body: 'Хариулахын тулд дарна уу', tag: 'call-' + ev.params.id, url: './index.html',
   }, 60);
 });
