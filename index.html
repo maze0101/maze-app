@@ -784,7 +784,7 @@ const amsg=(m,ok)=>{A.msg=m;A.ok=!!ok;const e=$('#amsg');if(e){e.textContent=m;e
 async function doAuth(f){
   const fd=new FormData(f),mode=f.dataset.f,e=(fd.get('e')||'').trim(),p=fd.get('p')||'',btn=f.querySelector('button[type=submit]');
   if(!e)return amsg('Имэйлээ оруулна уу.');
-  if(mode==='reset'){btn.disabled=true;try{await AU.sendPasswordResetEmail(auth,e);amsg('Сэргээх холбоосыг имэйл рүү илгээлээ.',true)}catch(x){amsg(AUTH_ERR[x.code]||'Илгээж чадсангүй.')}btn.disabled=false;return}
+  if(mode==='reset'){btn.disabled=true;try{try{await AU.sendPasswordResetEmail(auth,e,{url:location.origin+location.pathname,handleCodeInApp:false})}catch(y){if(y.code!=='auth/unauthorized-continue-uri'&&y.code!=='auth/invalid-continue-uri')throw y;await AU.sendPasswordResetEmail(auth,e)}amsg('Сэргээх холбоосыг имэйл рүү илгээлээ. Ирэхгүй бол Спам хавтсаа шалгаарай.',true)}catch(x){amsg(AUTH_ERR[x.code]||'Илгээж чадсангүй.')}btn.disabled=false;return}
   if(!p)return amsg('Нууц үгээ оруулна уу.');
   if(mode==='login'){btn.disabled=true;try{await AU.signInWithEmailAndPassword(auth,e,p)}catch(x){amsg(AUTH_ERR[x.code]||'Нэвтэрч чадсангүй. Дахин оролдоно уу.');btn.disabled=false}return}
   const n=(fd.get('n')||'').trim();
@@ -1441,7 +1441,7 @@ async function main(){
   $('#main').innerHTML='<div style="min-height:70vh;display:grid;align-items:center">'+loader()+'</div>';
   try{
     const fb=await loadFirebase();
-    const app=fb.app.initializeApp(CFG);FBAPP=app;AU=fb.auth;FS=fb.fs;auth=AU.getAuth(app);db=FS.getFirestore(app);
+    const app=fb.app.initializeApp(CFG);FBAPP=app;AU=fb.auth;FS=fb.fs;auth=AU.getAuth(app);auth.languageCode="mn";db=FS.getFirestore(app);
   }catch(e){console.error(e);$('#main').innerHTML='<div class="empty">Firebase ачаалж чадсангүй. Интернэт холболтоо шалгаад хуудсаа дахин ачаална уу.</div>';return}
   AU.onAuthStateChanged(auth,async u=>{
     if(regBusy)return;
