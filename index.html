@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Нутаг</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Unbounded:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1EC; --surface:#FFFFFF; --ink:#1B2622; --mute:#647069; --line:#DDE3DC;
+  --dune:#C89B55; --sky:#2E5E63; --green:#2FCB7E; --like:#D9483B;
+  --bubble-me:#2E5E63; --bubble-them:#E3E9E1; --ring:linear-gradient(135deg,#C89B55,#2FCB7E);
+  --display:'Unbounded','IBM Plex Sans',system-ui,sans-serif;
+  --body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1614; --surface:#172220; --ink:#E7EEE9; --mute:#93A29A; --line:#26342F;
+    --dune:#D9AE68; --sky:#5FA3A8; --bubble-me:#2E5E63; --bubble-them:#22302C;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1614; --surface:#172220; --ink:#E7EEE9; --mute:#93A29A; --line:#26342F;
+  --dune:#D9AE68; --sky:#5FA3A8; --bubble-me:#2E5E63; --bubble-them:#22302C;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.mute{color:var(--mute)}
+
+#app{height:100%;max-width:480px;margin:0 auto;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden;border-inline:1px solid var(--line)}
+#hd{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--line);min-height:56px;flex:none}
+.logo{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:600;font-size:19px;letter-spacing:-.01em}
+.title{font-family:var(--display);font-weight:500;font-size:17px}
+#main{flex:1;overflow-y:auto;overscroll-behavior:contain}
+#main.thread{overflow:hidden;display:flex;flex-direction:column}
+#nav{display:flex;background:var(--surface);border-top:1px solid var(--line);flex:none}
+#nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 8px;font-size:11.5px;color:var(--mute);position:relative}
+#nav button.on{color:var(--sky);font-weight:600}
+.badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:17px;height:17px;border-radius:9px;background:var(--like);color:#fff;font-size:10.5px;display:grid;place-items:center;padding:0 4px;font-weight:600}
+.ib{width:40px;height:40px;display:grid;place-items:center;border-radius:50%}
+.ib:hover{background:var(--line)}
+
+/* hex avatars */
+.hx{position:relative;display:inline-grid;place-items:center;width:var(--s);height:calc(var(--s)*.866);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);color:#fff;font-weight:600;font-family:var(--display);flex:none;line-height:1}
+.hx-a{position:absolute;inset:calc(var(--s)*.05*.866) calc(var(--s)*.05);background:var(--surface);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+.hx-b{position:absolute;inset:calc(var(--s)*.04*.866) calc(var(--s)*.04);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);display:grid;place-items:center}
+
+/* stories */
+.stories{display:flex;gap:14px;overflow-x:auto;padding:14px 16px 6px;scrollbar-width:none}
+.stories::-webkit-scrollbar{display:none}
+.st{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;width:66px;flex:none;color:var(--ink)}
+.st span.n{max-width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st .plus{position:relative}
+.st .plus i{position:absolute;right:-2px;bottom:-2px;width:20px;height:20px;border-radius:50%;background:var(--green);color:#0F1614;display:grid;place-items:center;border:2px solid var(--bg)}
+
+.card{background:var(--surface);border-block:1px solid var(--line);margin-top:10px}
+.composer{padding:12px 16px}
+.composer .top{display:flex;gap:12px;align-items:flex-start}
+.composer textarea{flex:1;border:0;background:transparent;resize:none;min-height:44px;outline:none;padding:8px 0;font-size:16px}
+.composer textarea::placeholder{color:var(--mute)}
+.composer .bar{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;background:var(--bg);font-size:14px;color:var(--sky);cursor:pointer;border:1px solid var(--line)}
+.btn{padding:9px 18px;border-radius:999px;background:var(--sky);color:#fff;font-weight:600;font-size:14px}
+.btn.ghost{background:transparent;color:var(--sky);border:1px solid var(--sky)}
+.btn.sm{padding:7px 14px;font-size:13px}
+.btn.line{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+#prev img{width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-top:8px;display:block}
+
+.post{background:var(--surface);border-block:1px solid var(--line);margin-top:10px;padding:14px 0 4px}
+.ph{display:flex;gap:10px;align-items:center;padding:0 16px}
+.ph b{display:block;font-weight:600;line-height:1.2}
+.ph span{font-size:13px}
+.post p{margin:10px 16px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.art{margin-top:10px;aspect-ratio:5/3;overflow:hidden;background:var(--line)}
+.art svg,.art img{width:100%;height:100%;display:block;object-fit:cover}
+.pa{display:flex;padding:4px 8px}
+.pa button{display:flex;align-items:center;gap:6px;padding:10px 12px;color:var(--mute);font-size:14px;border-radius:10px}
+.pa button.liked{color:var(--like)}
+.cms{padding:0 16px 12px;display:flex;flex-direction:column;gap:10px}
+.cm{display:flex;gap:8px;align-items:flex-start}
+.cm .bb{background:var(--bg);border-radius:14px;padding:7px 12px;font-size:14px}
+.cm .bb b{font-weight:600;display:block;font-size:13px}
+.cmf{display:flex;gap:8px}
+.cmf input{flex:1;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:9px 14px;outline:none;min-width:0}
+.empty{padding:36px 24px;text-align:center;color:var(--mute)}
+
+/* friends / chat lists */
+.sec{padding:16px 16px 6px;font-family:var(--display);font-weight:500;font-size:14px}
+.row{display:flex;gap:12px;align-items:center;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--line);width:100%;text-align:left}
+.row .rt{flex:1;min-width:0}
+.row .rt b{font-weight:600;display:block}
+.row .rt span{display:block;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .acts{display:flex;gap:6px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-left:6px}
+.unread{min-width:20px;height:20px;border-radius:10px;background:var(--sky);color:#fff;font-size:12px;display:grid;place-items:center;padding:0 6px;font-weight:600}
+.search{margin:12px 16px 0;display:block;width:calc(100% - 32px);border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:10px 16px;outline:none}
+
+/* thread */
+.msgs{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.b{max-width:78%;padding:8px 13px;border-radius:18px;overflow-wrap:anywhere}
+.b.me{align-self:flex-end;background:var(--bubble-me);color:#fff;border-bottom-right-radius:6px}
+.b.them{align-self:flex-start;background:var(--bubble-them);border-bottom-left-radius:6px}
+.tm{font-size:11px;color:var(--mute);align-self:center;margin:6px 0 2px}
+.typing{font-size:13px;color:var(--mute);align-self:flex-start}
+.mf{display:flex;gap:8px;padding:10px 12px;background:var(--surface);border-top:1px solid var(--line)}
+.mf input{flex:1;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:10px 16px;outline:none;min-width:0;font-size:16px}
+.mf button{width:42px;height:42px;border-radius:50%;background:var(--sky);color:#fff;display:grid;place-items:center;flex:none}
+
+/* profile */
+.cover{height:140px;overflow:hidden}
+.cover svg{width:100%;height:100%;display:block}
+.pinfo{background:var(--surface);padding:0 16px 16px;border-bottom:1px solid var(--line)}
+.pinfo .av{margin-top:-40px;display:block;height:78px}
+.pinfo h2{font-family:var(--display);font-weight:600;font-size:20px;margin:6px 0 0;letter-spacing:-.01em}
+.pinfo p{margin:8px 0 0}
+.stats{display:flex;gap:26px;margin:14px 0}
+.stats b{font-family:var(--display);font-weight:500;font-size:17px;display:block}
+.stats span{font-size:13px;color:var(--mute)}
+.pbtns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* overlay */
+#ov{position:fixed;inset:0;z-index:50;display:none}
+#ov.open{display:block}
+.scrim{position:absolute;inset:0;background:rgba(10,16,14,.55)}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;background:var(--surface);border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;max-height:90%;overflow:auto}
+.sheet h3{margin:0;font-family:var(--display);font-weight:500;font-size:16px}
+.sheet textarea,.sheet input{border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;outline:none;width:100%;font-size:16px}
+.sheet textarea{min-height:90px;resize:none}
+.sheet label{font-size:13px;color:var(--mute);display:flex;flex-direction:column;gap:6px}
+.sw{display:flex;gap:10px}
+.sw button{width:38px;height:38px;border-radius:50%;border:3px solid transparent}
+.sw button.on{border-color:var(--ink)}
+.sv{position:absolute;inset:0;max-width:480px;margin:0 auto;color:#fff;display:flex;flex-direction:column;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 24px}
+.sbars{display:flex;gap:4px;position:relative;z-index:3}
+.sb{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.35);overflow:hidden}
+.sb i{display:block;height:100%;width:0;background:#fff}
+.sb.done i{width:100%}
+.sb.on i{animation:fill 4.5s linear forwards}
+@keyframes fill{to{width:100%}}
+.shead{display:flex;align-items:center;gap:10px;margin-top:12px;position:relative;z-index:3}
+.shead b{font-weight:600}
+.shead span{opacity:.8;font-size:13px}
+.shead .ib{margin-left:auto;color:#fff}
+.stext{flex:1;display:grid;place-items:center;text-align:center;font-family:var(--display);font-weight:500;font-size:24px;line-height:1.35;padding:0 12px;overflow-wrap:anywhere;text-shadow:0 1px 8px rgba(0,0,0,.25)}
+.sz{position:absolute;top:90px;bottom:0;width:50%;z-index:2}
+.sz.l{left:0}.sz.r{right:0}
+
+.auth{min-height:100%;display:flex;flex-direction:column;justify-content:center;gap:18px;padding:32px 24px}
+.auth .logo{font-size:26px;gap:10px}
+.auth .lead{margin:0;color:var(--mute)}
+.seg{display:flex;background:var(--line);border-radius:999px;padding:3px}
+.seg button{flex:1;padding:9px;border-radius:999px;font-weight:600;color:var(--mute)}
+.seg button.on{background:var(--surface);color:var(--ink)}
+.auth form{display:flex;flex-direction:column;gap:14px}
+.fld{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--mute)}
+.fld input{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px;outline:none;font-size:16px;color:var(--ink)}
+.fld input:focus{border-color:var(--sky)}
+.aerr{color:var(--like);font-size:14px;min-height:20px}
+.auth .btn{padding:12px 18px;font-size:15px}
+.auth .btn:disabled{opacity:.6}
+.note{font-size:12.5px;color:var(--mute);margin:0}
+
+.link{color:var(--sky);font-size:14px;text-decoration:underline;align-self:flex-start;padding:4px 0}
+.aok{color:var(--sky);font-size:14px;min-height:20px}
+.setup{padding:28px 22px 48px;background:var(--surface);min-height:100%}
+.setup .logo{font-size:24px;gap:10px}
+.setup h2{font-family:var(--display);font-weight:500;font-size:18px;margin:14px 0 4px}
+.setup ol{padding-left:20px;display:flex;flex-direction:column;gap:12px;margin:14px 0 0}
+.setup code{background:var(--bg);padding:2px 6px;border-radius:6px;font-size:13px;overflow-wrap:anywhere}
+.ph .del{margin-left:auto;font-size:13px;color:var(--mute);padding:6px 8px}
+.bt{display:block;font-size:10.5px;opacity:.7;margin-top:2px}
+.b.me .bt{text-align:right}
+#toast{position:absolute;left:50%;bottom:76px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;white-space:nowrap}
+#toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.sb.on i{width:100%}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hd"></header>
+  <main id="main"></main>
+  <nav id="nav"></nav>
+  <div id="toast" role="status"></div>
+</div>
+<div id="ov"></div>
+<script>
+/* ===================== ТОХИРГОО ===================== */
+// Firebase console → Project settings → Your apps → Web → "firebaseConfig"-ийг энд буулгана
+const CFG = {
+  apiKey: "AIzaSyCJEwPemIWrJcHq7MxVhnWXVDG0aF4qg4U",
+  authDomain: "tsogtoo-42b99.firebaseapp.com",
+  projectId: "tsogtoo-42b99",
+  appId: "1:362506270318:web:0f512981a850aa47ba587f"
+};
+const FBV = '12.19.0';
+/* ==================================================== */
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const PAL=[['#2E5E63','#5FA3A8'],['#B07A2E','#DDB06A'],['#6B4E80','#A98BC0'],['#2F7A52','#6FBE92'],['#A9462F','#DB8B74'],['#345590','#7F9CD0']];
+const GR=['linear-gradient(160deg,#C4633A,#7A4A22)','linear-gradient(160deg,#2E5E63,#0F2A33)','linear-gradient(160deg,#1F8F5A,#2E5E63)','linear-gradient(160deg,#6B4E80,#2B3A67)','linear-gradient(160deg,#A9462F,#4E2323)'];
+const configured=!String(CFG.apiKey).startsWith('PASTE');
+
+/* ---------- Firebase (динамикаар ачаална) ---------- */
+let auth,db,AU={},FS={};
+async function loadFirebase(){
+  if(window.__FB_MOCK)return window.__FB_MOCK;
+  const b=`https://www.gstatic.com/firebasejs/${FBV}/`;
+  const [app,au,fs]=await Promise.all([import(b+'firebase-app.js'),import(b+'firebase-auth.js'),import(b+'firebase-firestore.js')]);
+  return {app,auth:au,fs};
+}
+
+/* ---------- state ---------- */
+const S={me:null,tab:'feed',thread:null,posts:[],mine:[],stories:[],friends:new Map(),reqIn:[],reqOut:new Set(),chats:new Map(),msgs:[],
+  cm:new Map(),open:new Set(),people:[],q:'',draftImg:null,sv:null,gsel:0,readMap:{},seenMap:{},errShown:false};
+const A={mode:'login',msg:'',ok:false};
+let subs=[],cmSubs=new Map(),msgSub=null,svT=null,regBusy=false,tt,peopleT;
+const lsGet=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(_){return d}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}};
+const chatId=(a,b)=>[a,b].sort().join('_');
+
+/* ---------- icons ---------- */
+const I={
+ home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+ users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c2.7 0 4.5 1.8 4.5 4.5"/>',
+ chat:'<path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-8l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/>',
+ user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',
+ heart:'<path d="M12 20s-7.5-4.6-9.3-9.3C1.5 7.5 3.4 4.5 6.6 4.5c2 0 3.5 1.1 5.4 3.2 1.9-2.1 3.4-3.2 5.4-3.2 3.2 0 5.1 3 3.9 6.2C19.5 15.4 12 20 12 20z"/>',
+ send:'<path d="M3 11.5L21 3l-8.5 18-2.5-7.5z"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ back:'<path d="M15 5l-7 7 7 7"/>',
+ close:'<path d="M6 6l12 12M18 6L6 18"/>',
+ image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>'
+};
+const ic=(n,s=22,f)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="${f?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
+
+/* ---------- helpers ---------- */
+const hashIdx=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;return h%PAL.length};
+function av(uid,name,s=40,ring){
+  const c=PAL[hashIdx(uid||name)],g=`linear-gradient(135deg,${c[0]},${c[1]})`,ch=esc([...(name||'?')][0].toUpperCase()),fs=Math.round(s*.4);
+  if(!ring)return `<span class="hx" style="--s:${s}px;background:${g};font-size:${fs}px">${ch}</span>`;
+  const rg=ring==='new'?'var(--ring)':'var(--line)';
+  return `<span class="hx" style="--s:${s}px;background:${rg}"><span class="hx-a"><span class="hx-b" style="background:${g};font-size:${fs}px">${ch}</span></span></span>`;
+}
+function ago(ms){const s=Math.max(0,(Date.now()-ms)/1000);if(s<60)return 'Дөнгөж сая';const m=s/60;if(m<60)return Math.floor(m)+' мин';const h=m/60;if(h<24)return Math.floor(h)+' цаг';const d=h/24;if(d<7)return Math.floor(d)+' өдөр';return new Date(ms).toISOString().slice(0,10)}
+const hhmm=ms=>{const d=new Date(ms);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
+const tms=x=>x&&x.toMillis?x.toMillis():Date.now();
+const safeImg=s=>typeof s==='string'&&/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(s)?s:'';
+function toast(m,ms=1900){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),ms)}
+function onErr(e){console.error(e);if(S.errShown)return;S.errShown=true;
+  toast(e&&e.code==='permission-denied'?'Эрх хүрэхгүй байна. Firestore-ийн дүрмээ (rules) шалгана уу.':'Өгөгдөл уншиж чадсангүй. Интернэтээ шалгана уу.',4500)}
+function cover(){return '<svg viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="sd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2C08E"/><stop offset="1" stop-color="#F8E6CB"/></linearGradient></defs><rect width="400" height="240" fill="url(#sd)"/><circle cx="300" cy="92" r="34" fill="#EE8656" opacity=".92"/><path d="M0 172 Q90 120 190 166 T400 150 V240 H0z" fill="#D9A867"/><path d="M0 207 Q120 162 250 202 T400 192 V240 H0z" fill="#B87F45"/></svg>'}
+function downscale(file){return new Promise((res,rej)=>{
+  const r=new FileReader();r.onerror=rej;
+  r.onload=()=>{const im=new Image();im.onerror=rej;im.onload=()=>{
+    const k=Math.min(1,900/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*k);cv.height=Math.round(im.height*k);
+    cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);
+    let q=.75,d=cv.toDataURL('image/jpeg',q);while(d.length>700000&&q>.3){q-=.1;d=cv.toDataURL('image/jpeg',q)}
+    res(d)};im.src=r.result};r.readAsDataURL(file)})}
+
+/* ---------- өгөгдлийн хөрвүүлэгч ---------- */
+const mapPost=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,uid:x.uid,name:x.name||'',text:x.text||'',img:x.img||'',likes:Array.isArray(x.likes)?x.likes:[],cc:x.cc||0,t:tms(x.createdAt)}};
+const mapStory=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,uid:x.uid,name:x.name||'',text:x.text||'',g:x.g|0,t:tms(x.createdAt)}};
+const mapMsg=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,f:x.from,t:x.text||'',ms:tms(x.createdAt)}};
+
+/* ---------- views ---------- */
+function unreadChats(){let n=0;S.chats.forEach((c,cid)=>{if(c.lastFrom&&c.lastFrom!==S.me.uid&&c.lastAt>(S.readMap[cid]||0))n++});return n}
+function headerHTML(){
+  if(S.thread)return `<button class="ib" data-a="back" aria-label="Буцах">${ic('back',24)}</button>${av(S.thread.uid,S.thread.name,38)}<b style="font-weight:600">${esc(S.thread.name)}</b>`;
+  if(S.tab==='feed')return `<div class="logo"><svg width="28" height="25" viewBox="0 0 28 25" aria-hidden="true"><path d="M7 1h14l7 11.5L21 24H7L0 12.5z" fill="none" stroke="var(--sky)" stroke-width="2.4"/><circle cx="14" cy="12.5" r="3.4" fill="var(--green)"/></svg>Нутаг</div>`;
+  return `<div class="title">${{friends:'Найзууд',chat:'Чат',profile:'Профайл'}[S.tab]}</div>`;
+}
+function navHTML(){
+  const items=[['feed','home','Мэдээ'],['friends','users','Найзууд'],['chat','chat','Чат'],['profile','user','Профайл']];
+  const bd={friends:S.reqIn.length,chat:unreadChats()};
+  return items.map(([k,i,l])=>`<button data-a="tab" data-t="${k}" class="${S.tab===k?'on':''}" ${S.tab===k?'aria-current="page"':''}>${ic(i,23)}<span>${l}</span>${bd[k]?`<span class="badge">${bd[k]}</span>`:''}</button>`).join('');
+}
+function storyGroups(){
+  const m=new Map();S.stories.forEach(s=>{if(!m.has(s.uid))m.set(s.uid,{uid:s.uid,name:s.name,list:[]});m.get(s.uid).list.push(s)});
+  const gs=[...m.values()];gs.forEach(g=>{g.list.sort((a,b)=>a.t-b.t);g.latest=g.list[g.list.length-1].t});
+  gs.sort((a,b)=>a.uid===S.me.uid?-1:b.uid===S.me.uid?1:b.latest-a.latest);return gs;
+}
+function storiesHTML(){
+  const gs=storyGroups(),mine=gs.find(g=>g.uid===S.me.uid),others=gs.filter(g=>g.uid!==S.me.uid);
+  const ringOf=g=>g.latest>(S.seenMap[g.uid]||0)?'new':'seen';
+  const me=`<button class="st" data-a="${mine?'story':'addstory'}" ${mine?`data-id="${S.me.uid}"`:''}><span class="plus">${av(S.me.uid,S.me.name,60,mine?ringOf(mine):'seen')}<i data-a="addstory" role="button" aria-label="Story нэмэх">${ic('plus',13)}</i></span><span class="n">Таны story</span></button>`;
+  return `<div class="stories" id="stories">${me}${others.map(g=>`<button class="st" data-a="story" data-id="${esc(g.uid)}">${av(g.uid,g.name,60,ringOf(g))}<span class="n">${esc(g.name)}</span></button>`).join('')}</div>`;
+}
+function postHTML(p){
+  const open=S.open.has(p.id),liked=p.likes.includes(S.me.uid),img=safeImg(p.img);
+  const cms=open?`<div class="cms">${(S.cm.get(p.id)||[]).map(c=>`<div class="cm">${av(c.uid,c.name,30)}<div class="bb"><b>${esc(c.name)}</b>${esc(c.text)}</div></div>`).join('')}<form class="cmf" data-f="comment" data-id="${esc(p.id)}"><input data-cin="${esc(p.id)}" placeholder="Сэтгэгдэл бичих" aria-label="Сэтгэгдэл бичих" autocomplete="off" maxlength="500"><button class="btn sm" type="submit">Илгээх</button></form></div>`:'';
+  return `<article class="post"><div class="ph">${av(p.uid,p.name,42)}<div><b>${esc(p.name)}</b><span class="mute">${ago(p.t)}</span></div>${p.uid===S.me.uid?`<button class="del" data-a="delpost" data-id="${esc(p.id)}">Устгах</button>`:''}</div>${p.text?`<p>${esc(p.text)}</p>`:''}${img?`<div class="art"><img src="${img}" alt=""></div>`:''}<div class="pa"><button data-a="like" data-id="${esc(p.id)}" class="${liked?'liked':''}" aria-pressed="${liked}">${ic('heart',20,liked)}${p.likes.length}</button><button data-a="cm" data-id="${esc(p.id)}">${ic('chat',20)}${p.cc}</button></div>${cms}</article>`;
+}
+function postsHTML(){
+  const list=S.tab==='profile'?S.mine:S.posts;
+  return list.length?list.map(postHTML).join(''):`<div class="empty">Нийтлэл байхгүй. ${S.tab==='profile'?'Мэдээ хэсгээс анхны нийтлэлээ хий.':'Дээрх талбарт анхны нийтлэлээ бич.'}</div>`;
+}
+function feedHTML(){
+  return storiesHTML()+`<section class="card composer"><form data-f="post"><div class="top">${av(S.me.uid,S.me.name,42)}<textarea id="cmp" rows="2" maxlength="2000" placeholder="Юу бодож байна?" aria-label="Шинэ нийтлэл"></textarea></div><div id="prev"></div><div class="bar"><label class="chip">${ic('image',18)}Зураг<input type="file" id="file" accept="image/*" hidden></label><button class="btn" type="submit">Нийтлэх</button></div></form></section><div id="posts">${postsHTML()}</div>`;
+}
+function personAction(uid,name){
+  if(S.friends.has(uid))return `<button class="btn sm line" data-a="thread" data-id="${esc(uid)}" data-n="${esc(name)}">Чат</button>`;
+  const inc=S.reqIn.find(r=>r.from===uid);
+  if(inc)return `<button class="btn sm" data-a="accept" data-id="${esc(inc.id)}">Зөвшөөрөх</button>`;
+  if(S.reqOut.has(uid))return `<button class="btn sm line" disabled>Илгээсэн</button>`;
+  return `<button class="btn sm ghost" data-a="add" data-id="${esc(uid)}" data-n="${esc(name)}">Нэмэх</button>`;
+}
+function friendLists(){
+  const q=S.q.trim().toLowerCase(),f=n=>!q||String(n).toLowerCase().includes(q);
+  const row=(uid,name,acts)=>`<div class="row">${av(uid,name,46)}<div class="rt"><b>${esc(name)}</b></div><div class="acts">${acts}</div></div>`;
+  let h='';
+  const ri=S.reqIn.filter(r=>f(r.fromName));
+  if(ri.length)h+=`<div class="sec">Найзын хүсэлт</div>`+ri.map(r=>row(r.from,r.fromName,`<button class="btn sm" data-a="accept" data-id="${esc(r.id)}">Зөвшөөрөх</button><button class="btn sm line" data-a="decline" data-id="${esc(r.id)}">Устгах</button>`)).join('');
+  const fr=[...S.friends.entries()].filter(([,n])=>f(n));
+  h+=`<div class="sec">Найзууд (${fr.length})</div>`+(fr.length?fr.map(([u,n])=>row(u,n,personAction(u,n))).join(''):`<div class="empty">${q?'Ийм найз олдсонгүй.':'Найз байхгүй байна. Доороос хүн хайж нэмээрэй.'}</div>`);
+  const pp=S.people.filter(p=>p.uid!==S.me.uid&&!S.friends.has(p.uid)&&!S.reqIn.some(r=>r.from===p.uid));
+  h+=`<div class="sec">Хүмүүс</div>`+(pp.length?pp.map(p=>row(p.uid,p.name,personAction(p.uid,p.name))).join(''):`<div class="empty">${q?'Ийм хүн олдсонгүй.':'Одоохондоо өөр хэрэглэгч алга.'}</div>`);
+  return h;
+}
+function friendsHTML(){return `<input class="search" id="fq" placeholder="Нэрээр хайх" aria-label="Нэрээр хайх" value="${esc(S.q)}" autocomplete="off"><div id="flist">${friendLists()}</div>`}
+function chatRows(){
+  return [...S.chats.entries()].sort((a,b)=>b[1].lastAt-a[1].lastAt);
+}
+function chatListHTML(){
+  const rows=chatRows();
+  if(!rows.length)return `<div class="empty">Чат байхгүй байна. Найзууд хэсгээс найзаа сонгож чат эхлүүл.</div>`;
+  return rows.map(([cid,c])=>{const un=c.lastFrom&&c.lastFrom!==S.me.uid&&c.lastAt>(S.readMap[cid]||0);
+    return `<button class="row" data-a="thread" data-id="${esc(c.peer)}" data-n="${esc(c.name)}">${av(c.peer,c.name,46)}<div class="rt"><b>${esc(c.name)}</b><span class="mute">${c.lastFrom===S.me.uid?'Та: ':''}${esc(c.last)}</span></div>${un?'<span class="unread">1</span>':''}</button>`}).join('');
+}
+function msgsHTML(){
+  if(!S.msgs.length)return `<div class="empty">Мессеж бичээд эхэл.</div>`;
+  return S.msgs.map(m=>`<div class="b ${m.f===S.me.uid?'me':'them'}">${esc(m.t)}<span class="bt">${hhmm(m.ms)}</span></div>`).join('');
+}
+function threadHTML(){return `<div class="msgs" id="msgs">${msgsHTML()}</div><form class="mf" data-f="msg"><input id="mi" placeholder="Мессеж бичих" aria-label="Мессеж бичих" autocomplete="off" maxlength="2000"><button type="submit" aria-label="Илгээх">${ic('send',20)}</button></form>`}
+function profileHTML(){
+  const me=S.me;
+  return `<div class="cover">${cover()}</div><div class="pinfo"><span class="av">${av(me.uid,me.name,84,'new')}</span><h2>${esc(me.name)}</h2>${me.bio?`<p>${esc(me.bio)}</p>`:'<p class="mute">Танилцуулга нэмээгүй байна.</p>'}<div class="stats"><div><b>${S.mine.length}</b><span>Нийтлэл</span></div><div><b>${S.friends.size}</b><span>Найз</span></div></div><div class="pbtns"><button class="btn" data-a="editprofile">Профайл засах</button><button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><button class="btn line" data-a="logout">Гарах</button></div></div><div class="sec">Миний нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
+}
+function render(){
+  if(!S.me){authRender();return}
+  $('#hd').style.display='';$('#hd').innerHTML=headerHTML();
+  const m=$('#main');m.className=S.thread?'thread':'';
+  m.innerHTML=S.thread?threadHTML():{feed:feedHTML,friends:friendsHTML,chat:chatListHTML,profile:profileHTML}[S.tab]();
+  $('#nav').style.display=S.thread?'none':'';$('#nav').innerHTML=navHTML();
+  if(S.thread)scrollMsgs();
+}
+function refreshPosts(){
+  const p=$('#posts');if(!p)return;
+  const vals={},fa=document.activeElement;let fid=null,ss=0;
+  document.querySelectorAll('[data-cin]').forEach(i=>{vals[i.dataset.cin]=i.value});
+  if(fa&&fa.dataset&&fa.dataset.cin){fid=fa.dataset.cin;ss=fa.selectionStart}
+  p.innerHTML=postsHTML();
+  document.querySelectorAll('[data-cin]').forEach(i=>{if(vals[i.dataset.cin])i.value=vals[i.dataset.cin]});
+  if(fid){const i=document.querySelector(`[data-cin="${CSS.escape(fid)}"]`);if(i){i.focus();try{i.setSelectionRange(ss,ss)}catch(_){}}}
+}
+function refreshProfile(){if(S.tab==='profile'&&!S.thread&&$('.pinfo')){const y=$('#main').scrollTop;render();$('#main').scrollTop=y}}
+const refreshNav=()=>{if(S.me&&!S.thread)$('#nav').innerHTML=navHTML()};
+const refreshStories=()=>{const e=$('#stories');if(e)e.outerHTML=storiesHTML()};
+const refreshFriends=()=>{const e=$('#flist');if(e)e.innerHTML=friendLists()};
+const refreshChats=()=>{if(S.tab==='chat'&&!S.thread)$('#main').innerHTML=chatListHTML()};
+function scrollMsgs(){const e=$('#msgs');if(e)e.scrollTop=e.scrollHeight}
+function refreshMsgs(){const e=$('#msgs');if(e){e.innerHTML=msgsHTML();scrollMsgs()}}
+
+/* ---------- нэвтрэх / бүртгүүлэх дэлгэц ---------- */
+const LOGO='<svg width="36" height="32" viewBox="0 0 28 25" aria-hidden="true"><path d="M7 1h14l7 11.5L21 24H7L0 12.5z" fill="none" stroke="var(--sky)" stroke-width="2.4"/><circle cx="14" cy="12.5" r="3.4" fill="var(--green)"/></svg>';
+function authHTML(){
+  const reg=A.mode==='register',rst=A.mode==='reset';
+  const fld=(l,n,type,extra,hint)=>`<label class="fld">${l}<input name="${n}" type="${type}" ${extra||''}>${hint?`<span>${hint}</span>`:''}</label>`;
+  return `<div class="auth"><div class="logo">${LOGO}Нутаг</div><p class="lead">Найз нөхөдтэйгээ холбогдох газар.</p>
+  ${rst?'':`<div class="seg" role="tablist"><button data-a="amode" data-m="login" class="${reg?'':'on'}" role="tab" aria-selected="${!reg}">Нэвтрэх</button><button data-a="amode" data-m="register" class="${reg?'on':''}" role="tab" aria-selected="${reg}">Бүртгүүлэх</button></div>`}
+  <form data-f="${A.mode}" novalidate>
+    ${reg?fld('Нэр','n','text','maxlength="40" autocomplete="name" required'):''}
+    ${fld('Имэйл','e','email','autocomplete="email" autocapitalize="none" required')}
+    ${rst?'':fld('Нууц үг','p','password',`autocomplete="${reg?'new-password':'current-password'}" required`,reg?'Хамгийн багадаа 6 тэмдэгт':'')}
+    ${reg?fld('Нууц үг давтах','p2','password','autocomplete="new-password" required'):''}
+    <div id="amsg" class="${A.ok?'aok':'aerr'}" role="alert">${esc(A.msg)}</div>
+    <button class="btn" type="submit">${reg?'Бүртгүүлэх':rst?'Сэргээх холбоос илгээх':'Нэвтрэх'}</button>
+    ${A.mode==='login'?'<button type="button" class="link" data-a="amode" data-m="reset">Нууц үгээ мартсан уу?</button>':''}
+    ${rst?'<button type="button" class="link" data-a="amode" data-m="login">Нэвтрэх рүү буцах</button>':''}
+  </form></div>`;
+}
+function authRender(){
+  $('#hd').style.display='none';$('#hd').innerHTML='';$('#nav').style.display='none';
+  const m=$('#main');m.className='';m.innerHTML=authHTML();m.scrollTop=0;
+}
+function setupRender(){
+  $('#hd').style.display='none';$('#nav').style.display='none';
+  $('#main').innerHTML=`<div class="setup"><div class="logo">${LOGO}Нутаг</div><h2>Firebase-ээ холбоно уу</h2><p class="mute">Энэ файл бэлэн боловч өгөгдлийн сангаа холбох хэрэгтэй. Үнэгүй.</p><ol>
+  <li><code>console.firebase.google.com</code> → <b>Add project</b></li>
+  <li><b>Build → Authentication → Get started</b> → <b>Email/Password</b>-ийг идэвхжүүл</li>
+  <li><b>Build → Firestore Database → Create database</b> (production mode)</li>
+  <li>Firestore → <b>Rules</b> табд <code>firestore.rules</code> файлын агуулгыг буулгаад <b>Publish</b></li>
+  <li><b>Project settings → Your apps → Web (&lt;/&gt;)</b> → өгөгдсөн <code>firebaseConfig</code>-ийг энэ HTML-ийн дээд талын <code>CFG</code> хэсэгт буулга</li>
+  <li>Файлыг <code>http://</code> эсвэл <code>https://</code> хаягаар нээ (жишээ: <code>python3 -m http.server</code> ажиллуулаад <code>localhost:8000</code>). <code>file://</code> хаягаар Firebase нэвтрэлт ажиллахгүй</li></ol></div>`;
+}
+
+/* ---------- бүртгэл ---------- */
+const AUTH_ERR={'auth/email-already-in-use':'Энэ имэйл бүртгэлтэй байна. Нэвтрэх хэсгээр орно уу.','auth/invalid-email':'Имэйл хаяг буруу байна.','auth/weak-password':'Нууц үг хамгийн багадаа 6 тэмдэгттэй байна.','auth/invalid-credential':'Имэйл эсвэл нууц үг буруу байна.','auth/user-not-found':'Имэйл эсвэл нууц үг буруу байна.','auth/wrong-password':'Имэйл эсвэл нууц үг буруу байна.','auth/too-many-requests':'Хэт олон оролдлого хийлээ. Түр хүлээгээд дахин оролдоно уу.','auth/network-request-failed':'Интернэт холболтоо шалгана уу.','auth/operation-not-allowed':'Firebase дээр Email/Password нэвтрэлт идэвхжээгүй байна.','auth/operation-not-supported-in-this-environment':'Файлыг http:// эсвэл https:// хаягаар нээнэ үү (file:// ажиллахгүй).'};
+const amsg=(m,ok)=>{A.msg=m;A.ok=!!ok;const e=$('#amsg');if(e){e.textContent=m;e.className=ok?'aok':'aerr'}};
+async function doAuth(f){
+  const fd=new FormData(f),mode=f.dataset.f,e=(fd.get('e')||'').trim(),p=fd.get('p')||'',btn=f.querySelector('button[type=submit]');
+  if(!e)return amsg('Имэйлээ оруулна уу.');
+  if(mode==='reset'){btn.disabled=true;try{await AU.sendPasswordResetEmail(auth,e);amsg('Сэргээх холбоосыг имэйл рүү илгээлээ.',true)}catch(x){amsg(AUTH_ERR[x.code]||'Илгээж чадсангүй.')}btn.disabled=false;return}
+  if(!p)return amsg('Нууц үгээ оруулна уу.');
+  if(mode==='login'){btn.disabled=true;try{await AU.signInWithEmailAndPassword(auth,e,p)}catch(x){amsg(AUTH_ERR[x.code]||'Нэвтэрч чадсангүй. Дахин оролдоно уу.');btn.disabled=false}return}
+  const n=(fd.get('n')||'').trim();
+  if(!n)return amsg('Нэрээ оруулна уу.');
+  if(p.length<6)return amsg('Нууц үг хамгийн багадаа 6 тэмдэгттэй байна.');
+  if(p!==(fd.get('p2')||''))return amsg('Хоёр нууц үг таарахгүй байна.');
+  btn.disabled=true;regBusy=true;
+  try{
+    const cred=await AU.createUserWithEmailAndPassword(auth,e,p);
+    try{
+      await FS.setDoc(FS.doc(db,'users',cred.user.uid),{name:n,nameLower:n.toLowerCase(),bio:'',createdAt:FS.serverTimestamp()});
+    }catch(x){regBusy=false;await AU.signOut(auth);amsg('Профайл үүсгэж чадсангүй. Firestore-ийн дүрмээ (rules) шалгана уу.');btn.disabled=false;return}
+    regBusy=false;await startSession(cred.user);
+  }catch(x){regBusy=false;amsg(AUTH_ERR[x.code]||'Бүртгэл үүсгэж чадсангүй. Дахин оролдоно уу.');btn.disabled=false}
+}
+
+/* ---------- сесс ба бодит цагийн холболт ---------- */
+function unsubAll(){subs.forEach(f=>{try{f()}catch(_){}});subs=[];cmSubs.forEach(f=>{try{f()}catch(_){}});cmSubs.clear();if(msgSub){try{msgSub()}catch(_){}msgSub=null}}
+async function startSession(u){
+  try{
+    const ref=FS.doc(db,'users',u.uid);let sn=await FS.getDoc(ref),p;
+    if(sn.exists())p=sn.data();
+    else{const nm=u.displayName||(u.email||'Хэрэглэгч').split('@')[0];p={name:nm,bio:''};await FS.setDoc(ref,{name:nm,nameLower:nm.toLowerCase(),bio:'',createdAt:FS.serverTimestamp()})}
+    unsubAll();
+    Object.assign(S,{me:{uid:u.uid,name:p.name,bio:p.bio||''},tab:'feed',thread:null,posts:[],mine:[],stories:[],friends:new Map(),reqIn:[],reqOut:new Set(),chats:new Map(),msgs:[],cm:new Map(),open:new Set(),people:[],q:'',draftImg:null,errShown:false,
+      readMap:lsGet('nutag-read-'+u.uid,{}),seenMap:lsGet('nutag-seen-'+u.uid,{})});
+    subscribe();render();toast('Тавтай морил, '+S.me.name);
+  }catch(e){onErr(e);A.mode='login';amsg('Профайлаа уншиж чадсангүй. Firestore-ийн тохиргоогоо шалгана уу.');S.me=null;render()}
+}
+function endSession(){unsubAll();clearTimeout(svT);const o=$('#ov');o.className='';o.innerHTML='';S.me=null;S.thread=null;A.mode='login';A.msg='';A.ok=false}
+function subscribe(){
+  const {collection,query,where,orderBy,limit,onSnapshot,Timestamp}=FS,uid=S.me.uid,on=(q,fn)=>subs.push(onSnapshot(q,fn,onErr));
+  on(query(collection(db,'posts'),orderBy('createdAt','desc'),limit(50)),sn=>{S.posts=sn.docs.map(mapPost);refreshPosts()});
+  on(query(collection(db,'posts'),where('uid','==',uid),limit(60)),sn=>{S.mine=sn.docs.map(mapPost).sort((a,b)=>b.t-a.t);if(S.tab==='profile')refreshProfile()});
+  on(query(collection(db,'stories'),where('createdAt','>',Timestamp.fromMillis(Date.now()-864e5)),orderBy('createdAt','asc')),sn=>{S.stories=sn.docs.map(mapStory);refreshStories()});
+  on(query(collection(db,'friendships'),where('members','array-contains',uid)),sn=>{
+    S.friends=new Map(sn.docs.map(d=>{const x=d.data(),p=x.members.find(m=>m!==uid);return [p,(x.names&&x.names[p])||'Хэрэглэгч']}));
+    refreshFriends();refreshNav();refreshProfile()});
+  on(query(collection(db,'requests'),where('to','==',uid),where('status','==','pending')),sn=>{
+    S.reqIn=sn.docs.map(d=>{const x=d.data();return {id:d.id,from:x.from,fromName:x.fromName||'Хэрэглэгч'}});refreshFriends();refreshNav()});
+  on(query(collection(db,'requests'),where('from','==',uid)),sn=>{S.reqOut=new Set(sn.docs.map(d=>d.data().to));refreshFriends()});
+  on(query(collection(db,'chats'),where('members','array-contains',uid)),sn=>{
+    S.chats=new Map(sn.docs.map(d=>{const x=d.data({serverTimestamps:'estimate'}),peer=x.members.find(m=>m!==uid);
+      return [d.id,{peer,name:(x.names&&x.names[peer])||'Хэрэглэгч',last:x.last||'',lastAt:tms(x.lastAt),lastFrom:x.lastFrom}]}));
+    refreshChats();refreshNav()});
+  loadPeople('');
+}
+async function loadPeople(q){
+  const {collection,query,where,orderBy,limit,getDocs}=FS,ql=q.trim().toLowerCase();
+  try{
+    const qq=ql?query(collection(db,'users'),where('nameLower','>=',ql),where('nameLower','<=',ql+'\uf8ff'),limit(30)):query(collection(db,'users'),orderBy('nameLower'),limit(40));
+    const sn=await getDocs(qq);if(!S.me)return;
+    S.people=sn.docs.map(d=>({uid:d.id,name:d.data().name||'Хэрэглэгч'}));refreshFriends();
+  }catch(e){onErr(e)}
+}
+
+/* ---------- overlay ---------- */
+const ov=$('#ov');
+function closeOv(){clearTimeout(svT);ov.className='';ov.innerHTML='';S.sv=null;if(S.me&&!S.thread&&S.tab==='feed')refreshStories()}
+function openSheet(h){ov.innerHTML=`<div class="scrim" data-a="closeov"></div><div class="sheet" role="dialog" aria-modal="true">${h}</div>`;ov.className='open'}
+function drawStory(){
+  clearTimeout(svT);
+  const {groups,gi,i}=S.sv,g=groups[gi],s=g.list[i];
+  ov.innerHTML=`<div class="sv" style="background:${GR[s.g]||GR[0]}"><div class="sbars">${g.list.map((_,k)=>`<span class="sb ${k<i?'done':k===i?'on':''}"><i></i></span>`).join('')}</div><div class="shead">${av(g.uid,g.name,38)}<b>${esc(g.name)}</b><span>${ago(s.t)}</span><button class="ib" data-a="closeov" aria-label="Хаах">${ic('close',24)}</button></div><div class="stext">${esc(s.text)}</div><button class="sz l" data-a="sprev" aria-label="Өмнөх"></button><button class="sz r" data-a="snext" aria-label="Дараах"></button></div>`;
+  ov.className='open';svT=setTimeout(nextStory,4500);
+}
+function markSeen(g){S.seenMap[g.uid]=Math.max(S.seenMap[g.uid]||0,g.latest);lsSet('nutag-seen-'+S.me.uid,S.seenMap)}
+function nextStory(){
+  const {groups,gi,i}=S.sv,g=groups[gi];
+  if(i<g.list.length-1){S.sv.i++;drawStory();return}
+  markSeen(g);
+  if(gi<groups.length-1){S.sv.gi++;S.sv.i=0;drawStory()}else closeOv();
+}
+function prevStory(){if(S.sv.i>0)S.sv.i--;drawStory()}
+
+/* ---------- чат ---------- */
+function markRead(cid){const c=S.chats.get(cid);S.readMap[cid]=Math.max(Date.now(),c?c.lastAt:0);lsSet('nutag-read-'+S.me.uid,S.readMap);refreshNav()}
+function openThread(uid,name){
+  const {collection,query,orderBy,limitToLast,onSnapshot}=FS,cid=chatId(S.me.uid,uid);
+  if(msgSub){msgSub();msgSub=null}
+  S.thread={uid,name,cid};S.tab='chat';S.msgs=[];render();
+  msgSub=onSnapshot(query(collection(db,'chats',cid,'messages'),orderBy('createdAt','asc'),limitToLast(100)),sn=>{
+    S.msgs=sn.docs.map(mapMsg);if(S.thread&&S.thread.cid===cid){refreshMsgs();markRead(cid)}},onErr);
+  markRead(cid);const mi=$('#mi');if(mi)mi.focus();
+}
+function closeThread(){if(msgSub){msgSub();msgSub=null}S.thread=null;S.msgs=[];render()}
+async function sendMsg(text){
+  const {doc,collection,writeBatch,serverTimestamp}=FS,me=S.me,th=S.thread,cid=th.cid,b=writeBatch(db);
+  b.set(doc(db,'chats',cid),{members:[me.uid,th.uid].sort(),names:{[me.uid]:me.name,[th.uid]:th.name},last:text.slice(0,200),lastAt:serverTimestamp(),lastFrom:me.uid},{merge:true});
+  b.set(doc(collection(db,'chats',cid,'messages')),{from:me.uid,text,createdAt:serverTimestamp()});
+  await b.commit();
+}
+
+/* ---------- үйлдлүүд ---------- */
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;
+  const a=b.dataset.a,id=b.dataset.id;
+  if(a==='amode'){A.mode=b.dataset.m;A.msg='';A.ok=false;authRender();return}
+  if(!S.me)return;
+  const {doc,updateDoc,deleteDoc,setDoc,addDoc,collection,writeBatch,serverTimestamp,arrayUnion,arrayRemove,increment,query,orderBy,limit,onSnapshot}=FS;
+  try{
+  switch(a){
+    case 'tab':S.tab=b.dataset.t;S.thread=null;render();$('#main').scrollTop=0;if(S.tab==='friends')loadPeople(S.q);break;
+    case 'back':closeThread();break;
+    case 'like':{const p=[...S.posts,...S.mine].find(x=>x.id===id);if(!p)break;
+      await updateDoc(doc(db,'posts',id),{likes:p.likes.includes(S.me.uid)?arrayRemove(S.me.uid):arrayUnion(S.me.uid)});break}
+    case 'cm':{
+      if(S.open.has(id)){S.open.delete(id);const u=cmSubs.get(id);if(u){u();cmSubs.delete(id)}refreshPosts();break}
+      S.open.add(id);refreshPosts();
+      cmSubs.set(id,onSnapshot(query(collection(db,'posts',id,'comments'),orderBy('createdAt','asc'),limit(100)),sn=>{
+        S.cm.set(id,sn.docs.map(d=>{const x=d.data();return {id:d.id,uid:x.uid,name:x.name||'',text:x.text||''}}));refreshPosts()},onErr));
+      const i=document.querySelector(`[data-cin="${CSS.escape(id)}"]`);if(i)i.focus();break}
+    case 'delpost':if(confirm('Энэ нийтлэлийг устгах уу?')){await deleteDoc(doc(db,'posts',id));toast('Устгагдлаа')}break;
+    case 'story':{const gs=storyGroups(),gi=gs.findIndex(g=>g.uid===id);if(gi<0)break;S.sv={groups:gs,gi,i:0};drawStory();break}
+    case 'sprev':prevStory();break;
+    case 'snext':nextStory();break;
+    case 'closeov':closeOv();break;
+    case 'addstory':
+      S.gsel=0;openSheet(`<h3>Story нэмэх</h3><label>Текст<textarea id="st-t" maxlength="120" placeholder="Юу хуваалцах вэ?"></textarea></label><div class="sw">${GR.map((g,i)=>`<button data-a="grad" data-i="${i}" class="${i===0?'on':''}" style="background:${g}" aria-label="Өнгө ${i+1}"></button>`).join('')}</div><button class="btn" data-a="savestory">Story нийтлэх</button>`);break;
+    case 'grad':S.gsel=+b.dataset.i;document.querySelectorAll('.sw button').forEach((x,i)=>x.classList.toggle('on',i===S.gsel));break;
+    case 'savestory':{const t=$('#st-t').value.trim();if(!t){toast('Текст бич');break}
+      await addDoc(collection(db,'stories'),{uid:S.me.uid,name:S.me.name,text:t,g:S.gsel,createdAt:serverTimestamp()});closeOv();toast('Story нийтлэгдлээ');break}
+    case 'add':{const to=id,nm=b.dataset.n;
+      await setDoc(doc(db,'requests',S.me.uid+'_'+to),{from:S.me.uid,to,fromName:S.me.name,toName:nm,status:'pending',createdAt:serverTimestamp()});toast('Хүсэлт илгээгдлээ');break}
+    case 'accept':{const r=S.reqIn.find(x=>x.id===id);if(!r)break;const me=S.me.uid,bt=writeBatch(db);
+      bt.update(doc(db,'requests',id),{status:'accepted'});
+      bt.set(doc(db,'friendships',chatId(me,r.from)),{members:[me,r.from].sort(),names:{[me]:S.me.name,[r.from]:r.fromName},createdAt:serverTimestamp()});
+      await bt.commit();toast(r.fromName+' найз боллоо');break}
+    case 'decline':await deleteDoc(doc(db,'requests',id));break;
+    case 'thread':openThread(id,b.dataset.n);break;
+    case 'editprofile':openSheet(`<h3>Профайл засах</h3><label>Нэр<input id="pn" value="${esc(S.me.name)}" maxlength="40"></label><label>Танилцуулга<textarea id="pb" maxlength="140">${esc(S.me.bio)}</textarea></label><button class="btn" data-a="saveprofile">Хадгалах</button>`);break;
+    case 'saveprofile':{const n=$('#pn').value.trim();if(!n){toast('Нэр хоосон байж болохгүй');break}
+      const bio=$('#pb').value.trim();await updateDoc(doc(db,'users',S.me.uid),{name:n,nameLower:n.toLowerCase(),bio});
+      S.me.name=n;S.me.bio=bio;closeOv();render();toast('Хадгалагдлаа');break}
+    case 'theme':{const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+      r.dataset.theme=dark?'light':'dark';try{localStorage.setItem('nutag-theme',r.dataset.theme)}catch(_){}break}
+    case 'logout':await AU.signOut(auth);break;
+  }
+  }catch(err){console.error(err);toast(err&&err.code==='permission-denied'?'Эрх хүрэхгүй байна.':'Үйлдэл амжилтгүй боллоо. Дахин оролдоно уу.',3000)}
+});
+document.addEventListener('submit',async e=>{
+  const f=e.target.closest('[data-f]');if(!f)return;e.preventDefault();
+  const k=f.dataset.f;
+  if(k==='login'||k==='register'||k==='reset'){doAuth(f);return}
+  if(!S.me)return;
+  const {doc,addDoc,collection,writeBatch,serverTimestamp,increment}=FS;
+  try{
+    if(k==='post'){
+      const t=$('#cmp').value.trim();if(!t&&!S.draftImg){toast('Текст эсвэл зураг нэм');return}
+      const data={uid:S.me.uid,name:S.me.name,text:t,createdAt:serverTimestamp(),likes:[],cc:0};if(S.draftImg)data.img=S.draftImg;
+      $('#cmp').value='';S.draftImg=null;$('#prev').innerHTML='';
+      await addDoc(collection(db,'posts'),data);toast('Нийтлэгдлээ');
+    }
+    if(k==='comment'){
+      const id=f.dataset.id,inp=f.querySelector('input'),t=inp.value.trim();if(!t)return;inp.value='';
+      const bt=writeBatch(db);
+      bt.set(doc(collection(db,'posts',id,'comments')),{uid:S.me.uid,name:S.me.name,text:t,createdAt:serverTimestamp()});
+      bt.update(doc(db,'posts',id),{cc:increment(1)});
+      await bt.commit();
+    }
+    if(k==='msg'){
+      const inp=$('#mi'),t=inp.value.trim();if(!t)return;inp.value='';
+      try{await sendMsg(t)}catch(x){inp.value=t;throw x}
+    }
+  }catch(err){console.error(err);toast('Илгээж чадсангүй. Дахин оролдоно уу.',3000)}
+});
+document.addEventListener('input',e=>{
+  if(e.target.id==='fq'){S.q=e.target.value;refreshFriends();clearTimeout(peopleT);peopleT=setTimeout(()=>loadPeople(S.q),300)}
+});
+document.addEventListener('change',async e=>{
+  if(e.target.id==='file'){
+    const f=e.target.files[0];if(!f)return;
+    try{const d=await downscale(f);S.draftImg=d;$('#prev').innerHTML=`<img src="${d}" alt="Сонгосон зураг">`}catch(_){toast('Зураг уншигдсангүй')}
+  }
+});
+
+/* ---------- эхлүүлэлт ---------- */
+async function main(){
+  try{const t=localStorage.getItem('nutag-theme');if(t)document.documentElement.dataset.theme=t}catch(_){}
+  if(!configured&&!window.__FB_MOCK){setupRender();return}
+  $('#main').innerHTML='<div class="empty">Ачаалж байна…</div>';
+  try{
+    const fb=await loadFirebase();
+    const app=fb.app.initializeApp(CFG);AU=fb.auth;FS=fb.fs;auth=AU.getAuth(app);db=FS.getFirestore(app);
+  }catch(e){console.error(e);$('#main').innerHTML='<div class="empty">Firebase ачаалж чадсангүй. Интернэт холболтоо шалгаад хуудсаа дахин ачаална уу.</div>';return}
+  AU.onAuthStateChanged(auth,async u=>{
+    if(regBusy)return;
+    if(u)await startSession(u);else{endSession();render()}
+  });
+}
+main();
+
+</script>
+</body>
+</html>
