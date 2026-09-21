@@ -327,7 +327,7 @@ const mapMsg=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,f
 function unreadChats(){let n=0;S.chats.forEach((c,cid)=>{if(c.lastFrom&&c.lastFrom!==S.me.uid&&c.lastAt>(S.readMap[cid]||0))n++});return n}
 function headerHTML(){
   if(S.thread)return `<button class="ib" data-a="back" aria-label="Буцах">${ic('back',24)}</button>${av(S.thread.uid,S.thread.name,38)}<b style="font-weight:600">${esc(S.thread.name)}</b>`;
-  if(S.tab==='feed')return `<div class="logo"><svg width="28" height="25" viewBox="0 0 28 25" aria-hidden="true"><path d="M7 1h14l7 11.5L21 24H7L0 12.5z" fill="none" stroke="var(--sky)" stroke-width="2.4"/><circle cx="14" cy="12.5" r="3.4" fill="var(--green)"/></svg>MAZE APP</div>${canNotify()&&Notification.permission==='default'?`<button class="ib" style="margin-left:auto" data-a="notif" aria-label="Мэдэгдэл асаах">${ic('bell',22)}</button>`:''}`;
+  if(S.tab==='feed')return `<div class="logo"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M4 24V4h20v20H10V10h8v6" fill="none" stroke="var(--sky)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="14" cy="19" r="2.2" fill="var(--green)"/></svg>MAZE APP</div>${canNotify()&&Notification.permission==='default'?`<button class="ib" style="margin-left:auto" data-a="notif" aria-label="Мэдэгдэл асаах">${ic('bell',22)}</button>`:''}`;
   return `<div class="title">${{friends:'Найзууд',chat:'Чат',profile:'Профайл'}[S.tab]}</div>`;
 }
 function navHTML(){
@@ -422,7 +422,7 @@ function scrollMsgs(){const e=$('#msgs');if(e)e.scrollTop=e.scrollHeight}
 function refreshMsgs(){const e=$('#msgs');if(e){e.innerHTML=msgsHTML();scrollMsgs()}}
 
 /* ---------- нэвтрэх / бүртгүүлэх дэлгэц ---------- */
-const LOGO='<svg width="36" height="32" viewBox="0 0 28 25" aria-hidden="true"><path d="M7 1h14l7 11.5L21 24H7L0 12.5z" fill="none" stroke="var(--sky)" stroke-width="2.4"/><circle cx="14" cy="12.5" r="3.4" fill="var(--green)"/></svg>';
+const LOGO='<svg width="38" height="38" viewBox="0 0 28 28" aria-hidden="true"><path d="M4 24V4h20v20H10V10h8v6" fill="none" stroke="var(--sky)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="14" cy="19" r="2.2" fill="var(--green)"/></svg>';
 function authHTML(){
   const reg=A.mode==='register',rst=A.mode==='reset';
   const fld=(l,n,type,extra,hint)=>`<label class="fld">${l}<input name="${n}" type="${type}" ${extra||''}>${hint?`<span>${hint}</span>`:''}</label>`;
