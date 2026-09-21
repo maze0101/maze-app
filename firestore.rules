@@ -2,7 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function signedIn() { return request.auth != null; }
+    // Имэйл баталгаажаагүй (эсвэл хуурамч) акаунт өгөгдөлд хандаж чадахгүй. Google акаунт автоматаар баталгаажсан.
+    function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    // Зөвхөн бүртгэлийн үед: өөрийн профайлыг баталгаажуулахаас өмнө үүсгэнэ
+    function own(uid) { return request.auth != null && request.auth.uid == uid; }
     function mine(uid) { return signedIn() && request.auth.uid == uid; }
     function isStr(v, max) { return v is string && v.size() <= max; }
     function stamped() { return request.resource.data.createdAt == request.time; }
@@ -20,8 +23,8 @@ service cloud.firestore {
     }
     match /users/{uid} {
       allow read: if signedIn();
-      allow create, update: if mine(uid) && validUser(request.resource.data);
-      allow delete: if mine(uid);
+      allow create, update: if own(uid) && validUser(request.resource.data);
+      allow delete: if own(uid);
 
       // push мэдэгдлийн токен (зөвхөн өөрийнх, сервер функц уншина)
       match /fcm/{tid} {

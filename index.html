@@ -573,6 +573,12 @@ function threadHTML(){
   return `<div class="msgs" id="msgs">${msgsHTML()}</div>`+(blocked?`<div class="empty">Энэ хэрэглэгчтэй харилцах боломжгүй.</div>`:`<form class="mf" data-f="msg">${mfInner()}</form>`);
 }
 const n0=()=>'Б';
+function hasPw(){const u=auth&&auth.currentUser;return !!u&&u.providerData.some(p=>p.providerId==='password')}
+function secInfo(){
+  const u=auth&&auth.currentUser;if(!u)return '';
+  const via=u.providerData.map(p=>p.providerId==='google.com'?'Google':p.providerId==='password'?'Имэйл + нууц үг':p.providerId).join(', ');
+  return `<div class="card" style="padding:12px;font-size:13px;line-height:1.6"><div>📧 ${esc(u.email||'')} <b style="color:var(--green)">${u.emailVerified?'✓ баталгаажсан':'баталгаажаагүй'}</b></div><div class="mute">Нэвтрэх арга: ${esc(via)}</div></div>`+(hasPw()?`<button class="btn line" data-a="pwask">🔑 Нууц үг солих</button>`:'');
+}
 function settingsHTML(){
   const dm=S.me.dm==='friends'?'friends':'all',np=canNotify()?Notification.permission:null;
   const sec=x=>`<div class="sec" style="margin:8px 0 0">${x}</div>`;
@@ -581,7 +587,7 @@ function settingsHTML(){
   sec('Хувийн байдал')+`<p class="mute" style="margin:0;font-size:13px">Хэн танд чатаар шууд бичиж болох вэ?</p><div style="display:flex;gap:8px"><button class="btn ${dm==='all'?'':'line'}" style="flex:1" data-a="dmset" data-v="all">Бүгд${dm==='all'?' ✓':''}</button><button class="btn ${dm==='friends'?'':'line'}" style="flex:1" data-a="dmset" data-v="friends">Зөвхөн найзууд${dm==='friends'?' ✓':''}</button></div><button class="btn line" data-a="blocklist">Блоклосон хэрэглэгчид (${S.blocked.size})</button>`+
   sec('Дуудлага ба мэдэгдэл')+`<button class="btn line" data-a="ringset">Дуудлагын дуу</button>`+(np?`<button class="btn line" data-a="notif" ${np==='granted'?'disabled':''}>${np==='granted'?'🔔 Мэдэгдэл асаалттай':np==='denied'?'🔕 Мэдэгдэл хаалттай (браузерийн тохиргооноос нээнэ)':'🔔 Мэдэгдэл асаах'}</button>`:'')+
   sec('Харагдац')+`<button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button>`+
-  sec('Аюулгүй байдал')+`<button class="btn line" data-a="logout">Гарах</button><button class="btn line" data-a="delaccask" style="color:var(--like)">Акаунт устгах</button>`;
+  sec('Аюулгүй байдал')+secInfo()+`<button class="btn line" data-a="logout">Гарах</button><button class="btn line" data-a="delaccask" style="color:var(--like)">Акаунт устгах</button>`;
 }
 function profileHTML(){
   const me=S.me;
@@ -1114,6 +1120,16 @@ document.addEventListener('click',async e=>{
     case 'block':if(confirm('Энэ хэрэглэгчийг блоклох уу?')){await setDoc(doc(db,'blocks',S.me.uid+'_'+id),{by:S.me.uid,target:id,createdAt:serverTimestamp()});closeOv();toast('Блоклолоо')}break;
     case 'unblock':await deleteDoc(doc(db,'blocks',S.me.uid+'_'+id));closeOv();toast('Блокоос гаргалаа');break;
     case 'settings':openSheet(settingsHTML());break;
+    case 'pwask':openSheet(`<h3>Нууц үг солих</h3><label>Одоогийн нууц үг<input id="pw0" type="password" autocomplete="current-password"></label><label>Шинэ нууц үг<input id="pw1" type="password" autocomplete="new-password"><span class="mute" style="font-size:12px">8+ тэмдэгт, том/жижиг үсэг, тоо</span></label><label>Шинэ нууц үг давтах<input id="pw2" type="password" autocomplete="new-password"></label><div id="pwm" class="aerr" role="alert" style="min-height:18px"></div><button class="btn" data-a="pwsave">Солих</button>`);break;
+    case 'pwsave':{const u=auth.currentUser,p0=$('#pw0').value,p1=$('#pw1').value,p2=$('#pw2').value,m=x=>{const e=$('#pwm');if(e)e.textContent=x};
+      if(!p0||!p1)return m('Бүх талбарыг бөглөнө үү.');
+      if(p1.length<8||!/[a-z]/.test(p1)||!/[A-Z]/.test(p1)||!/[0-9]/.test(p1))return m('Шинэ нууц үг хамгийн багадаа 8 тэмдэгт, том үсэг, жижиг үсэг болон тоо агуулсан байх ёстой.');
+      if(p1!==p2)return m('Хоёр шинэ нууц үг таарахгүй байна.');
+      if(p1===p0)return m('Шинэ нууц үг хуучинтайгаа ижил байна.');
+      b.disabled=true;
+      try{await AU.reauthenticateWithCredential(u,AU.EmailAuthProvider.credential(u.email,p0));await AU.updatePassword(u,p1);closeOv();toast('Нууц үг солигдлоо',3500)}
+      catch(x){b.disabled=false;const c=x&&x.code;m(c==='auth/wrong-password'||c==='auth/invalid-credential'?'Одоогийн нууц үг буруу байна.':c==='auth/too-many-requests'?'Хэт олон оролдлого. Түр хүлээнэ үү.':c==='auth/password-does-not-meet-requirements'||c==='auth/weak-password'?'Шинэ нууц үг хэт сул байна.':'Солиж чадсангүй. Дахин оролдоно уу.')}
+      break}
     case 'dmset':{const v=b.dataset.v;await updateDoc(doc(db,'users',S.me.uid),{dm:v});S.me.dm=v;const o=U.get(S.me.uid);if(o)o.dm=v;openSheet(settingsHTML());toast('Хадгалагдлаа');break}
     case 'ginfo':{const c=S.chats.get(S.thread.cid);if(!c)break;S.draftGroup=null;
       openSheet(`<h3>Бүлгийн мэдээлэл</h3><div class="phrow">${av(S.thread.cid,c.name,56)}<label class="chip">${ic('image',18)}Зураг солих<input type="file" id="gfile" accept="image/*" class="vh"></label></div><label>Нэр<input id="gn" value="${esc(c.name)}" maxlength="40"></label><div class="sec" style="margin:0">Гишүүд (${c.members.length})</div><div class="pick">${c.members.map(u=>`<div class="pk">${av(u,nmOf(u)||'?',30)}<span>${esc(u===S.me.uid?S.me.name+' (Та)':nmOf(u))}</span></div>`).join('')}</div><button class="btn" data-a="gsave">Хадгалах</button><button class="btn line" data-a="gleave" style="color:var(--like)">Бүлгээс гарах</button>`);break}
