@@ -1183,7 +1183,7 @@ function setupRender(){
   <li>Файлыг <code>http://</code> эсвэл <code>https://</code> хаягаар нээ (жишээ: <code>python3 -m http.server</code> ажиллуулаад <code>localhost:8000</code>). <code>file://</code> хаягаар Firebase нэвтрэлт ажиллахгүй</li></ol></div>`;
 }
 
-/* ---------- имэйл баталгаажуулах: VERIFY_URL байвал 6 оронтой код, үгүй бол Firebase холбоос ---------- */
+/* ---------- имэйл баталгаажуулах: VERIFY_URL байвал 4 оронтой код, үгүй бол Firebase холбоос ---------- */
 async function vcall(u,body){
   const t=await u.getIdToken(),r=await fetch(VERIFY_URL,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+t},body:JSON.stringify(body)});
   if(!r.ok){const e=new Error('verify '+r.status);e.status=r.status;e.code=r.status===429?'auth/too-many-requests':'http/'+r.status;throw e}
@@ -1237,7 +1237,7 @@ function verifyScreen(u){
   m.innerHTML=`<div class="auth"><div class="logo">${LOGO}MAZE APP</div><h2 style="margin:8px 0 0">📧 Имэйлээ баталгаажуулна уу</h2>
   <p class="lead">Баталгаажуулах ${VERIFY_URL?'кодыг':'холбоосыг'} <b>${esc(u.email||'')}</b> хаяг руу илгээлээ. Имэйлээ нээгээд ${VERIFY_URL?'кодыг оруулна уу':'холбоос дээр дарна уу'} (Spam хавтсыг мөн шалгаарай).</p>
   <div id="amsg" class="aok" role="alert"></div>
-  ${VERIFY_URL?`<label class="fld">6 оронтой код<input id="vcode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*" placeholder="000000"></label><button class="btn" data-a="vcode">Баталгаажуулах</button>`:`<button class="btn" data-a="vcheck">Баталгаажуулсан</button>`}
+  ${VERIFY_URL?`<label class="fld">4 оронтой код<input id="vcode" inputmode="numeric" autocomplete="one-time-code" maxlength="4" pattern="[0-9]*" placeholder="0000"></label><button class="btn" data-a="vcode">Баталгаажуулах</button>`:`<button class="btn" data-a="vcheck">Баталгаажуулсан</button>`}
   <button class="btn line" data-a="vresend" style="margin-top:10px">Дахин илгээх</button>
   <button class="link" data-a="vout">Өөр акаунтаар нэвтрэх</button></div>`;
   vfT=setInterval(()=>vfCheck(true),4000);
@@ -1621,7 +1621,7 @@ document.addEventListener('click',async e=>{
       if(c!=='auth/popup-closed-by-user'&&c!=='auth/cancelled-popup-request')amsg(c==='auth/operation-not-allowed'||c==='auth/configuration-not-found'?'Google нэвтрэлт Firebase дээр идэвхжээгүй байна.':c==='auth/unauthorized-domain'?'Энэ домэйн Firebase дээр зөвшөөрөгдөөгүй байна.':c==='auth/network-request-failed'?'Интернэт холболтоо шалгана уу.':'Google-ээр нэвтэрч чадсангүй. Дахин оролдоно уу.')}
     b.disabled=false;return}
   if(a==='vcheck'){b.disabled=true;await vfCheck(false);b.disabled=false;return}
-  if(a==='vcode'){const c=(($('#vcode')||{}).value||'').trim();if(!/^\d{6}$/.test(c))return amsg('6 оронтой кодоо оруулна уу.');b.disabled=true;
+  if(a==='vcode'){const c=(($('#vcode')||{}).value||'').trim();if(!/^\d{4}$/.test(c))return amsg('4 оронтой кодоо оруулна уу.');b.disabled=true;
     try{await vcall(auth.currentUser,{kind:'check',code:c});await vfCheck(false)}
     catch(x){amsg(x.status===403?'Код буруу байна.':x.status===410?'Кодын хугацаа дууссан. "Дахин илгээх" дарна уу.':x.status===429?'Хэт олон оролдлоо. Түр хүлээгээд "Дахин илгээх" дарж шинэ код аваарай.':'Баталгаажуулж чадсангүй. Дахин оролдоно уу.')}
     b.disabled=false;return}
