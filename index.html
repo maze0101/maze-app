@@ -295,6 +295,7 @@ html,body{touch-action:manipulation}
 .simg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
 .sv .stext{position:relative;z-index:1}
 .sv .scap{position:relative;z-index:2;align-self:center;background:rgba(0,0,0,.5);padding:8px 14px;border-radius:14px;margin-bottom:12px;text-align:center;overflow-wrap:anywhere}
+.sown{position:relative;z-index:4;align-self:center;display:flex;gap:8px}
 .sviews{position:relative;z-index:4;align-self:center;color:#fff;background:rgba(255,255,255,.16);padding:8px 16px;border-radius:999px;font-size:14px}
 .nrow{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--surface);text-align:left;width:100%;font-size:14px}
 .nrow b{font-weight:600}
@@ -912,7 +913,7 @@ function drawStory(){
   clearTimeout(svT);
   const {groups,gi,i}=S.sv,g=groups[gi],s=g.list[i];
   const im=safeImg(s.img),mine=g.uid===S.me.uid;
-  ov.innerHTML=`<div class="sv" style="background:${GR[s.g]||GR[0]}">${im?`<img class="simg" src="${im}" alt="">`:''}<div class="sbars">${g.list.map((_,k)=>`<span class="sb ${k<i?'done':k===i?'on':''}"><i></i></span>`).join('')}</div><div class="shead">${av(g.uid,g.name,38)}<b>${esc(g.name)}</b><span>${ago(s.t)}</span><button class="ib" data-a="closeov" aria-label="Хаах">${ic('close',24)}</button></div>${im?`<div style="flex:1"></div>${s.text?`<div class="scap">${esc(s.text)}</div>`:''}`:`<div class="stext">${esc(s.text)}</div>`}${mine?`<button class="sviews" data-a="sviews">👁 ${s.views.filter(u=>u!==S.me.uid).length} үзсэн</button>`:''}<button class="sz l" data-a="sprev" aria-label="Өмнөх"></button><button class="sz r" data-a="snext" aria-label="Дараах"></button></div>`;
+  ov.innerHTML=`<div class="sv" style="background:${GR[s.g]||GR[0]}">${im?`<img class="simg" src="${im}" alt="">`:''}<div class="sbars">${g.list.map((_,k)=>`<span class="sb ${k<i?'done':k===i?'on':''}"><i></i></span>`).join('')}</div><div class="shead">${av(g.uid,g.name,38)}<b>${esc(g.name)}</b><span>${ago(s.t)}</span><button class="ib" data-a="closeov" aria-label="Хаах">${ic('close',24)}</button></div>${im?`<div style="flex:1"></div>${s.text?`<div class="scap">${esc(s.text)}</div>`:''}`:`<div class="stext">${esc(s.text)}</div>`}${mine?`<div class="sown"><button class="sviews" data-a="sviews">👁 ${s.views.filter(u=>u!==S.me.uid).length} үзсэн</button><button class="sviews" data-a="sdel" style="background:rgba(255,80,80,.35)">🗑 Устгах</button></div>`:''}<button class="sz l" data-a="sprev" aria-label="Өмнөх"></button><button class="sz r" data-a="snext" aria-label="Дараах"></button></div>`;
   ov.className='open';svT=setTimeout(nextStory,4500);
   if(!mine&&!s.views.includes(S.me.uid)){s.views.push(S.me.uid);FS.updateDoc(FS.doc(db,'stories',s.id),{views:FS.arrayUnion(S.me.uid)}).catch(()=>{})}
 }
@@ -1344,6 +1345,13 @@ document.addEventListener('click',async e=>{
     case 'savestory':{const t=$('#st-t').value.trim();if(!t&&!S.draftStory){toast('Текст эсвэл зураг нэм');break}
       const sd={uid:S.me.uid,name:S.me.name,text:t,g:S.gsel,views:[],createdAt:serverTimestamp()};if(S.draftStory)sd.img=S.draftStory;
       b.disabled=true;await addDoc(collection(db,'stories'),sd);S.draftStory=null;closeOv();toast('Story нийтлэгдлээ');break}
+    case 'sdel':{const sv=S.sv;if(!sv)break;const g=sv.groups[sv.gi],s=g.list[sv.i];if(!s)break;clearTimeout(svT);
+      if(!confirm('Энэ story-г устгах уу?')){svT=setTimeout(nextStory,4500);break}
+      try{await deleteDoc(doc(db,'stories',s.id))}catch(x){onErr(x);svT=setTimeout(nextStory,4500);break}
+      g.list.splice(sv.i,1);toast('Устгагдлаа');
+      if(g.list.length){if(sv.i>=g.list.length)sv.i=g.list.length-1;drawStory()}
+      else{sv.groups.splice(sv.gi,1);if(!sv.groups.length)closeOv();else{if(sv.gi>=sv.groups.length)sv.gi=sv.groups.length-1;sv.i=0;drawStory()}}
+      break}
     case 'sviews':{const s=S.sv&&S.sv.groups[S.sv.gi].list[S.sv.i];if(!s)break;clearTimeout(svT);const v=s.views.filter(u=>u!==S.me.uid);
       openSheet(`<h3>👁 Үзсэн (${v.length})</h3>${v.length?v.map(u=>`<div class="row" style="margin:0 0 6px;width:100%">${av(u,nmOf(u),36)}<div class="rt"><b>${esc(nmOf(u))}</b></div></div>`).join(''):'<p class="mute" style="margin:0">Одоохондоо хэн ч үзээгүй байна.</p>'}`);break}
     case 'rmimg':{S.draftImgs.splice(+b.dataset.i,1);drawPrev();break}
