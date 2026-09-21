@@ -272,8 +272,26 @@ const I={
  plus:'<path d="M12 5v14M5 12h14"/>',
  back:'<path d="M15 5l-7 7 7 7"/>',
  close:'<path d="M6 6l12 12M18 6L6 18"/>',
- image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>'
+ image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',
+ bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2H4.5z"/><path d="M10 21h4"/>'
 };
+
+/* ---------- мэдэгдэл (апп нээлттэй үед) ---------- */
+let swReg=null;
+if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').then(r=>{swReg=r}).catch(()=>{});
+const canNotify=()=>'Notification' in window;
+function notify(title,body,tag){
+  if(document.hidden&&canNotify()&&Notification.permission==='granted'){
+    const o={body,tag,icon:'icon-192.png',badge:'icon-192.png'};
+    try{if(swReg&&swReg.showNotification)swReg.showNotification(title,o);else new Notification(title,o)}catch(_){toast(title+': '+body,3500)}
+  }else toast(title+': '+body,3500);
+}
+async function askNotify(){
+  if(!canNotify()){toast('Энэ төхөөрөмж мэдэгдэл дэмжихгүй байна');return}
+  const p=await Notification.requestPermission();
+  toast(p==='granted'?'Мэдэгдэл асалаа':'Мэдэгдэл зөвшөөрөгдсөнгүй');
+  $('#hd').innerHTML=headerHTML();
+}
 const ic=(n,s=22,f)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="${f?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
 
 /* ---------- helpers ---------- */
@@ -309,7 +327,7 @@ const mapMsg=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,f
 function unreadChats(){let n=0;S.chats.forEach((c,cid)=>{if(c.lastFrom&&c.lastFrom!==S.me.uid&&c.lastAt>(S.readMap[cid]||0))n++});return n}
 function headerHTML(){
   if(S.thread)return `<button class="ib" data-a="back" aria-label="Буцах">${ic('back',24)}</button>${av(S.thread.uid,S.thread.name,38)}<b style="font-weight:600">${esc(S.thread.name)}</b>`;
-  if(S.tab==='feed')return `<div class="logo"><svg width="28" height="25" viewBox="0 0 28 25" aria-hidden="true"><path d="M7 1h14l7 11.5L21 24H7L0 12.5z" fill="none" stroke="var(--sky)" stroke-width="2.4"/><circle cx="14" cy="12.5" r="3.4" fill="var(--green)"/></svg>Нутаг</div>`;
+  if(S.tab==='feed')return `<div class="logo"><svg width="28" height="25" viewBox="0 0 28 25" aria-hidden="true"><path d="M7 1h14l7 11.5L21 24H7L0 12.5z" fill="none" stroke="var(--sky)" stroke-width="2.4"/><circle cx="14" cy="12.5" r="3.4" fill="var(--green)"/></svg>Нутаг</div>${canNotify()&&Notification.permission==='default'?`<button class="ib" style="margin-left:auto" data-a="notif" aria-label="Мэдэгдэл асаах">${ic('bell',22)}</button>`:''}`;
   return `<div class="title">${{friends:'Найзууд',chat:'Чат',profile:'Профайл'}[S.tab]}</div>`;
 }
 function navHTML(){
@@ -476,15 +494,29 @@ function endSession(){unsubAll();clearTimeout(svT);const o=$('#ov');o.className=
 function subscribe(){
   const {collection,query,where,orderBy,limit,onSnapshot,Timestamp}=FS,uid=S.me.uid,on=(q,fn)=>subs.push(onSnapshot(q,fn,onErr));
   on(query(collection(db,'posts'),orderBy('createdAt','desc'),limit(50)),sn=>{S.posts=sn.docs.map(mapPost);refreshPosts()});
-  on(query(collection(db,'posts'),where('uid','==',uid),limit(60)),sn=>{S.mine=sn.docs.map(mapPost).sort((a,b)=>b.t-a.t);if(S.tab==='profile')refreshProfile()});
+  const rdy={};
+  on(query(collection(db,'posts'),where('uid','==',uid),limit(60)),sn=>{
+    if(rdy.mine){const old=new Map(S.mine.map(p=>[p.id,p]));
+      sn.docChanges().forEach(ch=>{if(ch.type!=='modified')return;const n=mapPost(ch.doc),o=old.get(n.id);if(!o)return;
+        const nl=n.likes.find(u=>u!==uid&&!o.likes.includes(u));
+        if(nl)notify('❤ Лайк',(S.friends.get(nl)||'Хэн нэгэн')+' таны нийтлэлд лайк дарлаа','like-'+n.id);
+        else if(n.cc>o.cc)notify('💬 Сэтгэгдэл','Таны нийтлэлд шинэ сэтгэгдэл ирлээ','cm-'+n.id)})}
+    rdy.mine=true;S.mine=sn.docs.map(mapPost).sort((a,b)=>b.t-a.t);if(S.tab==='profile')refreshProfile()});
   on(query(collection(db,'stories'),where('createdAt','>',Timestamp.fromMillis(Date.now()-864e5)),orderBy('createdAt','asc')),sn=>{S.stories=sn.docs.map(mapStory);refreshStories()});
   on(query(collection(db,'friendships'),where('members','array-contains',uid)),sn=>{
     S.friends=new Map(sn.docs.map(d=>{const x=d.data(),p=x.members.find(m=>m!==uid);return [p,(x.names&&x.names[p])||'Хэрэглэгч']}));
     refreshFriends();refreshNav();refreshProfile()});
   on(query(collection(db,'requests'),where('to','==',uid),where('status','==','pending')),sn=>{
+    if(rdy.req)sn.docChanges().forEach(ch=>{if(ch.type==='added')notify('👋 Найзын хүсэлт',(ch.doc.data().fromName||'Хэн нэгэн')+' найз болохыг хүсч байна','req-'+ch.doc.id)});
+    rdy.req=true;
     S.reqIn=sn.docs.map(d=>{const x=d.data();return {id:d.id,from:x.from,fromName:x.fromName||'Хэрэглэгч'}});refreshFriends();refreshNav()});
   on(query(collection(db,'requests'),where('from','==',uid)),sn=>{S.reqOut=new Set(sn.docs.map(d=>d.data().to));refreshFriends()});
   on(query(collection(db,'chats'),where('members','array-contains',uid)),sn=>{
+    if(rdy.chats)sn.docChanges().forEach(ch=>{if(ch.type==='removed')return;const x=ch.doc.data({serverTimestamps:'estimate'});
+      if(!x.lastFrom||x.lastFrom===uid||!x.last)return;
+      if(S.thread&&S.thread.cid===ch.doc.id&&!document.hidden)return;
+      const peer=x.members.find(m=>m!==uid);notify('✉ '+((x.names&&x.names[peer])||'Шинэ мессеж'),x.last,'chat-'+ch.doc.id)});
+    rdy.chats=true;
     S.chats=new Map(sn.docs.map(d=>{const x=d.data({serverTimestamps:'estimate'}),peer=x.members.find(m=>m!==uid);
       return [d.id,{peer,name:(x.names&&x.names[peer])||'Хэрэглэгч',last:x.last||'',lastAt:tms(x.lastAt),lastFrom:x.lastFrom}]}));
     refreshChats();refreshNav()});
@@ -579,6 +611,7 @@ document.addEventListener('click',async e=>{
       S.me.name=n;S.me.bio=bio;closeOv();render();toast('Хадгалагдлаа');break}
     case 'theme':{const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
       r.dataset.theme=dark?'light':'dark';try{localStorage.setItem('nutag-theme',r.dataset.theme)}catch(_){}break}
+    case 'notif':await askNotify();break;
     case 'logout':await AU.signOut(auth);break;
   }
   }catch(err){console.error(err);toast(err&&err.code==='permission-denied'?'Эрх хүрэхгүй байна.':'Үйлдэл амжилтгүй боллоо. Дахин оролдоно уу.',3000)}
