@@ -1078,7 +1078,7 @@ function msgsHTML(){
 const mfLike=()=>S.thread?cpref(S.thread.cid).emo||'👍':'👍';
 function mfInner(){
   if(rec)return `<button type="button" class="ib" data-a="reccancel" aria-label="Болих">${ic('close',20)}</button><div class="recbar"><i></i><span id="rt">0:00</span>&nbsp;бичиж байна</div><button type="button" data-a="recsend" aria-label="Илгээх">${ic('send',20)}</button>`;
-  return (S.mfEmoji?`<div class="rxp" id="mfemo" style="position:absolute;bottom:100%;left:14px;right:14px;margin-bottom:6px;flex-wrap:wrap;max-width:none;width:auto;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.25);max-height:160px;overflow:auto">${EMOJI_TYPE.map(e=>`<button type="button" data-a="mfe" data-e="${e}">${e}</button>`).join('')}</div>`:'')+`<label class="ib" aria-label="Зураг илгээх">${ic('image',20)}<input type="file" id="mfile" accept="image/*" class="vh"></label><button type="button" class="ib" data-a="mfemoji" aria-label="Emoji">${ic('smile',20)}</button><input id="mi" placeholder="Мессеж бичих" aria-label="Мессеж бичих" autocomplete="off" maxlength="2000"><button type="button" class="ib" data-a="rec" aria-label="Дуут мессеж">${ic('mic',20)}</button><button type="submit" id="sendbtn" class="like" aria-label="Илгээх">${mfLike()}</button>`;
+  return (S.mfEmoji?`<div class="rxp" id="mfemo" style="position:absolute;bottom:100%;left:14px;right:14px;margin-bottom:6px;flex-wrap:wrap;max-width:none;width:auto;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.25);max-height:160px;overflow:auto">${EMOJI_TYPE.map(e=>`<button type="button" data-a="mfe" data-e="${e}">${e}</button>`).join('')}</div>`:'')+`<label class="ib" aria-label="Зураг илгээх">${ic('image',20)}<input type="file" id="mfile" accept="image/*" class="vh"></label><button type="button" class="ib" id="mfemobtn" data-a="mfemoji" aria-label="Emoji">${ic('smile',20)}</button><input id="mi" placeholder="Мессеж бичих" aria-label="Мессеж бичих" autocomplete="off" maxlength="2000"><button type="button" class="ib" data-a="rec" aria-label="Дуут мессеж">${ic('mic',20)}</button><button type="submit" id="sendbtn" class="like" aria-label="Илгээх">${mfLike()}</button>`;
 }
 function reqBarHTML(){
   const th=S.thread;if(!th||th.group)return '';const c=S.chats.get(th.cid);if(!isReq(c))return '';
@@ -1985,7 +1985,10 @@ document.addEventListener('input',e=>{
   if(e.target.id==='cq'){S.cq=e.target.value;refreshChats()}
   if(e.target.id==='mi'){
     if(e.target.value)typingPing();
-    const sb=$('#sendbtn');if(sb){const empty=!e.target.value.trim();sb.classList.toggle('like',empty);sb.innerHTML=empty?mfLike():ic('send',20)}
+    const empty=!e.target.value.trim();
+    const sb=$('#sendbtn');if(sb){sb.classList.toggle('like',empty);sb.innerHTML=empty?mfLike():ic('send',20)}
+    const eb=$('#mfemobtn');if(eb)eb.style.display=empty?'':'none';
+    if(!empty&&S.mfEmoji){S.mfEmoji=false;const p=$('#mfemo');if(p)p.remove()}
   }
 });
 setInterval(()=>{if(S.me&&S.thread&&!document.hidden)setTyping()},2000);
