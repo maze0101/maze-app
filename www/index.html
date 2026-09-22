@@ -1405,9 +1405,11 @@ function prevStory(){if(S.sv.i>0)S.sv.i--;drawStory()}
 
 /* ---------- видео дуудлага (WebRTC, signaling = Firestore) ---------- */
 // Өөр сүлжээнээс (мобайл дата ↔ WiFi) холбогдоход TURN сервер заавал хэрэгтэй.
-// Жишээ: metered.ca эсвэл Cloudflare-ийн үнэгүй TURN бүртгэл авч энд оруулна:
-// const TURN=[{urls:['turn:HOST:443?transport=tcp','turns:HOST:443?transport=tcp'],username:'...',credential:'...'}];
-const TURN=[];
+// Metered.ca-ийн бүртгэлгүй нээлттэй TURN (OpenRelay). Илүү найдвартай/өөрийн эрхтэй болгохыг хүсвэл
+// dashboard.metered.ca дээр бүртгүүлж, "Using the API" хэсгээс өөрийн apiKey-г эндхийн оронд тавина.
+const TURN=[{urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
+  {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
+  {urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}];
 const ICE={iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302','stun:stun.cloudflare.com:3478']},...TURN]};
 let CALL=null,INC=null,ringCtx=null,ringT=null;
 function callStatus(t){const s=$('.cinfo span');if(s)s.textContent=t}
