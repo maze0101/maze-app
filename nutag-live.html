@@ -635,7 +635,7 @@ body{letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
 /* ===================== ТОХИРГОО ===================== */
 // Firebase console → Project settings → Your apps → Web → "firebaseConfig"-ийг энд буулгана
 // Push сервер (push-worker/ -г Cloudflare дээр deploy хийсний дараа энд URL-ийг бичнэ). Хоосон бол ажиллахгүй.
-const PUSH_URL = "";
+const PUSH_URL = "https://maze-push.salkhi-ai.workers.dev";
 const CFG = {
   apiKey: "AIzaSyCJEwPemIWrJcHq7MxVhnWXVDG0aF4qg4U",
   authDomain: "tsogtoo-42b99.firebaseapp.com",
@@ -644,6 +644,8 @@ const CFG = {
   appId: "1:362506270318:web:0f512981a850aa47ba587f"
 };
 const FBV = '12.19.0';
+// Firebase Console → Project settings → Cloud Messaging → Web Push certificates
+const VAPID_KEY = "BPBOn3Z2DBFXHxWiTNDklyHpwg714O5e4AwmIJE-PGy7c8pIzgEodcmCJRJZhqyNR5m7o4qXFyUJFL7RDhJMU7I";
 /* ==================================================== */
 
 const $=s=>document.querySelector(s);
@@ -768,7 +770,7 @@ async function registerPush(){
     const reg=swReg||await navigator.serviceWorker.ready;
     const m=await import(`https://www.gstatic.com/firebasejs/${FBV}/firebase-messaging.js`);
     if(!(await m.isSupported()))return;
-    const token=await m.getToken(m.getMessaging(FBAPP),{serviceWorkerRegistration:reg});
+    const token=await m.getToken(m.getMessaging(FBAPP),{vapidKey:VAPID_KEY,serviceWorkerRegistration:reg});
     if(!token||!S.me)return;
     pushTok=token;
     await FS.setDoc(FS.doc(db,'users',S.me.uid,'fcm',token),{t:FS.serverTimestamp(),ua:navigator.userAgent.slice(0,120)});
