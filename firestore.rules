@@ -17,9 +17,10 @@ service cloud.firestore {
         && (!('nameLower' in d) || isStr(d.nameLower, 40))
         && (!('bio' in d) || isStr(d.bio, 140))
         && (!('photo' in d) || isStr(d.photo, 60000))
+        && (!('cover' in d) || isStr(d.cover, 60000))
         && (!('dm' in d) || d.dm in ['all', 'friends'])
         && (!('lastSeen' in d) || d.lastSeen is number || d.lastSeen is timestamp)
-        && d.keys().hasOnly(['name', 'nameLower', 'bio', 'photo', 'dm', 'lastSeen', 'createdAt']);
+        && d.keys().hasOnly(['name', 'nameLower', 'bio', 'photo', 'cover', 'dm', 'lastSeen', 'createdAt']);
     }
     match /users/{uid} {
       allow read: if signedIn();
