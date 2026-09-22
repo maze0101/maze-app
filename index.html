@@ -1505,7 +1505,7 @@ async function startCall(uid,name,audio){
   const {doc,setDoc,onSnapshot,serverTimestamp}=FS;let local;
   try{local=await getMedia(audio)}catch(e){toast(mediaErr(e),4500);return}
   if(local.__none)toast('Камер/микрофон ашиглах боломжгүй тул зөвхөн харах/сонсох горимд орлоо',4500);
-  if(!isOnline(uid))toast(name+' одоогоор онлайн биш байна. Апп нээлттэй үед л дуудлага хүлээн авна.',4500);
+  if(!isOnline(uid))toast(name+' одоогоор онлайн биш байна. Push мэдэгдэл рүү нь очих ч 45 секундын дотор хариулахгүй бол дуудлага дуусна.',4500);
   const id=chatId(S.me.uid,uid)+'_'+Date.now(),ref=doc(db,'calls',id);
   try{
     const pc=makeCall(id,uid,name,local,'callerCandidates',audio);drawCall('Залгаж байна...');
