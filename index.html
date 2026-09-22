@@ -152,7 +152,7 @@ html,body{touch-action:manipulation}
 .b.them{align-self:flex-start;background:var(--bubble-them);border-bottom-left-radius:6px}
 .tm{font-size:11px;color:var(--mute);align-self:center;margin:6px 0 2px}
 .typing{font-size:13px;color:var(--mute);align-self:flex-start}
-.mf{display:flex;gap:8px;padding:10px 14px 12px;background:transparent}
+.mf{display:flex;gap:8px;padding:10px 14px 12px;background:transparent;position:relative}
 .mf input{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:12px 18px;outline:none;min-width:0;font-size:16px}
 .mf input:focus{border-color:var(--sky)}
 .mf button{width:46px;height:46px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;flex:none;box-shadow:var(--glow)}
@@ -240,6 +240,7 @@ html,body{touch-action:manipulation}
 .rxb.mine{border-color:var(--sky)}
 .rxp{display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px 6px;margin:4px 0;width:max-content;max-width:100%}
 .rxp button{font-size:20px;padding:4px 6px;border-radius:50%}
+.rxp button.on{background:var(--bg);box-shadow:inset 0 0 0 2px var(--sky)}
 .post .rxp{margin:0 16px 8px}
 .mw{display:flex;flex-direction:column;max-width:82%}
 .mw.me{align-self:flex-end;align-items:flex-end}
@@ -748,7 +749,7 @@ async function loadFirebase(){
 const S={me:null,tab:'feed',thread:null,posts:[],mine:[],stories:[],friends:new Map(),reqIn:[],reqOut:new Set(),chats:new Map(),msgs:[],
   cm:new Map(),open:new Set(),people:[],q:'',draftImg:null,sv:null,gsel:0,readMap:{},seenMap:{},errShown:false,
   view:null,vposts:[],pq:'',cq:'',rxOpen:null,blocked:new Set(),blockedBy:new Set(),draftPhoto:null,stick:false,
-  reply:null,fwd:null,feedTab:'all',draftImgs:[],draftStory:null,prefs:{},act:{}};
+  reply:null,fwd:null,feedTab:'all',draftImgs:[],draftStory:null,prefs:{},act:{},mfEmoji:false};
 const U=new Map(),seenSent=new Map();
 const A={mode:'login',msg:'',ok:false};
 let subs=[],cmSubs=new Map(),msgSub=null,svT=null,regBusy=false,tt,peopleT,vSub=null,uT,rec=null;
@@ -932,6 +933,7 @@ const mapMsg=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,f
 const hid=u=>S.blocked.has(u)||S.blockedBy.has(u);
 const safeAud=s=>typeof s==='string'&&/^data:audio\/[^,;]{1,60}(;[^,]{1,60})?;base64,[A-Za-z0-9+\/=]+$/.test(s)?s:'';
 const EMO=['👍','❤️','😂','😮','😢','🔥'];
+const EMOJI_TYPE=['😀','😂','🥰','😍','😘','😎','🤔','😢','😭','😡','😱','🥳','😴','🤗','🙄','😉','😇','🤩','😅','🙃','👍','👎','👏','🙏','💪','🔥','💯','✨','🎉','❤️','💙','💚','💛','🧡','💜','🖤','💔','😻','🐱','🐶','🌟','☀️','🌙','⭐','🍀','🎂','☕','🍕'];
 function rxSum(rx){const m={};Object.entries(rx||{}).forEach(([u,e])=>{(m[e]=m[e]||[]).push(u)});
   return Object.entries(m).map(([e,us])=>`<span class="rxb ${us.includes(S.me.uid)?'mine':''}">${e}${us.length>1?' '+us.length:''}</span>`).join('')}
 const rxPick=(k,id)=>`<div class="rxp">${EMO.map(e=>`<button data-a="rx" data-k="${k}" data-id="${esc(id)}" data-e="${e}">${e}</button>`).join('')}</div>`;
@@ -1059,7 +1061,7 @@ function chatListHTML(){
   return `<div class="chatbar"><input class="search" id="cq" placeholder="Чатаас хайх" aria-label="Чатаас хайх" value="${esc(S.cq)}" autocomplete="off"><button class="ib" data-a="newgroup" aria-label="Бүлэг үүсгэх">${ic('users',20)}</button></div><div id="clist">${chatItems()}</div>`;
 }
 function msgsHTML(){
-  const th=S.thread,c=S.chats.get(th.cid)||{},sn=c.seen||{};let vis=S.msgs.filter(m=>m.f===S.me.uid||!hid(m.f)),mq=(S.mq||'').trim().toLowerCase();
+  const th=S.thread,c=S.chats.get(th.cid)||{},sn=c.seen||{},myClr=cpref(th.cid).clr;let vis=S.msgs.filter(m=>m.f===S.me.uid||!hid(m.f)),mq=(S.mq||'').trim().toLowerCase();
   if(mq)vis=vis.filter(m=>!m.del&&(m.t||'').toLowerCase().includes(mq));
   if(!vis.length)return mq?`<div class="empty">Ийм мессеж олдсонгүй.</div>`:S.msgsLoaded?`<div class="empty">Мессеж бичээд эхэл.</div>`:loader(true);
   let lm=-1;vis.forEach((m,i)=>{if(m.f===S.me.uid)lm=i});
@@ -1069,11 +1071,12 @@ function msgsHTML(){
     let seen='';
     if(i===lm){const os=(th.group?(c.members||[]):[th.uid]).filter(u=>u!==S.me.uid),n=os.filter(u=>(sn[u]||0)>=m.ms).length;if(n)seen=`<span class="seenl">${th.group?'Үзсэн '+n:'Үзсэн ✓'}</span>`}
     const rb=dl?'':rxSum(m.rx),who=th.group&&!me?`<span class="mn">${esc((U.get(m.f)||{}).name||m.fn||'')}</span>`:'';
-    return `<div class="mw ${me?'me':'them'}"${dl?'':` data-mid="${esc(m.id)}"`}>${who}<div class="mline"><div class="b ${me?'me':'them'}">${body}<span class="bt">${hhmm(m.ms)}${m.ed&&!dl?' · засварласан':''}</span></div>${dl?'':`<button class="mrxb" data-a="mrx" data-id="${esc(m.id)}" aria-label="Реакц">${ic('smile',16)}</button>`}${!dl?`<button class="mrxb" data-a="mmenu" data-id="${esc(m.id)}" aria-label="Цэс">${ic('more',16)}</button>`:''}</div>${rb?`<div class="rxs">${rb}</div>`:''}${S.rxOpen===m.id&&!dl?rxPick('m',m.id):''}${seen}</div>`}).join('');
+    return `<div class="mw ${me?'me':'them'}"${dl?'':` data-mid="${esc(m.id)}"`}>${who}<div class="mline"><div class="b ${me?'me':'them'}"${me&&myClr?` style="background:${myClr}"`:''}>${body}<span class="bt">${hhmm(m.ms)}${m.ed&&!dl?' · засварласан':''}</span></div>${dl?'':`<button class="mrxb" data-a="mrx" data-id="${esc(m.id)}" aria-label="Реакц">${ic('smile',16)}</button>`}${!dl?`<button class="mrxb" data-a="mmenu" data-id="${esc(m.id)}" aria-label="Цэс">${ic('more',16)}</button>`:''}</div>${rb?`<div class="rxs">${rb}</div>`:''}${S.rxOpen===m.id&&!dl?rxPick('m',m.id):''}${seen}</div>`}).join('');
 }
+const mfLike=()=>S.thread?cpref(S.thread.cid).emo||'👍':'👍';
 function mfInner(){
   if(rec)return `<button type="button" class="ib" data-a="reccancel" aria-label="Болих">${ic('close',20)}</button><div class="recbar"><i></i><span id="rt">0:00</span>&nbsp;бичиж байна</div><button type="button" data-a="recsend" aria-label="Илгээх">${ic('send',20)}</button>`;
-  return `<label class="ib" aria-label="Зураг илгээх">${ic('image',20)}<input type="file" id="mfile" accept="image/*" class="vh"></label><input id="mi" placeholder="Мессеж бичих" aria-label="Мессеж бичих" autocomplete="off" maxlength="2000"><button type="button" class="ib" data-a="rec" aria-label="Дуут мессеж">${ic('mic',20)}</button><button type="submit" id="sendbtn" class="like" aria-label="Илгээх">👍</button>`;
+  return (S.mfEmoji?`<div class="rxp" id="mfemo" style="position:absolute;bottom:100%;left:14px;right:14px;margin-bottom:6px;flex-wrap:wrap;max-width:none;width:auto;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.25);max-height:160px;overflow:auto">${EMOJI_TYPE.map(e=>`<button type="button" data-a="mfe" data-e="${e}">${e}</button>`).join('')}</div>`:'')+`<label class="ib" aria-label="Зураг илгээх">${ic('image',20)}<input type="file" id="mfile" accept="image/*" class="vh"></label><button type="button" class="ib" data-a="mfemoji" aria-label="Emoji">${ic('smile',20)}</button><input id="mi" placeholder="Мессеж бичих" aria-label="Мессеж бичих" autocomplete="off" maxlength="2000"><button type="button" class="ib" data-a="rec" aria-label="Дуут мессеж">${ic('mic',20)}</button><button type="submit" id="sendbtn" class="like" aria-label="Илгээх">${mfLike()}</button>`;
 }
 function reqBarHTML(){
   const th=S.thread;if(!th||th.group)return '';const c=S.chats.get(th.cid);if(!isReq(c))return '';
@@ -1530,6 +1533,17 @@ const presence=u=>{if(isOnline(u))return '<span class="pres on">● Онлайн
 const avd=(u,nm,s)=>'<span class="avd">'+av(u,nm,s)+(isOnline(u)?'<i></i>':'')+'</span>';
 const cpref=cid=>S.prefs[cid]||{};
 const setPref=(cid,k,v)=>{const p=Object.assign({},S.prefs[cid]);if(v)p[k]=1;else delete p[k];if(Object.keys(p).length)S.prefs[cid]=p;else delete S.prefs[cid];lsSet('maze-cp-'+S.me.uid,S.prefs)};
+const setPrefVal=(cid,k,v)=>{const p=Object.assign({},S.prefs[cid]);if(v)p[k]=v;else delete p[k];if(Object.keys(p).length)S.prefs[cid]=p;else delete S.prefs[cid];lsSet('maze-cp-'+S.me.uid,S.prefs)};
+const CHAT_CLR=['#6C4CFF','#22C7D6','#12B76A','#FF7A45','#FF4470','#FFC65C','#8F72FF'];
+function customizeHTML(){
+  const cid=S.thread.cid,pr=cpref(cid);
+  return `<h3>🎨 Чат тохируулах</h3><p class="mute" style="margin:0;font-size:13px">Зөвхөн танд харагдана.</p>
+  <div class="sec" style="padding:4px 0 0">Мессежийн өнгө</div>
+  <div class="sw">${CHAT_CLR.map(c=>`<button data-a="ccolor" data-c="${c}" class="${pr.clr===c?'on':''}" style="background:${c}" aria-label="Өнгө сонгох"></button>`).join('')}</div>
+  <div class="sec" style="padding:10px 0 0">Хурдан реакц эможи</div>
+  <div class="rxp" style="width:auto">${EMO.map(e=>`<button type="button" data-a="cemoji" data-e="${e}" class="${pr.emo===e?'on':''}">${e}</button>`).join('')}</div>
+  <button class="btn line" data-a="creset">Анхны байдалд оруулах</button>`;
+}
 /* escape хийсэн текст доторх http(s) холбоос болон #tag-ийг дарж болох болгоно */
 const hashLink=s=>s.replace(/(https?:\/\/(?:(?!&quot;|&#39;|&lt;|&gt;)\S)+)|(^|[\s>])#([\p{L}\p{N}_]{1,30})/gu,(m,u,pre,t)=>{
   if(u){const x=u.match(/[.,!?;:)\]]+$/),tr=x?x[0]:'',url=tr?u.slice(0,-tr.length):u;return '<a class="ht" href="'+url+'" target="_blank" rel="noopener noreferrer nofollow">'+url+'</a>'+tr}
@@ -1645,12 +1659,12 @@ function openThread(uid,name,gid){
   const {collection,query,orderBy,limitToLast,onSnapshot}=FS,cid=gid||chatId(S.me.uid,uid);
   clearView();recStop(false);S.rxOpen=null;
   if(msgSub){msgSub();msgSub=null}
-  S.mq="";S.mqOn=false;S.thread={uid:gid?cid:uid,name,cid,group:!!gid};S.tab='chat';S.msgs=[];S.stick=true;S.msgsLoaded=false;lastMsgsHtml='';render();clearTimeout(S.ldT);S.ldT=setTimeout(()=>{if(S.thread&&S.thread.cid===cid&&!S.msgsLoaded){S.msgsLoaded=true;refreshMsgs()}},1500);
+  S.mq="";S.mqOn=false;S.mfEmoji=false;S.thread={uid:gid?cid:uid,name,cid,group:!!gid};S.tab='chat';S.msgs=[];S.stick=true;S.msgsLoaded=false;lastMsgsHtml='';render();clearTimeout(S.ldT);S.ldT=setTimeout(()=>{if(S.thread&&S.thread.cid===cid&&!S.msgsLoaded){S.msgsLoaded=true;refreshMsgs()}},1500);
   msgSub=onSnapshot(query(collection(db,'chats',cid,'messages'),orderBy('createdAt','asc'),limitToLast(100)),sn=>{
     S.msgs=sn.docs.map(mapMsg);if(sn.metadata&&sn.metadata.fromCache&&!sn.docs.length&&!S.msgsLoaded)return;S.msgsLoaded=true;if(S.thread&&S.thread.cid===cid){refreshMsgs();markRead(cid)}},onErr);
   markRead(cid);const mi=$('#mi');if(mi&&!(window.matchMedia&&matchMedia('(pointer:coarse)').matches))mi.focus({preventScroll:true});
 }
-function closeThread(){S.mq='';S.mqOn=false;recStop(false);S.rxOpen=null;if(msgSub){msgSub();msgSub=null}S.thread=null;S.msgs=[];render()}
+function closeThread(){S.mq='';S.mqOn=false;recStop(false);S.rxOpen=null;S.mfEmoji=false;if(msgSub){msgSub();msgSub=null}S.thread=null;S.msgs=[];render()}
 async function sendMsg(p){
   if(!S.thread)return;
   if(S.reply){p=Object.assign({},p,{re:S.reply})}
@@ -1755,7 +1769,11 @@ document.addEventListener('click',async e=>{
     case 'reqok':{if(!S.thread)break;await updateDoc(doc(db,'chats',S.thread.cid),{ok:true});toast('Зөвшөөрлөө');break}
     case 'reqdel':{if(!S.thread||!confirm('Энэ чатыг устгах уу?'))break;const cid=S.thread.cid;closeThread();await deleteDoc(doc(db,'chats',cid));toast('Устгагдлаа');break}
     case 'cmenu':{if(!S.thread)break;const cid=S.thread.cid,pr=cpref(cid);
-      openSheet(`<h3>${esc(S.thread.name)}</h3><button class="btn line" data-a="msearch">🔍 Мессеж хайх</button><button class="btn line" data-a="mgal">🖼 Зурагнууд</button><button class="btn line" data-a="cpin">${pr.p?'📌 Тогтоосныг болиулах':'📌 Чатыг дээр тогтоох'}</button><button class="btn line" data-a="cmute">${pr.m?'🔔 Дууг нээх':'🔇 Дуу хаах'}</button>${S.thread.group?`<button class="btn line" data-a="ginfo">👥 Бүлгийн мэдээлэл</button>`:`<button class="btn line" data-a="report" data-id="${esc(S.thread.uid)}" data-n="${esc(S.thread.name)}">Гомдол өгөх</button><button class="btn line" data-a="block" data-id="${esc(S.thread.uid)}" style="color:var(--like)">Блоклох</button>`}`);break}
+      openSheet(`<h3>${esc(S.thread.name)}</h3><button class="btn line" data-a="msearch">🔍 Мессеж хайх</button><button class="btn line" data-a="mgal">🖼 Зурагнууд</button><button class="btn line" data-a="ccustomize">🎨 Чат тохируулах</button><button class="btn line" data-a="cpin">${pr.p?'📌 Тогтоосныг болиулах':'📌 Чатыг дээр тогтоох'}</button><button class="btn line" data-a="cmute">${pr.m?'🔔 Дууг нээх':'🔇 Дуу хаах'}</button>${S.thread.group?`<button class="btn line" data-a="ginfo">👥 Бүлгийн мэдээлэл</button>`:`<button class="btn line" data-a="report" data-id="${esc(S.thread.uid)}" data-n="${esc(S.thread.name)}">Гомдол өгөх</button><button class="btn line" data-a="block" data-id="${esc(S.thread.uid)}" style="color:var(--like)">Блоклох</button>`}`);break}
+    case 'ccustomize':openSheet(customizeHTML());break;
+    case 'ccolor':{const cid=S.thread.cid;setPrefVal(cid,'clr',cpref(cid).clr===b.dataset.c?null:b.dataset.c);openSheet(customizeHTML());lastMsgsHtml=null;refreshMsgs();break}
+    case 'cemoji':{const cid=S.thread.cid;setPrefVal(cid,'emo',cpref(cid).emo===b.dataset.e?null:b.dataset.e);openSheet(customizeHTML());renderMf();break}
+    case 'creset':{const cid=S.thread.cid;setPrefVal(cid,'clr',null);setPrefVal(cid,'emo',null);openSheet(customizeHTML());lastMsgsHtml=null;refreshMsgs();renderMf();break}
     case 'msearch':{closeOv();S.mqOn=true;S.mq='';render();const q=$('#mq');if(q)q.focus();break}
     case 'mgal':{const ims=S.msgs.filter(m=>!m.del&&safeImg(m.img));openSheet(`<h3>Зурагнууд</h3>`+(ims.length?`<div class="igrid n4" style="max-height:60vh;overflow:auto">${ims.map(m=>`<img src="${safeImg(m.img)}" alt="" data-a="zoom" data-id="${esc(m.id)}">`).join('')}</div>`:'<div class="empty">Зураг илгээгээгүй байна.</div>'));break}
     case 'cpin':{const cid=S.thread.cid;setPref(cid,'p',!cpref(cid).p);closeOv();setHd();break}
@@ -1787,6 +1805,8 @@ document.addEventListener('click',async e=>{
     case 'rec':recStart();break;
     case 'recsend':recStop(true);break;
     case 'reccancel':recStop(false);break;
+    case 'mfemoji':S.mfEmoji=!S.mfEmoji;renderMf();break;
+    case 'mfe':{const inp=$('#mi');if(inp){const e2=b.dataset.e,s=inp.selectionStart??inp.value.length,en=inp.selectionEnd??inp.value.length;inp.value=inp.value.slice(0,s)+e2+inp.value.slice(en);inp.focus();inp.selectionStart=inp.selectionEnd=s+e2.length;inp.dispatchEvent(new Event('input',{bubbles:true}))}break}
     case 'newgroup':{const fr=[...S.friends.entries()].filter(([u])=>!hid(u));
       if(!fr.length){toast('Эхлээд найз нэм');break}
       S.draftGroup=null;openSheet(`<h3>Бүлэг үүсгэх</h3><div class="phrow">${av('',n0(),56)}<label class="chip">${ic('image',18)}Бүлгийн зураг<input type="file" id="gfile" accept="image/*" class="vh"></label></div><label>Нэр<input id="gn" maxlength="40" placeholder="Бүлгийн нэр"></label><div class="pick">${fr.map(([u,n])=>`<label class="pk"><input type="checkbox" value="${esc(u)}">${av(u,nmOf(u),30)}<span>${esc(nmOf(u))}</span></label>`).join('')}</div><button class="btn" data-a="mkgroup">Үүсгэх</button>`);break}
@@ -1950,8 +1970,8 @@ document.addEventListener('submit',async e=>{
     if(k==='sreply'){const inp=$('#sri'),t=inp?inp.value.trim():'';if(!t)return;inp.value='';
       try{await storyReply(t);S.sv&&nextStory()}catch(x){inp.value=t;throw x}return}
     if(k==='msg'){
-      const inp=$('#mi'),t=inp?inp.value.trim():'';const body=t||'👍';inp.value='';
-      try{await sendMsg({text:body})}catch(x){inp.value=t;throw x}finally{const sb=$('#sendbtn');if(sb){sb.classList.add('like');sb.innerHTML='👍'}}
+      const inp=$('#mi'),t=inp?inp.value.trim():'';const body=t||mfLike();inp.value='';
+      try{await sendMsg({text:body})}catch(x){inp.value=t;throw x}finally{const sb=$('#sendbtn');if(sb){sb.classList.add('like');sb.innerHTML=mfLike()}}
     }
   }catch(err){console.error(err);toast('Илгээж чадсангүй. Дахин оролдоно уу.',3000)}
 });
@@ -1964,7 +1984,7 @@ document.addEventListener('input',e=>{
   if(e.target.id==='cq'){S.cq=e.target.value;refreshChats()}
   if(e.target.id==='mi'){
     if(e.target.value)typingPing();
-    const sb=$('#sendbtn');if(sb){const empty=!e.target.value.trim();sb.classList.toggle('like',empty);sb.innerHTML=empty?'👍':ic('send',20)}
+    const sb=$('#sendbtn');if(sb){const empty=!e.target.value.trim();sb.classList.toggle('like',empty);sb.innerHTML=empty?mfLike():ic('send',20)}
   }
 });
 setInterval(()=>{if(S.me&&S.thread&&!document.hidden)setTyping()},2000);
