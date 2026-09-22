@@ -1689,9 +1689,12 @@ document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-a]');if(!b)return;
   const a=b.dataset.a,id=b.dataset.id;
   if(a==='amode'){A.mode=b.dataset.m;A.msg='';A.ok=false;authRender();return}
-  if(a==='google'){b.disabled=true;try{const pr=new AU.GoogleAuthProvider();pr.setCustomParameters({prompt:'select_account'});await AU.signInWithPopup(auth,pr)}
-    catch(x){const c=x&&x.code;if(c==='auth/popup-blocked'||c==='auth/operation-not-supported-in-this-environment'){try{await AU.signInWithRedirect(auth,new AU.GoogleAuthProvider());return}catch(_){}}
-      if(c!=='auth/popup-closed-by-user'&&c!=='auth/cancelled-popup-request')amsg(c==='auth/operation-not-allowed'||c==='auth/configuration-not-found'?'Google нэвтрэлт Firebase дээр идэвхжээгүй байна.':c==='auth/unauthorized-domain'?'Энэ домэйн Firebase дээр зөвшөөрөгдөөгүй байна.':c==='auth/network-request-failed'?'Интернэт холболтоо шалгана уу.':'Google-ээр нэвтэрч чадсангүй. Дахин оролдоно уу.')}
+  if(a==='google'){b.disabled=true;
+    const standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+    try{const pr=new AU.GoogleAuthProvider();pr.setCustomParameters({prompt:'select_account'});await AU.signInWithPopup(auth,pr)}
+    catch(x){const c=x&&x.code,blocked=c==='auth/popup-blocked'||c==='auth/operation-not-supported-in-this-environment';
+      if(!standalone&&blocked){try{await AU.signInWithRedirect(auth,new AU.GoogleAuthProvider());return}catch(_){}}
+      if(c!=='auth/popup-closed-by-user'&&c!=='auth/cancelled-popup-request')amsg(c==='auth/operation-not-allowed'||c==='auth/configuration-not-found'?'Google нэвтрэлт Firebase дээр идэвхжээгүй байна.':c==='auth/unauthorized-domain'?'Энэ домэйн Firebase дээр зөвшөөрөгдөөгүй байна.':c==='auth/network-request-failed'?'Интернэт холболтоо шалгана уу.':standalone&&blocked?'Нүүр дэлгэцэнд хадгалсан аппаас Google-ээр нэвтэрч болохгүй байна. Safari-гаараа шууд нээгээд дахин оролдоно уу, эсвэл имэйл/нууц үгээр нэвтэрнэ үү.':'Google-ээр нэвтэрч чадсангүй. Дахин оролдоно уу.')}
     b.disabled=false;return}
   if(a==='vcheck'){b.disabled=true;await vfCheck(false);b.disabled=false;return}
   if(a==='vcode'){const c=(($('#vcode')||{}).value||'').trim();if(!/^\d{4}$/.test(c))return amsg('4 оронтой кодоо оруулна уу.');b.disabled=true;
