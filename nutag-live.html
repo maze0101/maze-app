@@ -819,6 +819,13 @@ async function askNotify(){
   toast(p==='granted'?'Мэдэгдэл асалаа':'Мэдэгдэл зөвшөөрөгдсөнгүй');if(p==='granted')registerPush();
   $('#hd').innerHTML=headerHTML();
 }
+// Апп хаалттай үед дуудлага/мессеж ирэхийн тулд push зөвшөөрөл шаардлагатай тул нэвтэрсний дараа нэг удаа санал болгоно
+function notifNudge(){
+  setTimeout(()=>{
+    if(!S.me||INC||CALL||!canNotify()||Notification.permission!=='default'||ov.className)return;
+    openSheet(`<h3>🔔 Мэдэгдэл асаах уу?</h3><p class="mute" style="margin:0">Асаавал апп хаалттай үед ч дуудлага, мессеж ирсэн тухай мэдэгдэнэ. Асаахгүй бол зөвхөн апп нээлттэй үед л мэдэх болно.</p><button class="btn" data-a="notif">🔔 Мэдэгдэл асаах</button><button class="btn line" data-a="closeov">Дараа</button>`);
+  },1800);
+}
 const ic=(n,s=22,f)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="${f?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
 
 /* ---------- helpers ---------- */
@@ -1191,7 +1198,7 @@ async function startSession(u){
       readMap:lsGet('nutag-read-'+u.uid,{}),seenMap:lsGet('nutag-seen-'+u.uid,{}),
       reply:null,fwd:null,feedTab:'all',draftImgs:[],draftStory:null,prefs:lsGet('maze-cp-'+u.uid,{}),act:lsGet('maze-act-'+u.uid,null)});
     if(!S.act){S.act={t0:Date.now(),p:{}};lsSet('maze-act-'+u.uid,S.act)}
-    subscribe();heartbeat();registerPush();render();toast('Тавтай морил, '+S.me.name);
+    subscribe();heartbeat();registerPush();render();toast('Тавтай морил, '+S.me.name);notifNudge();
   }catch(e){onErr(e);A.mode='login';amsg('Профайлаа уншиж чадсангүй. Firestore-ийн тохиргоогоо шалгана уу.');S.me=null;render()}
 }
 function endSession(){vfStop();clearInterval(hbT);endCall(true);INC=null;recStop(false);unsubAll();clearTimeout(svT);const o=$('#ov');o.className='';o.innerHTML='';S.me=null;S.thread=null;A.mode='login';A.msg='';A.ok=false}
