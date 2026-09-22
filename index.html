@@ -147,6 +147,7 @@ html,body{touch-action:manipulation}
 .mf input{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:12px 18px;outline:none;min-width:0;font-size:16px}
 .mf input:focus{border-color:var(--sky)}
 .mf button{width:46px;height:46px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;flex:none;box-shadow:var(--glow)}
+.mf button.like{background:transparent;box-shadow:none;font-size:26px}
 
 /* profile */
 .cover{height:150px;overflow:hidden;margin:0 14px;border-radius:var(--r)}
@@ -222,7 +223,6 @@ html,body{touch-action:manipulation}
 .cscrim{position:absolute;inset:0;background:rgba(0,0,0,.25);z-index:0}
 .cinfo.center{left:0;right:0;top:auto;bottom:38%;align-items:center;text-align:center}
 .cinfo.center b{font-size:22px}
-.tapplay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3}
 .crow{display:flex;gap:10px}.crow .btn{flex:1;padding:13px}
 .ph .del+.del{margin-left:0}
 .ph [data-a="user"]{cursor:pointer}
@@ -1042,7 +1042,7 @@ function msgsHTML(){
 }
 function mfInner(){
   if(rec)return `<button type="button" class="ib" data-a="reccancel" aria-label="Болих">${ic('close',20)}</button><div class="recbar"><i></i><span id="rt">0:00</span>&nbsp;бичиж байна</div><button type="button" data-a="recsend" aria-label="Илгээх">${ic('send',20)}</button>`;
-  return `<label class="ib" aria-label="Зураг илгээх">${ic('image',20)}<input type="file" id="mfile" accept="image/*" class="vh"></label><input id="mi" placeholder="Мессеж бичих" aria-label="Мессеж бичих" autocomplete="off" maxlength="2000"><button type="button" class="ib" data-a="rec" aria-label="Дуут мессеж">${ic('mic',20)}</button><button type="submit" aria-label="Илгээх">${ic('send',20)}</button>`;
+  return `<label class="ib" aria-label="Зураг илгээх">${ic('image',20)}<input type="file" id="mfile" accept="image/*" class="vh"></label><input id="mi" placeholder="Мессеж бичих" aria-label="Мессеж бичих" autocomplete="off" maxlength="2000"><button type="button" class="ib" data-a="rec" aria-label="Дуут мессеж">${ic('mic',20)}</button><button type="submit" id="sendbtn" class="like" aria-label="Илгээх">👍</button>`;
 }
 function reqBarHTML(){
   const th=S.thread;if(!th||th.group)return '';const c=S.chats.get(th.cid);if(!isReq(c))return '';
@@ -1429,7 +1429,9 @@ function ringStart(tone,vol){
 }function ringStop(){clearInterval(ringT);ringT=null}
 function playRemote(){
   const rv=$('#rv'),lv=$('#lv');if(!rv)return;
-  const tap=()=>{const c=$('.call');if(c&&!$('.tapplay'))c.insertAdjacentHTML('beforeend',`<button class="btn tapplay" data-a="cplay">▶ Дарж эхлүүлэх</button>`)};
+  const tap=()=>{const c=$('.call');if(!c||c.dataset.tapArmed)return;c.dataset.tapArmed='1';
+    const retry=()=>{document.querySelectorAll('.call video').forEach(v=>v.play().catch(()=>{}));delete c.dataset.tapArmed};
+    c.addEventListener('pointerdown',retry,{once:true})};
   const go=v=>{const p=v.play();if(p&&p.catch)p.catch(tap)};go(rv);if(lv)go(lv);
 }
 function drawCall(st){
@@ -1817,7 +1819,6 @@ document.addEventListener('click',async e=>{
     case 'cacc':acceptCall();break;
     case 'cdec':declineCall();break;
     case 'cend':endCall(true);break;
-    case 'cplay':{const x=b;document.querySelectorAll('.call video').forEach(v=>v.play().catch(()=>{}));x.remove();break}
     case 'cmute':toggleTrack('audio',b);break;
     case 'ccam':toggleTrack('video',b);break;
     case 'addstory':
@@ -1905,8 +1906,8 @@ document.addEventListener('submit',async e=>{
     if(k==='sreply'){const inp=$('#sri'),t=inp?inp.value.trim():'';if(!t)return;inp.value='';
       try{await storyReply(t);S.sv&&nextStory()}catch(x){inp.value=t;throw x}return}
     if(k==='msg'){
-      const inp=$('#mi'),t=inp?inp.value.trim():'';if(!t)return;inp.value='';
-      try{await sendMsg({text:t})}catch(x){inp.value=t;throw x}
+      const inp=$('#mi'),t=inp?inp.value.trim():'';const body=t||'👍';inp.value='';
+      try{await sendMsg({text:body})}catch(x){inp.value=t;throw x}finally{const sb=$('#sendbtn');if(sb){sb.classList.add('like');sb.innerHTML='👍'}}
     }
   }catch(err){console.error(err);toast('Илгээж чадсангүй. Дахин оролдоно уу.',3000)}
 });
@@ -1917,7 +1918,10 @@ document.addEventListener('input',e=>{
   if(e.target.id==='mq'){S.mq=e.target.value;refreshMsgs()}
   if(e.target.id==='pq'){S.pq=e.target.value;refreshPosts()}
   if(e.target.id==='cq'){S.cq=e.target.value;refreshChats()}
-  if(e.target.id==='mi'&&e.target.value)typingPing();
+  if(e.target.id==='mi'){
+    if(e.target.value)typingPing();
+    const sb=$('#sendbtn');if(sb){const empty=!e.target.value.trim();sb.classList.toggle('like',empty);sb.innerHTML=empty?'👍':ic('send',20)}
+  }
 });
 setInterval(()=>{if(S.me&&S.thread&&!document.hidden)setTyping()},2000);
 setInterval(()=>{if(S.me&&!S.thread&&!document.hidden){refreshFriends();refreshChats()}},30000);
