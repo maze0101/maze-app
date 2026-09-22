@@ -1689,15 +1689,16 @@ document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-a]');if(!b)return;
   const a=b.dataset.a,id=b.dataset.id;
   if(a==='amode'){A.mode=b.dataset.m;A.msg='';A.ok=false;authRender();return}
-  if(a==='google'){b.disabled=true;amsg('Google цонх нээж байна...',true);
-    const standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+  if(a==='google'){b.disabled=true;
+    alert('DEBUG: Google товч дарагдлаа, popup нээж эхэллээ');
     try{
       const pr=new AU.GoogleAuthProvider();pr.setCustomParameters({prompt:'select_account'});
-      await Promise.race([AU.signInWithPopup(auth,pr),new Promise((_,rej)=>setTimeout(()=>rej({code:'auth/popup-timeout'}),15000))]);
+      const res=await Promise.race([AU.signInWithPopup(auth,pr),new Promise((_,rej)=>setTimeout(()=>rej({code:'auth/popup-timeout'}),15000))]);
+      alert('DEBUG: Амжилттай! '+(res&&res.user&&res.user.email));
     }
-    catch(x){const c=(x&&x.code)||String(x),blocked=c==='auth/popup-blocked'||c==='auth/operation-not-supported-in-this-environment'||c==='auth/popup-timeout';
-      if(!standalone&&blocked){try{amsg('Шинэ цонх руу шилжиж байна...',true);await AU.signInWithRedirect(auth,new AU.GoogleAuthProvider());return}catch(_){}}
-      amsg((c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request'?'Цуцлагдлаа. ':'')+'('+c+') '+(c==='auth/operation-not-allowed'||c==='auth/configuration-not-found'?'Google нэвтрэлт Firebase дээр идэвхжээгүй байна.':c==='auth/unauthorized-domain'?'Энэ домэйн Firebase дээр зөвшөөрөгдөөгүй байна.':c==='auth/network-request-failed'?'Интернэт холболтоо шалгана уу.':c==='auth/popup-timeout'?'Google цонх нээгдсэнгүй эсвэл хариу ирсэнгүй.':standalone&&blocked?'Нүүр дэлгэцэнд хадгалсан аппаас Google-ээр нэвтэрч болохгүй байна. Safari-гаараа шууд нээгээд дахин оролдоно уу.':'Google-ээр нэвтэрч чадсангүй.'))}
+    catch(x){
+      alert('DEBUG ALDAA: code='+(x&&x.code)+' message='+(x&&x.message)+' raw='+String(x));
+    }
     b.disabled=false;return}
   if(a==='vcheck'){b.disabled=true;await vfCheck(false);b.disabled=false;return}
   if(a==='vcode'){const c=(($('#vcode')||{}).value||'').trim();if(!/^\d{4}$/.test(c))return amsg('4 оронтой кодоо оруулна уу.');b.disabled=true;
