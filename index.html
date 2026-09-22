@@ -68,9 +68,6 @@ html,body{touch-action:manipulation}
 .maze-badge.md{padding:13px 36px 16px;font-size:27px}
 .maze-badge.lg{padding:20px 52px 26px;font-size:42px;box-shadow:0 24px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06)}
 .maze-badge.glow{color:#fff;text-shadow:0 0 12px rgba(255,255,255,.65),0 0 32px rgba(143,114,255,.55)}
-.maze-word{font-family:var(--display);font-weight:600;letter-spacing:.14em;font-size:12px;color:var(--mute);text-transform:uppercase}
-.boot .maze-word{color:rgba(255,255,255,.55);animation:bootWordIn 1s ease .5s both}
-@keyframes bootWordIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .boot{position:absolute;inset:0;display:grid;place-items:center;background:#070B14;z-index:1}
 .boot .maze-badge{animation:bootIn 1.6s cubic-bezier(.2,.8,.2,1) both,bootPulse 2.2s ease-in-out .8s infinite}
 @keyframes bootIn{0%{opacity:0;transform:scale(.7)}55%{opacity:1;transform:scale(1.06)}100%{opacity:1;transform:scale(1)}}
@@ -1239,7 +1236,7 @@ function refreshAll(){
 /* ---------- нэвтрэх / бүртгүүлэх дэлгэц ---------- */
 const loader=(sm)=>'<div class="ld'+(sm?' sm':'')+'" role="status" aria-label="Ачаалж байна"><svg class="ring" viewBox="0 0 48 48" aria-hidden="true"><circle class="t" cx="24" cy="24" r="20"/><circle class="a" cx="24" cy="24" r="20"/></svg><svg class="mk" viewBox="0 0 28 28" aria-hidden="true"><path d="M4 24V4h20v20H10V10h8v6" fill="none" stroke="var(--sky)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="14" cy="19" r="2.4" fill="var(--green)"/></svg></div>';
 const LOGO='<svg width="38" height="38" viewBox="0 0 28 28" aria-hidden="true"><path d="M4 24V4h20v20H10V10h8v6" fill="none" stroke="var(--sky)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="14" cy="19" r="2.2" fill="var(--green)"/></svg>';
-const mazeMark=(cls='')=>`<div style="display:flex;flex-direction:column;align-items:center;gap:9px"><span class="maze-badge ${cls}">maze</span><span class="maze-word">MAZE APP</span></div>`;
+const mazeMark=(cls='')=>`<span class="maze-badge ${cls}">maze</span>`;
 function authHTML(){
   const reg=A.mode==='register',rst=A.mode==='reset';
   const fld=(l,n,type,extra,hint)=>`<label class="fld">${l}<input name="${n}" type="${type}" ${extra||''}>${hint?`<span>${hint}</span>`:''}</label>`;
