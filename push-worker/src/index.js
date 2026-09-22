@@ -85,6 +85,7 @@ async function push(env, tok, uids, data, ttl) {
       });
       if (!r.ok) {
         const j = await r.json().catch(() => ({}));
+        console.log('FCM send failed', JSON.stringify(j.error || j));
         if (DEAD.includes((j.error && j.error.status) || '')) {
           await fetch(`https://firestore.googleapis.com/v1/${name}`, {method: 'DELETE', headers: {Authorization: 'Bearer ' + tok}}).catch(() => {});
         }

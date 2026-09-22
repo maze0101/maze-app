@@ -136,7 +136,9 @@ html,body{touch-action:manipulation}
 
 /* thread */
 .msgs{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
-.b{max-width:78%;padding:9px 14px;border-radius:20px;overflow-wrap:anywhere}
+.b{position:relative;max-width:78%;padding:9px 14px;border-radius:20px;overflow-wrap:anywhere}
+.dlike{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);font-size:34px;pointer-events:none;animation:dlikePop .6s ease-out forwards;z-index:5}
+@keyframes dlikePop{0%{transform:translate(-50%,-50%) scale(0);opacity:0}30%{transform:translate(-50%,-70%) scale(1.3);opacity:1}100%{transform:translate(-50%,-115%) scale(1);opacity:0}}
 .b.me{align-self:flex-end;background:var(--bubble-me);color:#fff;border-bottom-right-radius:6px}
 .b.them{align-self:flex-start;background:var(--bubble-them);border-bottom-left-radius:6px}
 .tm{font-size:11px;color:var(--mute);align-self:center;margin:6px 0 2px}
@@ -201,9 +203,14 @@ html,body{touch-action:manipulation}
 .cb.off{background:#fff;color:#111}
 .cb.end{background:#F0456B}
 .cb.end svg{transform:rotate(135deg)}
+.cb.acc{background:var(--green)}
 .call.audio{background:radial-gradient(circle at 50% 35%,#1b2a55,#05070E 70%)}
 .call.audio #rv{width:1px;height:1px;opacity:0;pointer-events:none}
 .call .cav{position:absolute;left:0;right:0;top:26%;display:flex;justify-content:center;z-index:1}
+.cbg{position:absolute;inset:-20px;background-size:cover;background-position:center;filter:blur(30px) brightness(.55);z-index:0}
+.cscrim{position:absolute;inset:0;background:rgba(0,0,0,.25);z-index:0}
+.cinfo.center{left:0;right:0;top:auto;bottom:38%;align-items:center;text-align:center}
+.cinfo.center b{font-size:22px}
 .tapplay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3}
 .crow{display:flex;gap:10px}.crow .btn{flex:1;padding:13px}
 .ph .del+.del{margin-left:0}
@@ -617,6 +624,32 @@ body{letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
 :root[data-style="amber"] .sheet{border-radius:34px 34px 0 0;background:var(--surface)}
 :root[data-style="amber"] .mf{border-radius:999px;margin:0 12px 10px;background:var(--surface);border-top:0;box-shadow:var(--shadow)}
 :root[data-style="amber"] .mf input{background:transparent}
+:root[data-style="messenger"]{--bg:#F0F2F5;--surface:#FFFFFF;--ink:#050505;--mute:#65676B;--line:#E4E6EB;--sky:#0084FF;--green:#31A24C;--like:#F3425F;--dune:#0084FF;--bubble-me:#0084FF;--bubble-them:#E4E6EB;--glass:#FFFFFF;--grad:linear-gradient(135deg,#00C6FF,#0084FF);--ring:conic-gradient(#0084FF,#00C6FF,#31A24C,#0084FF);--on:#FFFFFF;--r:18px;--shadow:0 1px 2px rgba(0,0,0,.08);--glow:0 6px 16px -8px rgba(0,132,255,.5);--display:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;--body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+@media (prefers-color-scheme:dark){:root[data-style="messenger"]:not([data-theme="light"]){--bg:#18191A;--surface:#242526;--ink:#E4E6EB;--mute:#B0B3B8;--line:#3A3B3C;--sky:#2E89FF;--green:#4BCB71;--like:#F3425F;--dune:#2E89FF;--bubble-me:#0084FF;--bubble-them:#3E4042;--glass:#242526;--grad:linear-gradient(135deg,#2E89FF,#0084FF);--ring:conic-gradient(#2E89FF,#4BCB71,#0084FF,#2E89FF);--on:#FFFFFF}}
+:root[data-style="messenger"][data-theme="dark"]{--bg:#18191A;--surface:#242526;--ink:#E4E6EB;--mute:#B0B3B8;--line:#3A3B3C;--sky:#2E89FF;--green:#4BCB71;--like:#F3425F;--dune:#2E89FF;--bubble-me:#0084FF;--bubble-them:#3E4042;--glass:#242526;--grad:linear-gradient(135deg,#2E89FF,#0084FF);--ring:conic-gradient(#2E89FF,#4BCB71,#0084FF,#2E89FF);--on:#FFFFFF}
+:root[data-style="messenger"] #app::before{display:none}
+:root[data-style="messenger"] #hd,:root[data-style="messenger"] .mf{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root[data-style="messenger"] #hd{border-bottom:1px solid var(--line)}
+:root[data-style="messenger"] .btn{border-radius:999px;color:var(--on);font-weight:600}
+:root[data-style="messenger"] .btn.line{background:transparent;color:var(--sky);border:1px solid var(--line);box-shadow:none}
+:root[data-style="messenger"] .b.me{background:var(--bubble-me);color:#fff;border-radius:18px;border-bottom-right-radius:4px;box-shadow:none}
+:root[data-style="messenger"] .b.them{background:var(--bubble-them);color:var(--ink);border-radius:18px;border-bottom-left-radius:4px}
+:root[data-style="messenger"] .tabs2 button.on,:root[data-style="messenger"] .unread{color:var(--sky)}
+:root[data-style="messenger"] .logo,:root[data-style="messenger"] .stats b{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--sky)}
+:root[data-style="messenger"] .sec{color:var(--sky)}
+:root[data-style="messenger"] .ib,:root[data-style="messenger"] .chip,:root[data-style="messenger"] .search,:root[data-style="messenger"] .cmf input,:root[data-style="messenger"] .mf input{border-radius:999px;background:var(--bg)}
+:root[data-style="messenger"] #nav{border-radius:0;margin:0;background:var(--surface);border-color:transparent;border-top:1px solid var(--line);box-shadow:none;padding:6px}
+:root[data-style="messenger"] #nav button{border-radius:12px}
+:root[data-style="messenger"] #nav button.on{background:transparent;color:var(--sky)}
+:root[data-style="messenger"] #nav button.on svg{color:var(--sky);filter:none}
+:root[data-style="messenger"] .card,:root[data-style="messenger"] .post,:root[data-style="messenger"] .row,:root[data-style="messenger"] .stats>*{background:var(--surface);border-color:var(--line);box-shadow:none}
+:root[data-style="messenger"] .post{margin:10px}:root[data-style="messenger"] .row{border-radius:12px;margin-bottom:6px}
+:root[data-style="messenger"] .sheet{border-radius:20px 20px 0 0;background:var(--surface)}
+:root[data-style="messenger"] .mf{border-radius:999px;margin:0 8px 8px;background:var(--surface);border-top:0;box-shadow:none;border:1px solid var(--line)}
+:root[data-style="messenger"] .mf input{background:transparent}
+:root[data-style="messenger"] .hx{height:var(--s);clip-path:circle(50% at 50% 50%)}
+:root[data-style="messenger"] .hx-a{inset:calc(var(--s)*.045);clip-path:circle(50% at 50% 50%)}
+:root[data-style="messenger"] .hx-b{inset:calc(var(--s)*.09);clip-path:circle(50% at 50% 50%)}
 :root[data-style="nomad"] .seg,:root[data-style="nomad"] .seg button,:root[data-style="nomad"] .fld input{border-radius:4px}
 :root[data-style="nomad"] .seg button.on{background:var(--ink);color:var(--bg);box-shadow:none}
 </style>
@@ -949,8 +982,22 @@ function msgsHTML(){
     let seen='';
     if(i===lm){const os=(th.group?(c.members||[]):[th.uid]).filter(u=>u!==S.me.uid),n=os.filter(u=>(sn[u]||0)>=m.ms).length;if(n)seen=`<span class="seenl">${th.group?'Үзсэн '+n:'Үзсэн ✓'}</span>`}
     const rb=dl?'':rxSum(m.rx),who=th.group&&!me?`<span class="mn">${esc((U.get(m.f)||{}).name||m.fn||'')}</span>`:'';
-    return `<div class="mw ${me?'me':'them'}">${who}<div class="mline"><div class="b ${me?'me':'them'}">${body}<span class="bt">${hhmm(m.ms)}${m.ed&&!dl?' · засварласан':''}</span></div>${dl?'':`<button class="mrxb" data-a="mrx" data-id="${esc(m.id)}" aria-label="Реакц">${ic('smile',16)}</button>`}${!dl?`<button class="mrxb" data-a="mmenu" data-id="${esc(m.id)}" aria-label="Цэс">${ic('more',16)}</button>`:''}</div>${rb?`<div class="rxs">${rb}</div>`:''}${S.rxOpen===m.id&&!dl?rxPick('m',m.id):''}${seen}</div>`}).join('');
+    return `<div class="mw ${me?'me':'them'}"${dl?'':` data-mid="${esc(m.id)}"`}>${who}<div class="mline"><div class="b ${me?'me':'them'}">${body}<span class="bt">${hhmm(m.ms)}${m.ed&&!dl?' · засварласан':''}</span></div>${dl?'':`<button class="mrxb" data-a="mrx" data-id="${esc(m.id)}" aria-label="Реакц">${ic('smile',16)}</button>`}${!dl?`<button class="mrxb" data-a="mmenu" data-id="${esc(m.id)}" aria-label="Цэс">${ic('more',16)}</button>`:''}</div>${rb?`<div class="rxs">${rb}</div>`:''}${S.rxOpen===m.id&&!dl?rxPick('m',m.id):''}${seen}</div>`}).join('');
 }
+/* Messenger шиг: мессеж бөмбөлөг дээр 2 дарахад ❤️ реакц шууд нэмнэ */
+document.addEventListener('dblclick',e=>{
+  const bEl=e.target.closest&&e.target.closest('.mw[data-mid] .b');
+  if(!bEl||!S.thread)return;
+  const w=bEl.closest('.mw'),id=w&&w.dataset.mid,m=id&&S.msgs.find(x=>x.id===id);
+  if(!m||m.del)return;
+  e.preventDefault();
+  const fx=document.createElement('span');fx.className='dlike';fx.textContent='❤️';bEl.appendChild(fx);
+  setTimeout(()=>fx.remove(),650);
+  const me=S.me.uid;if(m.rx[me]==='❤️')return;
+  m.rx[me]='❤️';refreshMsgs();
+  const {doc,updateDoc}=FS;
+  updateDoc(doc(db,'chats',S.thread.cid,'messages',id),{['rx.'+me]:'❤️'}).catch(()=>{});
+});
 function mfInner(){
   if(rec)return `<button type="button" class="ib" data-a="reccancel" aria-label="Болих">${ic('close',20)}</button><div class="recbar"><i></i><span id="rt">0:00</span>&nbsp;бичиж байна</div><button type="button" data-a="recsend" aria-label="Илгээх">${ic('send',20)}</button>`;
   return `<label class="ib" aria-label="Зураг илгээх">${ic('image',20)}<input type="file" id="mfile" accept="image/*" class="vh"></label><input id="mi" placeholder="Мессеж бичих" aria-label="Мессеж бичих" autocomplete="off" maxlength="2000"><button type="button" class="ib" data-a="rec" aria-label="Дуут мессеж">${ic('mic',20)}</button><button type="submit" aria-label="Илгээх">${ic('send',20)}</button>`;
@@ -987,7 +1034,7 @@ function settingsHTML(){
   sec('Аккаунт')+`<button class="btn line" data-a="editprofile">Профайл засах</button>`+
   sec('Хувийн байдал')+`<p class="mute" style="margin:0;font-size:13px">Хэн танд чатаар шууд бичиж болох вэ?</p><div style="display:flex;gap:8px"><button class="btn ${dm==='all'?'':'line'}" style="flex:1" data-a="dmset" data-v="all">Бүгд${dm==='all'?' ✓':''}</button><button class="btn ${dm==='friends'?'':'line'}" style="flex:1" data-a="dmset" data-v="friends">Зөвхөн найзууд${dm==='friends'?' ✓':''}</button></div><button class="btn line" data-a="blocklist">Блоклосон хэрэглэгчид (${S.blocked.size})</button>`+
   sec('Дуудлага ба мэдэгдэл')+`<button class="btn line" data-a="ringset">Дуудлагын дуу</button>`+(np?`<button class="btn line" data-a="notif" ${np==='granted'?'disabled':''}>${np==='granted'?'🔔 Мэдэгдэл асаалттай':np==='denied'?'🔕 Мэдэгдэл хаалттай (браузерийн тохиргооноос нээнэ)':'🔔 Мэдэгдэл асаах'}</button>`:'')+
-  sec('Харагдац')+`<button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><div class="tabs2" style="padding:8px 0 0;flex-wrap:wrap;border:0">${[['nomad','Нутаг'],['pop','Поп'],['neon','Неон'],['ocean','Далай'],['retro','Ретро'],['sakura','Сакура'],['amber','Шаргал'],['glass','Шилэн'],['minimal','Минимал'],['card','Карт']].map(([v,n])=>`<button data-a="dstyle" data-v="${v}" class="${(document.documentElement.dataset.style||'nomad')===v?'on':''}">${n}</button>`).join('')}</div>`+
+  sec('Харагдац')+`<button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><div class="tabs2" style="padding:8px 0 0;flex-wrap:wrap;border:0">${[['nomad','Нутаг'],['messenger','Messenger'],['pop','Поп'],['neon','Неон'],['ocean','Далай'],['retro','Ретро'],['sakura','Сакура'],['amber','Шаргал'],['glass','Шилэн'],['minimal','Минимал'],['card','Карт']].map(([v,n])=>`<button data-a="dstyle" data-v="${v}" class="${(document.documentElement.dataset.style||'nomad')===v?'on':''}">${n}</button>`).join('')}</div>`+
   sec('Аюулгүй байдал')+secInfo()+`<button class="btn line" data-a="logout">Гарах</button><button class="btn line" data-a="delaccask" style="color:var(--like)">Акаунт устгах</button>`;
 }
 function profileHTML(){
@@ -1259,8 +1306,8 @@ function playRemote(){
   const go=v=>{const p=v.play();if(p&&p.catch)p.catch(tap)};go(rv);if(lv)go(lv);
 }
 function drawCall(st){
-  const c=CALL,au=c.audio;
-  ov.innerHTML=`<div class="call${au?' audio':''}">${au?`<div class="cav">${av(c.peer,c.name,120,'new')}</div>`:''}<video id="rv" autoplay playsinline></video><video id="lv" autoplay playsinline muted></video><div class="cinfo"><b>${au?'📞 ':''}${esc(c.name)}</b><span>${st}</span></div><div class="cbar"><button class="cb" data-a="cmute" aria-label="Микрофон">${ic('mic',24)}</button>${au?'':`<button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button>`}<button class="cb end" data-a="cend" aria-label="Таслах">${ic('phone',24)}</button></div></div>`;
+  const c=CALL,au=c.audio,ph=au&&(U.get(c.peer)||{}).photo;
+  ov.innerHTML=`<div class="call${au?' audio':''}">${ph?`<div class="cbg" style="background-image:url('${ph}')"></div><div class="cscrim"></div>`:''}${au?`<div class="cav">${av(c.peer,c.name,120,'new')}</div>`:''}<video id="rv" autoplay playsinline></video><video id="lv" autoplay playsinline muted></video><div class="cinfo"><b>${au?'📞 ':''}${esc(c.name)}</b><span>${st}</span></div><div class="cbar"><button class="cb" data-a="cmute" aria-label="Микрофон">${ic('mic',24)}</button>${au?'':`<button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button>`}<button class="cb end" data-a="cend" aria-label="Таслах">${ic('phone',24)}</button></div></div>`;
   ov.className='open';$('#lv').srcObject=c.local;$('#rv').srcObject=c.remote;if(!c.local.getVideoTracks().length)$('#lv').style.display='none';
   $('#rv').onloadedmetadata=playRemote;playRemote();
 }
@@ -1346,7 +1393,8 @@ async function startCall(uid,name,audio){
 function showIncoming(id,d){
   INC={id,d};notify(d.audio?'📞 Дуут дуудлага':'📹 Видео дуудлага',d.fromName+' залгаж байна','call-'+id);ringStart();
   try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(_){}
-  ov.innerHTML=`<div class="scrim"></div><div class="sheet" role="alertdialog"><h3>${d.audio?'📞':'📹'} ${esc(d.fromName)} ${d.audio?'дуут дуудлагаар '  :''}залгаж байна</h3><div class="crow"><button class="btn line" data-a="cdec">Татгалзах</button><button class="btn" data-a="cacc">Хариулах</button></div></div>`;
+  const ph=(U.get(d.from)||{}).photo;
+  ov.innerHTML=`<div class="call audio inc" role="alertdialog">${ph?`<div class="cbg" style="background-image:url('${ph}')"></div><div class="cscrim"></div>`:''}<div class="cav">${av(d.from,d.fromName,120,'new')}</div><div class="cinfo center"><b>${esc(d.fromName)}</b><span>${d.audio?'Дуут дуудлагаар залгаж байна…':'Видео дуудлагаар залгаж байна…'}</span></div><div class="cbar"><button class="cb end" data-a="cdec" aria-label="Татгалзах">${ic('phone',26)}</button><button class="cb acc" data-a="cacc" aria-label="Хариулах">${ic('phone',26)}</button></div></div>`;
   ov.className='open';
 }
 function closeIncoming(){ringStop();INC=null;if(!CALL){ov.className='';ov.innerHTML=''}}
