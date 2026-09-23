@@ -712,7 +712,7 @@ const safeImg=s=>typeof s==='string'&&/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+
 function toast(m,ms=1900){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),ms)}
 function onErr(e){console.error(e);if(S.errShown)return;S.errShown=true;
   toast(e&&e.code==='permission-denied'?'Эрх хүрэхгүй байна. Firestore-ийн дүрмээ (rules) шалгана уу.':'Өгөгдөл уншиж чадсангүй. Интернэтээ шалгана уу.',4500)}
-function cover(){return '<svg viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="sd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2C08E"/><stop offset="1" stop-color="#F8E6CB"/></linearGradient></defs><rect width="400" height="240" fill="url(#sd)"/><circle cx="300" cy="92" r="34" fill="#EE8656" opacity=".92"/><path d="M0 172 Q90 120 190 166 T400 150 V240 H0z" fill="#D9A867"/><path d="M0 207 Q120 162 250 202 T400 192 V240 H0z" fill="#B87F45"/></svg>'}
+function cover(){return '<svg viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="cvg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6C4CFF"/><stop offset=".55" stop-color="#FF4EA0"/><stop offset="1" stop-color="#FF9A3C"/></linearGradient></defs><rect width="400" height="240" fill="url(#cvg)"/><circle cx="64" cy="52" r="68" fill="#fff" opacity=".13"/><circle cx="252" cy="36" r="32" fill="#fff" opacity=".2"/><circle cx="338" cy="172" r="94" fill="#fff" opacity=".1"/><path d="M0 188 Q100 148 200 184 T400 172 V240 H0z" fill="#fff" opacity=".16"/></svg>'}
 // Зургийг найдвартай уншина: том (48MP) зураг, HEIC, EXIF эргэлт
 async function loadImg(file){
   if(window.createImageBitmap){
