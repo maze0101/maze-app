@@ -1520,7 +1520,7 @@ function playRemote(){
 }
 function drawCall(st){
   const c=CALL,au=c.audio,ph=au&&safeImg((U.get(c.peer)||{}).photo);
-  ov.innerHTML=`<div class="call${au?' audio':''}">${ph?`<div class="cbg" style="background-image:url('${ph}')"></div><div class="cscrim"></div>`:''}${au?`<div class="cav">${av(c.peer,c.name,120,'new')}</div>`:''}<video id="rv" autoplay playsinline></video><video id="lv" autoplay playsinline muted></video><div class="cinfo"><b>${au?'📞 ':''}${esc(c.name)}</b><span>${st}</span></div><div class="cbar"><button class="cb" data-a="cmute" aria-label="Микрофон">${ic('mic',24)}</button>${au?'':`<button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button>`}<button class="cb end" data-a="cend" aria-label="Таслах">${ic('phone',24)}</button></div></div>`;
+  ov.innerHTML=`<div class="call${au?' audio':''}">${ph?`<div class="cbg" style="background-image:url('${ph}')"></div><div class="cscrim"></div>`:''}${au?`<div class="cav">${av(c.peer,c.name,120,'new')}</div>`:''}<video id="rv" autoplay playsinline></video><video id="lv" autoplay playsinline muted></video><div class="cinfo"><b>${au?'📞 ':''}${esc(c.name)}</b><span>${st}</span></div><div class="cbar"><button class="cb" data-a="callmute" aria-label="Микрофон">${ic('mic',24)}</button>${au?'':`<button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button>`}<button class="cb end" data-a="cend" aria-label="Таслах">${ic('phone',24)}</button></div></div>`;
   ov.className='open';$('#lv').srcObject=c.local;$('#rv').srcObject=c.remote;if(!c.local.getVideoTracks().length)$('#lv').style.display='none';
   $('#rv').onloadedmetadata=playRemote;playRemote();
 }
@@ -1929,7 +1929,7 @@ document.addEventListener('click',async e=>{
     case 'cacc':acceptCall();break;
     case 'cdec':declineCall();break;
     case 'cend':endCall(true);break;
-    case 'cmute':toggleTrack('audio',b);break;
+    case 'callmute':toggleTrack('audio',b);break;
     case 'ccam':toggleTrack('video',b);break;
     case 'addstory':
       S.gsel=0;S.draftStory=null;openSheet(`<h3>Story нэмэх</h3><div id="sprev"></div><label class="chip" style="align-self:flex-start">${ic('image',18)}Зураг нэмэх<input type="file" id="sfile" accept="image/*" class="vh"></label><label>Текст<textarea id="st-t" maxlength="120" placeholder="Юу хуваалцах вэ?"></textarea></label><div class="sw">${GR.map((g,i)=>`<button data-a="grad" data-i="${i}" class="${i===0?'on':''}" style="background:${g}" aria-label="Өнгө ${i+1}"></button>`).join('')}</div><button class="btn" data-a="savestory">Story нийтлэх</button>`);break;
