@@ -954,8 +954,26 @@ function swEnd(){
 }
 document.addEventListener('pointerup',swEnd);
 document.addEventListener('pointercancel',swEnd);
-/* шудрасны дараах санамсаргүй дарагдалтыг (мессежийн цэс нээгдэхийг) хаана */
-document.addEventListener('click',e=>{if(Date.now()<swBlock){e.stopPropagation();e.preventDefault()}},true);
+/* чатны мөр дээр удаан дарахад устгах цэс гаргана */
+let CLP=null,lpBlock=0;
+document.addEventListener('pointerdown',e=>{
+  const w=e.target.closest&&e.target.closest('#clist .row[data-a="thread"]');
+  if(!w||e.button>0)return;
+  CLP={w,x:e.clientX,y:e.clientY,id:e.pointerId,t:setTimeout(()=>{
+    CLP=null;lpBlock=Date.now()+350;try{navigator.vibrate&&navigator.vibrate(15)}catch(_){}
+    const cid=w.dataset.g||chatId(S.me.uid,w.dataset.id);
+    msgPopup(w,`<button class="dng" data-a="delchat" data-cid="${esc(cid)}"><i>🗑</i>Устгах</button>`,false);
+  },480)};
+});
+document.addEventListener('pointermove',e=>{
+  if(!CLP||e.pointerId!==CLP.id)return;
+  if(Math.abs(e.clientX-CLP.x)>8||Math.abs(e.clientY-CLP.y)>8){clearTimeout(CLP.t);CLP=null}
+});
+const clpEnd=()=>{if(CLP){clearTimeout(CLP.t);CLP=null}};
+document.addEventListener('pointerup',clpEnd);
+document.addEventListener('pointercancel',clpEnd);
+/* шудрасны/удаан дарсны дараах санамсаргүй дарагдалтыг (мессежийн цэс нээгдэхийг) хаана */
+document.addEventListener('click',e=>{if(Date.now()<swBlock||Date.now()<lpBlock){e.stopPropagation();e.preventDefault()}},true);
 /* давхар дарахаас хамгаалах: нэг товчийг 400мс дотор дахин дарвал үл тооно (дараалан дарах шаардлагатай товчнуудаас бусад) */
 const REPEAT_OK=new Set(['snext','sprev','zoom','pzoom']);let lastBtn=null,lastBtnT=0;
 document.addEventListener('click',e=>{
@@ -1567,7 +1585,7 @@ document.addEventListener('click',async e=>{
   if(!S.me)return;
   if(a==='wdis'){lsSet('maze-welcome-'+S.me.uid,true);render();return}
   if(a==='ucall'){startCall(id,b.dataset.n,!!b.dataset.au);return}
-  const {doc,updateDoc,deleteDoc,setDoc,addDoc,collection,writeBatch,serverTimestamp,arrayUnion,arrayRemove,increment,query,orderBy,limit,onSnapshot,deleteField}=FS;
+  const {doc,updateDoc,deleteDoc,setDoc,addDoc,collection,writeBatch,serverTimestamp,arrayUnion,arrayRemove,increment,query,orderBy,limit,onSnapshot,deleteField,getDocs}=FS;
   const allPosts=()=>[...S.posts,...S.mine,...S.vposts],nmOf=u=>(U.get(u)||{}).name||S.friends.get(u)||'Хэрэглэгч';
   try{
   switch(a){
@@ -1599,6 +1617,15 @@ document.addEventListener('click',async e=>{
       await sendTo(th,{text:m.t,img:m.img||undefined,aud:m.aud||undefined,fw:true});S.fwd=null;closeOv();toast('Дамжууллаа');break}
     case 'reqok':{if(!S.thread)break;await updateDoc(doc(db,'chats',S.thread.cid),{ok:true});toast('Зөвшөөрлөө');break}
     case 'reqdel':{if(!S.thread||!confirm('Энэ чатыг устгах уу?'))break;const cid=S.thread.cid;closeThread();await deleteDoc(doc(db,'chats',cid));toast('Устгагдлаа');break}
+    case 'delchat':{const cid=b.dataset.cid;closeOv();if(!cid||!confirm('Энэ чатыг бүх мессежийн хамт устгах уу?'))break;
+      try{
+        const msgs=(await getDocs(collection(db,'chats',cid,'messages'))).docs;
+        for(let i=0;i<msgs.length;i+=400){const bt=writeBatch(db);msgs.slice(i,i+400).forEach(d=>bt.delete(d.ref));await bt.commit()}
+        await deleteDoc(doc(db,'chats',cid));
+        if(S.thread&&S.thread.cid===cid)closeThread();
+        toast('Чат устгагдлаа');
+      }catch(_){toast('Устгаж чадсангүй')}
+      break}
     case 'cmenu':{if(!S.thread)break;const cid=S.thread.cid,pr=cpref(cid);
       openSheet(`<h3>${esc(S.thread.name)}</h3><button class="btn line" data-a="msearch">🔍 Мессеж хайх</button><button class="btn line" data-a="mgal">🖼 Зурагнууд</button><button class="btn line" data-a="ccustomize">🎨 Чат тохируулах</button><button class="btn line" data-a="cpin">${pr.p?'📌 Тогтоосныг болиулах':'📌 Чатыг дээр тогтоох'}</button><button class="btn line" data-a="cmute">${pr.m?'🔔 Дууг нээх':'🔇 Дуу хаах'}</button>${S.thread.group?`<button class="btn line" data-a="ginfo">👥 Бүлгийн мэдээлэл</button>`:`<button class="btn line" data-a="report" data-id="${esc(S.thread.uid)}" data-n="${esc(S.thread.name)}">Гомдол өгөх</button><button class="btn line" data-a="block" data-id="${esc(S.thread.uid)}" style="color:var(--like)">Блоклох</button>`}`);break}
     case 'ccustomize':openSheet(customizeHTML());break;
