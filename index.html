@@ -10,6 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0A0A12">
+<meta name="color-scheme" content="light dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="MAZE APP">
@@ -29,7 +30,11 @@
   --display:'Unbounded',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --body:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   box-sizing:border-box;
+  /* Апп өөрөө өнгийг бүрэн удирддаг тул хөтчийн/төхөөрөмжийн "force dark" авто-хөрвүүлэлтийг унтраана — эс тэгвээс android дээр зарим элемент (жишээ нь мессеж/найзын мөр) бүрэн хараар дарагдаж, агуулга үл үзэгдэх алдаа гардаг */
+  color-scheme:light dark;
 }
+:root[data-theme="light"]{color-scheme:light}
+:root[data-theme="dark"]{color-scheme:dark}
 /* Aurora харанхуй горим */
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
