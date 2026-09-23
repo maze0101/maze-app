@@ -241,6 +241,7 @@ html,body{touch-action:manipulation}
 .mw.them{align-self:flex-start;align-items:flex-start}
 .mline{display:flex;align-items:center;gap:4px;max-width:100%}
 .mw.me .mline{flex-direction:row-reverse}
+.mav{display:none}
 .mline .b{align-self:auto;max-width:100%}
 .mrxb{color:var(--mute);opacity:.55;padding:4px;border-radius:50%;flex:none}
 .mrxb:hover{opacity:1}
@@ -692,6 +693,49 @@ body{letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
 :root[data-style="messenger"] .seg button.on{background:var(--sky);box-shadow:none}
 :root[data-style="messenger"] .unread{background:var(--sky)}
 :root[data-style="messenger"] .badge{box-shadow:none}
+:root[data-style="discord"]{--bg:#FFFFFF;--surface:#F2F3F5;--ink:#060607;--mute:#5C5E66;--line:#E3E5E8;--sky:#5865F2;--green:#248046;--like:#DA373C;--dune:#F0B232;--bubble-me:#5865F2;--bubble-them:#F2F3F5;--glass:rgba(255,255,255,.9);--grad:linear-gradient(135deg,#5865F2,#7A70FF);--ring:conic-gradient(#5865F2,#7A70FF,#5865F2,#7A70FF);--on:#FFFFFF;--r:8px;--shadow:0 1px 2px rgba(0,0,0,.08);--glow:0 6px 16px -8px rgba(88,101,242,.5);--display:'gg sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;--body:'gg sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+@media (prefers-color-scheme:dark){:root[data-style="discord"]:not([data-theme="light"]){--bg:#313338;--surface:#2B2D31;--ink:#F2F3F5;--mute:#949BA4;--line:#3F4147;--sky:#5865F2;--green:#23A55A;--like:#F23F42;--dune:#FEE75C;--bubble-me:#5865F2;--bubble-them:#2B2D31;--glass:rgba(49,51,56,.92);--grad:linear-gradient(135deg,#5865F2,#404EED);--ring:conic-gradient(#5865F2,#404EED,#5865F2,#404EED);--on:#FFFFFF;--shadow:0 1px 2px rgba(0,0,0,.3);--glow:0 6px 20px -8px rgba(88,101,242,.6)}}
+:root[data-style="discord"][data-theme="dark"]{--bg:#313338;--surface:#2B2D31;--ink:#F2F3F5;--mute:#949BA4;--line:#3F4147;--sky:#5865F2;--green:#23A55A;--like:#F23F42;--dune:#FEE75C;--bubble-me:#5865F2;--bubble-them:#2B2D31;--glass:rgba(49,51,56,.92);--grad:linear-gradient(135deg,#5865F2,#404EED);--ring:conic-gradient(#5865F2,#404EED,#5865F2,#404EED);--on:#FFFFFF;--shadow:0 1px 2px rgba(0,0,0,.3);--glow:0 6px 20px -8px rgba(88,101,242,.6)}
+:root[data-style="discord"] #app::before{display:none}
+:root[data-style="discord"] #hd{background:var(--surface);border-bottom:1px solid var(--line);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root[data-style="discord"] .logo{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--sky);font-weight:700}
+:root[data-style="discord"] #nav{border-radius:12px;margin:0 10px 10px;background:var(--surface);border:1px solid var(--line);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:6px}
+:root[data-style="discord"] #nav button{border-radius:8px}
+:root[data-style="discord"] #nav button.on{background:color-mix(in srgb,var(--sky) 16%,transparent);color:var(--sky);box-shadow:none;font-weight:700}
+:root[data-style="discord"] #nav button.on svg{color:var(--sky);filter:none}
+:root[data-style="discord"] .card,:root[data-style="discord"] .post,:root[data-style="discord"] .row,:root[data-style="discord"] .stats>*{background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:none}
+:root[data-style="discord"] .post{margin:10px 12px}
+:root[data-style="discord"] .row{border-radius:8px;margin-bottom:6px}
+:root[data-style="discord"] .btn{border-radius:4px;font-weight:600;box-shadow:none;background:var(--sky);color:#fff}
+:root[data-style="discord"] .btn:hover{filter:brightness(1.08)}
+:root[data-style="discord"] .btn.line{background:transparent;border:1px solid var(--line);color:var(--ink);box-shadow:none}
+:root[data-style="discord"] .ib{border-radius:8px;background:var(--surface);border:1px solid var(--line)}
+:root[data-style="discord"] .chip,:root[data-style="discord"] .search,:root[data-style="discord"] .cmf input,:root[data-style="discord"] .mf input{border-radius:4px;background:var(--bg);border-color:var(--line)}
+:root[data-style="discord"] .tabs2 button{border-radius:4px;background:var(--surface);border:1px solid var(--line);color:var(--mute)}
+:root[data-style="discord"] .tabs2 button.on{background:var(--sky);color:#fff;border-color:transparent}
+:root[data-style="discord"] .sheet{border-radius:8px 8px 0 0;background:var(--surface);box-shadow:0 -8px 24px rgba(0,0,0,.35);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root[data-style="discord"] .sec{color:var(--mute);letter-spacing:.02em;font-weight:700;text-transform:uppercase;font-size:11px}
+:root[data-style="discord"] .hx{clip-path:circle(50% at 50% 50%)}
+:root[data-style="discord"] .hx-a{inset:calc(var(--s)*.045);clip-path:circle(50% at 50% 50%)}
+:root[data-style="discord"] .hx-b{inset:calc(var(--s)*.09);clip-path:circle(50% at 50% 50%)}
+:root[data-style="discord"] .dot{background:var(--green);box-shadow:none}
+:root[data-style="discord"] .avd i{background:var(--green);box-shadow:none}
+:root[data-style="discord"] .pres.on{color:var(--green)}
+:root[data-style="discord"] .badge,:root[data-style="discord"] .unread{background:var(--like);box-shadow:none;border-radius:999px}
+/* Discord маягийн мессеж мөр: аватар зүүн талд, нэр+мессеж баганаар, бөмбөлөг сүүдэргүй */
+:root[data-style="discord"] .mw{max-width:92%;flex-direction:row;align-items:flex-end;gap:8px}
+:root[data-style="discord"] .mw.me{flex-direction:row-reverse;align-items:flex-end}
+:root[data-style="discord"] .mav{display:block;flex:none;align-self:flex-end}
+:root[data-style="discord"] .mav .hx{box-shadow:0 0 0 1px var(--line)}
+:root[data-style="discord"] .mcol{display:flex;flex-direction:column;min-width:0;max-width:100%}
+:root[data-style="discord"] .mw.them .mcol{align-items:flex-start}
+:root[data-style="discord"] .mw.me .mcol{align-items:flex-end}
+:root[data-style="discord"] .mn{font-weight:700;color:var(--sky);font-size:13.5px;margin:0 8px 3px}
+:root[data-style="discord"] .b{border-radius:8px;box-shadow:none;line-height:1.375}
+:root[data-style="discord"] .b.me{background:var(--sky);color:#fff;border-bottom-right-radius:8px}
+:root[data-style="discord"] .b.them{background:var(--bubble-them);color:var(--ink);border-bottom-left-radius:8px;border:1px solid var(--line)}
+:root[data-style="discord"] .mf{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none;border-top:1px solid var(--line)}
+:root[data-style="discord"] .mf input{border-radius:8px;background:var(--bg)}
 </style>
 </head>
 <body>
@@ -1073,7 +1117,8 @@ function msgsHTML(){
     let seen='';
     if(i===lm){const os=(th.group?(c.members||[]):[th.uid]).filter(u=>u!==S.me.uid),n=os.filter(u=>(sn[u]||0)>=m.ms).length;if(n)seen=`<span class="seenl">${th.group?'Үзсэн '+n:'Үзсэн ✓'}</span>`}
     const rb=dl?'':rxSum(m.rx),who=th.group&&!me?`<span class="mn">${esc((U.get(m.f)||{}).name||m.fn||'')}</span>`:'';
-    return `<div class="mw ${me?'me':'them'}"${dl?'':` data-mid="${esc(m.id)}"`}>${who}<div class="mline"><div class="b ${me?'me':'them'}"${me&&myClr?` style="background:${myClr}"`:''}>${body}<span class="bt">${hhmm(m.ms)}${m.ed&&!dl?' · засварласан':''}</span></div>${dl?'':`<button class="mrxb" data-a="mrx" data-id="${esc(m.id)}" aria-label="Реакц">${ic('smile',16)}</button>`}${!dl?`<button class="mrxb" data-a="mmenu" data-id="${esc(m.id)}" aria-label="Цэс">${ic('more',16)}</button>`:''}</div>${rb?`<div class="rxs">${rb}</div>`:''}${S.rxOpen===m.id&&!dl?rxPick('m',m.id):''}${seen}</div>`}).join('');
+    const avName=th.group?((U.get(m.f)||{}).name||m.fn||''):th.name,avatar=(!me&&!dl)?`<span class="mav">${av(m.f,avName,28)}</span>`:'';
+    return `<div class="mw ${me?'me':'them'}"${dl?'':` data-mid="${esc(m.id)}"`}>${avatar}<div class="mcol">${who}<div class="mline"><div class="b ${me?'me':'them'}"${me&&myClr?` style="background:${myClr}"`:''}>${body}<span class="bt">${hhmm(m.ms)}${m.ed&&!dl?' · засварласан':''}</span></div>${dl?'':`<button class="mrxb" data-a="mrx" data-id="${esc(m.id)}" aria-label="Реакц">${ic('smile',16)}</button>`}${!dl?`<button class="mrxb" data-a="mmenu" data-id="${esc(m.id)}" aria-label="Цэс">${ic('more',16)}</button>`:''}</div>${rb?`<div class="rxs">${rb}</div>`:''}${S.rxOpen===m.id&&!dl?rxPick('m',m.id):''}</div>${seen}</div>`}).join('');
 }
 const mfLike=()=>S.thread?cpref(S.thread.cid).emo||'👍':'👍';
 function mfInner(){
@@ -1173,7 +1218,7 @@ function settingsHTML(){
   sec('Аккаунт')+`<button class="btn line" data-a="editprofile">Профайл засах</button>`+
   sec('Хувийн байдал')+`<p class="mute" style="margin:0;font-size:13px">Хэн танд чатаар шууд бичиж болох вэ?</p><div style="display:flex;gap:8px"><button class="btn ${dm==='all'?'':'line'}" style="flex:1" data-a="dmset" data-v="all">Бүгд${dm==='all'?' ✓':''}</button><button class="btn ${dm==='friends'?'':'line'}" style="flex:1" data-a="dmset" data-v="friends">Зөвхөн найзууд${dm==='friends'?' ✓':''}</button></div><button class="btn line" data-a="blocklist">Блоклосон хэрэглэгчид (${S.blocked.size})</button>`+
   sec('Дуудлага ба мэдэгдэл')+`<button class="btn line" data-a="ringset">Дуудлагын дуу</button>`+(np?`<button class="btn line" data-a="${np==='granted'?'pushcheck':'notif'}">${np==='granted'?'🔔 Мэдэгдэл асаалттай — дахин шалгах':np==='denied'?'🔕 Мэдэгдэл хаалттай (браузерийн тохиргооноос нээнэ)':'🔔 Мэдэгдэл асаах'}</button>`:'')+
-  sec('Харагдац')+`<button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><div class="tabs2" style="padding:8px 0 0;flex-wrap:wrap;border:0">${[['glass','Aurora'],['nomad','Нутаг'],['messenger','Messenger'],['pop','Поп'],['neon','Неон'],['ocean','Далай'],['retro','Ретро'],['sakura','Сакура'],['amber','Шаргал'],['minimal','Минимал'],['card','Карт']].map(([v,n])=>`<button data-a="dstyle" data-v="${v}" class="${(document.documentElement.dataset.style||'glass')===v?'on':''}">${n}</button>`).join('')}</div>`+
+  sec('Харагдац')+`<button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><div class="tabs2" style="padding:8px 0 0;flex-wrap:wrap;border:0">${[['glass','Aurora'],['nomad','Нутаг'],['messenger','Messenger'],['discord','Discord'],['pop','Поп'],['neon','Неон'],['ocean','Далай'],['retro','Ретро'],['sakura','Сакура'],['amber','Шаргал'],['minimal','Минимал'],['card','Карт']].map(([v,n])=>`<button data-a="dstyle" data-v="${v}" class="${(document.documentElement.dataset.style||'glass')===v?'on':''}">${n}</button>`).join('')}</div>`+
   sec('Аюулгүй байдал')+secInfo()+`<button class="btn line" data-a="logout">Гарах</button><button class="btn line" data-a="delaccask" style="color:var(--like)">Акаунт устгах</button>`;
 }
 function profileHTML(){
