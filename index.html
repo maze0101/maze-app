@@ -2099,7 +2099,10 @@ async function main(){
   try{const t=localStorage.getItem('nutag-theme');if(t)document.documentElement.dataset.theme=t}catch(_){}
   if(!configured&&!window.__FB_MOCK){setupRender();return}
   $('#main').innerHTML='<div style="min-height:70vh;display:grid;align-items:center">'+loader()+'</div>';
-  const bootT0=Date.now(),MIN_BOOT=2200;
+  // Дуудлагын push мэдэгдлээс (?call=) нээгдсэн бол эхлэлийн хиймэл хүлээлтийг алгасаж, дуудлагын дэлгэцийг аль болох хурдан харуулна
+  const fromCall=new URLSearchParams(location.search).has('call');
+  if(fromCall)try{history.replaceState(null,'',location.pathname+location.hash)}catch(_){}
+  const bootT0=Date.now(),MIN_BOOT=fromCall?0:2200;
   try{
     const fb=await loadFirebase();
     const app=fb.app.initializeApp(CFG);FBAPP=app;AU=fb.auth;FS=fb.fs;auth=AU.getAuth(app);auth.languageCode="mn";db=FS.getFirestore(app);

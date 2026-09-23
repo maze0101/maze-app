@@ -121,7 +121,7 @@ async function handle(req, env) {
     if (Date.now() - Date.parse(c.createdAt || 0) > 120e3) return 403;
     await push(env, tok, [c.to], {
       type: 'call', title: (c.audio ? '📞 ' : '📹 ') + short(c.fromName, 40) + (c.audio ? ' дуут дуудлагаар залгаж байна' : ' залгаж байна'),
-      body: 'Хариулахын тулд дарна уу', tag: 'call-' + id, url: './index.html',
+      body: 'Хариулахын тулд дарна уу', tag: 'call-' + id, url: './index.html?call=' + encodeURIComponent(id),
     }, 60);
     return 200;
   }
