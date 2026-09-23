@@ -1260,11 +1260,12 @@ const ICE={iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.googl
 let CALL=null,INC=null,ringCtx=null,ringT=null;
 function callStatus(t){const s=$('.cinfo span');if(s)s.textContent=t}
 const RINGS={
+  aurora:{n:'✨ Aurora',type:'sine',loop:2.6,seq:[[523.25,0,.24],[659.25,.16,.24],[783.99,.32,.24],[1046.5,.5,.5]]},
   bell:{n:'🔔 Хонх',type:'triangle',loop:2.2,seq:[[880,0,.16],[660,.18,.16],[880,.4,.16],[660,.58,.16],[880,.8,.3]]},
   soft:{n:'🎵 Зөөлөн',type:'sine',loop:2.4,seq:[[523.25,0,.3],[659.25,.22,.3],[783.99,.44,.3],[1046.5,.66,.55]]},
   mongol:{n:'🏔 Монгол ая',type:'triangle',loop:3,seq:[[293.66,0,.28],[392,.3,.28],[440,.6,.28],[587.33,.9,.4],[440,1.35,.28],[392,1.65,.28],[293.66,1.95,.6]]}
 };
-let RING=lsGet('maze-ring',{tone:'bell',vol:.6});if(!RINGS[RING.tone])RING.tone='bell';
+let RING=lsGet('maze-ring',{tone:'aurora',vol:.6});if(!RINGS[RING.tone])RING.tone='aurora';
 function ringOnce(tone,vol){
   const ctx=ringCtx,r=RINGS[tone]||RINGS.bell,t0=ctx.currentTime+.02;
   r.seq.forEach(([fq,st,du])=>{
