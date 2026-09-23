@@ -818,6 +818,7 @@ const I={
  video:'<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/>',
  mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
  phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>',
+ speaker:'<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>',
  more:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
  smile:'<circle cx="12" cy="12" r="9"/><path d="M8 14a4 4 0 0 0 8 0M9 9.5h.01M15 9.5h.01"/>',
  bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2H4.5z"/><path d="M10 21h4"/>',
@@ -1520,7 +1521,7 @@ function playRemote(){
 }
 function drawCall(st){
   const c=CALL,au=c.audio,ph=au&&safeImg((U.get(c.peer)||{}).photo);
-  ov.innerHTML=`<div class="call${au?' audio':''}">${ph?`<div class="cbg" style="background-image:url('${ph}')"></div><div class="cscrim"></div>`:''}${au?`<div class="cav">${av(c.peer,c.name,120,'new')}</div>`:''}<video id="rv" autoplay playsinline></video><video id="lv" autoplay playsinline muted></video><div class="cinfo"><b>${au?'📞 ':''}${esc(c.name)}</b><span>${st}</span></div><div class="cbar"><button class="cb" data-a="callmute" aria-label="Микрофон">${ic('mic',24)}</button>${au?'':`<button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button>`}<button class="cb end" data-a="cend" aria-label="Таслах">${ic('phone',24)}</button></div></div>`;
+  ov.innerHTML=`<div class="call${au?' audio':''}">${ph?`<div class="cbg" style="background-image:url('${ph}')"></div><div class="cscrim"></div>`:''}${au?`<div class="cav">${av(c.peer,c.name,120,'new')}</div>`:''}<video id="rv" autoplay playsinline></video><video id="lv" autoplay playsinline muted></video><div class="cinfo"><b>${au?'📞 ':''}${esc(c.name)}</b><span>${st}</span></div><div class="cbar"><button class="cb" data-a="callmute" aria-label="Микрофон">${ic('mic',24)}</button><button class="cb${c.spk===false?' off':''}" data-a="callspk" aria-label="Чангаруулагч">${ic('speaker',24)}</button>${au?'':`<button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button>`}<button class="cb end" data-a="cend" aria-label="Таслах">${ic('phone',24)}</button></div></div>`;
   ov.className='open';$('#lv').srcObject=c.local;$('#rv').srcObject=c.remote;if(!c.local.getVideoTracks().length)$('#lv').style.display='none';
   $('#rv').onloadedmetadata=playRemote;playRemote();
 }
@@ -1531,7 +1532,7 @@ function connWatch(ms=25000){
 }
 function makeCall(id,peer,name,local,mine,audio){
   const pc=new RTCPeerConnection(ICE),remote=new MediaStream(),{collection,addDoc}=FS,q=[];
-  CALL={id,peer,name,local,remote,pc,unsubs:[],q,ready:false,mine,over:false,audio:!!audio};
+  CALL={id,peer,name,local,remote,pc,unsubs:[],q,ready:false,mine,over:false,audio:!!audio,spk:true};
   local.getTracks().forEach(t=>pc.addTrack(t,local));
   if(!local.getAudioTracks().length)pc.addTransceiver('audio',{direction:'recvonly'});
   if(!local.getVideoTracks().length&&!audio)pc.addTransceiver('video',{direction:'recvonly'});
@@ -1652,6 +1653,18 @@ window.addEventListener('pagehide',()=>{if(CALL)endCall(true)});
 function toggleTrack(kind,btn){
   if(!CALL)return;const ts=kind==='audio'?CALL.local.getAudioTracks():CALL.local.getVideoTracks();
   const on=!(ts[0]&&ts[0].enabled);ts.forEach(t=>t.enabled=on);btn.classList.toggle('off',!on);
+}
+/* Чангаруулагч: Chrome/Android дээр setSinkId-ээр бодит гаралтын төхөөрөмж сольж, дэмжигдэхгүй бол (Safari/iOS) дуу чанга/намуухныг сольж орлуулна */
+async function toggleSpeaker(btn){
+  if(!CALL)return;const rv=$('#rv');if(!rv)return;const on=!CALL.spk;
+  if(typeof rv.setSinkId==='function'){
+    try{
+      const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='audiooutput');
+      const spk=devs.find(d=>/speaker/i.test(d.label));
+      await rv.setSinkId(on?(spk?spk.deviceId:'default'):'default'); // асаахад чанга яригч руу шилжинэ (боломжтой бол), унтраахад системийн үндсэн гаралт (жишээ нь Bluetooth) руу буцна
+    }catch(_){rv.volume=on?1:.55}
+  }else rv.volume=on?1:.55; // Safari/iOS: setSinkId дэмжихгүй тул дууны түвшингээр орлуулна
+  CALL.spk=on;btn.classList.toggle('off',!on);
 }
 
 /* ---------- акаунт устгах ---------- */
@@ -1930,6 +1943,7 @@ document.addEventListener('click',async e=>{
     case 'cdec':declineCall();break;
     case 'cend':endCall(true);break;
     case 'callmute':toggleTrack('audio',b);break;
+    case 'callspk':toggleSpeaker(b);break;
     case 'ccam':toggleTrack('video',b);break;
     case 'addstory':
       S.gsel=0;S.draftStory=null;openSheet(`<h3>Story нэмэх</h3><div id="sprev"></div><label class="chip" style="align-self:flex-start">${ic('image',18)}Зураг нэмэх<input type="file" id="sfile" accept="image/*" class="vh"></label><label>Текст<textarea id="st-t" maxlength="120" placeholder="Юу хуваалцах вэ?"></textarea></label><div class="sw">${GR.map((g,i)=>`<button data-a="grad" data-i="${i}" class="${i===0?'on':''}" style="background:${g}" aria-label="Өнгө ${i+1}"></button>`).join('')}</div><button class="btn" data-a="savestory">Story нийтлэх</button>`);break;
