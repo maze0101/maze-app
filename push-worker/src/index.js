@@ -99,18 +99,16 @@ async function handle(req, env) {
   const uid = await verifyIdToken(auth.replace(/^Bearer /, ''), env.PROJECT_ID);
   const b = await req.json();
   const tok = await accessToken(JSON.parse(env.SERVICE_ACCOUNT));
-  const me = await fsGet(env, tok, 'users/' + uid);
-  const myName = short(me && me.name, 40);
 
   if (b.kind === 'msg') {
     const cid = String(b.cid || '');
     if (!/^[\w-]{1,200}$/.test(cid)) return 400;
-    const c = await fsGet(env, tok, 'chats/' + cid);
+    const [me, c] = await Promise.all([fsGet(env, tok, 'users/' + uid), fsGet(env, tok, 'chats/' + cid)]);
+    const myName = short(me && me.name, 40);
     if (!c || !(c.members || []).includes(uid)) return 403;
-    const to = [];
-    for (const u of (c.members || []).filter(x => x !== uid)) {
-      if (!(await fsGet(env, tok, `blocks/${u}_${uid}`))) to.push(u); // хүлээн авагч илгээгчийг блоклоогүй
-    }
+    const members = (c.members || []).filter(x => x !== uid);
+    const blocked = await Promise.all(members.map(u => fsGet(env, tok, `blocks/${u}_${uid}`)));
+    const to = members.filter((_, i) => !blocked[i]); // хүлээн авагч илгээгчийг блоклоогүй
     const title = c.group ? short(c.name, 40) : myName;
     const body = (c.group ? short(myName, 30) + ': ' : '') + short(b.preview, 120);
     await push(env, tok, to, {type: 'msg', title: '✉ ' + title, body, tag: 'chat-' + cid, url: './index.html'}, 3600);
