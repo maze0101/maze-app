@@ -160,6 +160,18 @@ export default {
     };
     if (req.method === 'OPTIONS') return new Response(null, {status: 204, headers: cors});
     if (req.method !== 'POST') return new Response('maze-push ok', {headers: cors});
+    // /turn: нэвтэрсэн хэрэглэгчид Cloudflare TURN-ийн түр (24 цаг) нэвтрэх эрх олгоно.
+    // Тохиргоо: dashboard → Realtime → TURN Server → Create → `wrangler secret put TURN_KEY_ID`, `wrangler secret put TURN_KEY_TOKEN`
+    if (new URL(req.url).pathname === '/turn') {
+      const json = (o, status = 200) => new Response(JSON.stringify(o), {status, headers: {...cors, 'Content-Type': 'application/json'}});
+      if (!env.TURN_KEY_ID || !env.TURN_KEY_TOKEN) return json({error: 'turn not configured'}, 503);
+      try { await verifyIdToken((req.headers.get('Authorization') || '').replace(/^Bearer /, ''), env.PROJECT_ID); } catch (e) { return json({error: 'bad token'}, 401); }
+      const r = await fetch(`https://rtc.live.cloudflare.com/v1/turn/keys/${env.TURN_KEY_ID}/credentials/generate-ice-servers`, {
+        method: 'POST', headers: {Authorization: 'Bearer ' + env.TURN_KEY_TOKEN, 'Content-Type': 'application/json'}, body: JSON.stringify({ttl: 86400}),
+      });
+      if (!r.ok) return json({error: 'turn ' + r.status}, 502);
+      return json(await r.json());
+    }
     let status = 500;
     try { status = await handle(req, env); } catch (e) { status = /token|alg|kid/.test(e.message) ? 401 : 500; }
     return new Response(null, {status, headers: cors});

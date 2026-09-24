@@ -10,6 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0A0A12">
+<meta name="color-scheme" content="light dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="MAZE APP">
@@ -29,7 +30,11 @@
   --display:'Unbounded',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --body:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   box-sizing:border-box;
+  /* Апп өөрөө өнгийг бүрэн удирддаг тул хөтчийн/төхөөрөмжийн "force dark" авто-хөрвүүлэлтийг унтраана — эс тэгвээс android дээр зарим элемент (жишээ нь мессеж/найзын мөр) бүрэн хараар дарагдаж, агуулга үл үзэгдэх алдаа гардаг */
+  color-scheme:light dark;
 }
+:root[data-theme="light"]{color-scheme:light}
+:root[data-theme="dark"]{color-scheme:dark}
 /* Aurora харанхуй горим */
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -154,7 +159,6 @@ html,body{touch-action:manipulation}
 /* profile */
 .cover{height:150px;overflow:hidden;margin:0 14px;border-radius:var(--r);position:relative;background:var(--line)}
 .cover svg,.cover>img{width:100%;height:100%;display:block;object-fit:cover}
-.covedit{position:absolute;right:10px;bottom:10px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;display:grid;place-items:center;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .pinfo{background:transparent;padding:0 18px 16px}
 .pinfo .av{margin-top:-48px;display:block;height:92px;position:relative;margin-left:10px}
 .pav{display:block;width:var(--s);height:var(--s);border-radius:26%;overflow:hidden;background:var(--surface);border:3px solid var(--bg);box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:zoom-in;transition:transform .2s}
@@ -226,6 +230,23 @@ html,body{touch-action:manipulation}
 .cscrim{position:absolute;inset:0;background:rgba(0,0,0,.25);z-index:0}
 .cinfo.center{left:0;right:0;top:auto;bottom:38%;align-items:center;text-align:center}
 .cinfo.center b{font-size:22px}
+.call.gc{background:#05070E}
+.gg{position:absolute;inset:calc(64px + env(safe-area-inset-top,0px)) 8px calc(112px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;grid-template-columns:1fr;grid-auto-rows:1fr}
+.gg[data-n="3"],.gg[data-n="4"]{grid-template-columns:1fr 1fr}
+.gg[data-n="5"],.gg[data-n="6"],.gg[data-n="7"],.gg[data-n="8"]{grid-template-columns:1fr 1fr}
+.gt{position:relative;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#1b2a55,#0b1020 75%);min-height:0}
+.gt video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.gt video.me{transform:scaleX(-1)}
+.gt.nov video,.call.audio .gt video{opacity:0}
+.gav{position:absolute;inset:0;display:grid;place-items:center}
+.gn{position:absolute;left:8px;bottom:8px;font-size:12px;padding:3px 8px;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gg[data-f]:not([data-f=""]){grid-template-columns:1fr}
+.gg[data-f]:not([data-f=""]) .gt:not(.f){display:none}
+.gt.f video,.gt.sc video{object-fit:contain;background:#000}
+.gt video.scr{transform:none;object-fit:contain;background:#000}
+.mlink{position:absolute;top:calc(18px + env(safe-area-inset-top,0px));right:14px;z-index:3;display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:18px;background:rgba(255,255,255,.18);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;font-size:13px;font-weight:600}
+.mrow{display:flex;align-items:center;gap:4px}
+.gjoin{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:18px;background:var(--green);color:#fff;font-weight:600;font-size:13px}
 .crow{display:flex;gap:10px}.crow .btn{flex:1;padding:13px}
 .ph .del+.del{margin-left:0}
 .ph [data-a="user"]{cursor:pointer}
@@ -241,6 +262,7 @@ html,body{touch-action:manipulation}
 .mw.them{align-self:flex-start;align-items:flex-start}
 .mline{display:flex;align-items:center;gap:4px;max-width:100%}
 .mw.me .mline{flex-direction:row-reverse}
+.mav{display:none}
 .mline .b{align-self:auto;max-width:100%}
 .mrxb{color:var(--mute);opacity:.55;padding:4px;border-radius:50%;flex:none}
 .mrxb:hover{opacity:1}
@@ -326,6 +348,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .tabs2 button{padding:7px 16px;border-radius:999px;border:1px solid var(--line);color:var(--mute);font-weight:600;font-size:13px}
 .tabs2 button.on{background:var(--grad);color:#fff;border-color:transparent}
 .ht{color:var(--sky);cursor:pointer;font-weight:500}
+.b .ht{color:inherit;text-decoration:underline}
 .igrid{margin-top:12px;display:grid;gap:2px;overflow:hidden;background:var(--line)}
 .igrid.n2{grid-template-columns:1fr 1fr;aspect-ratio:5/3}
 .igrid.n3{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;aspect-ratio:5/3}.igrid.n3 img:first-child{grid-row:span 2}
@@ -457,241 +480,49 @@ body{letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
 :root[data-style="card"] .chip,:root[data-style="card"] .tabs2 button{border-color:transparent;background:var(--surface);box-shadow:var(--shadow)}
 :root[data-style="card"] .tabs2 button.on{background:var(--grad)}
 
-/* ===== Загвар "Нутаг" (үндсэн): дулаан цаас, хавтгай хэвлэлийн маяг, дугуй аватар ===== */
-:root[data-style="nomad"]{--bg:#F3EEE3;--surface:#FBF8F1;--ink:#1D1B16;--mute:#7C7565;--line:#E1D8C6;--dune:#C8912B;--sky:#1E48C8;--green:#2E9E6B;--like:#D2453D;--bubble-me:#1E48C8;--bubble-them:#E8E0CE;--glass:#F3EEE3;--glow:none;--grad:linear-gradient(#1E48C8,#1E48C8);--ring:conic-gradient(#C8912B,#D2453D,#1E48C8,#C8912B);--r:6px;--shadow:none;--display:'Unbounded','Montserrat',system-ui,sans-serif;--body:'Manrope','Montserrat',system-ui,sans-serif}
-@media (prefers-color-scheme:dark){:root[data-style="nomad"]:not([data-theme="light"]){--bg:#12100D;--surface:#1B1813;--ink:#F2EBDB;--mute:#A0967F;--line:#2C2720;--dune:#E4B15A;--sky:#7C97FF;--green:#5FD39B;--like:#FF6B62;--bubble-me:#3F5FE0;--bubble-them:#262119;--glass:#12100D;--glow:none;--grad:linear-gradient(#3F5FE0,#3F5FE0);--ring:conic-gradient(#E4B15A,#FF6B62,#7C97FF,#E4B15A)}}
-:root[data-style="nomad"][data-theme="dark"]{--bg:#12100D;--surface:#1B1813;--ink:#F2EBDB;--mute:#A0967F;--line:#2C2720;--dune:#E4B15A;--sky:#7C97FF;--green:#5FD39B;--like:#FF6B62;--bubble-me:#3F5FE0;--bubble-them:#262119;--glass:#12100D;--glow:none;--grad:linear-gradient(#3F5FE0,#3F5FE0);--ring:conic-gradient(#E4B15A,#FF6B62,#7C97FF,#E4B15A)}
-:root[data-style="nomad"] body{font-family:var(--body);font-size:15.5px}
-:root[data-style="nomad"] #app::before{display:none}
-:root[data-style="nomad"] #hd{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom:1px solid var(--line)}
-:root[data-style="nomad"] .logo{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--ink);font-weight:500;font-size:17px;letter-spacing:.02em}
-:root[data-style="nomad"] .logo svg path{stroke:var(--sky)}
-:root[data-style="nomad"] #nav{margin:0;border:0;border-top:1px solid var(--line);border-radius:0;background:var(--bg);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0}
-:root[data-style="nomad"] #nav button{border-radius:0;padding:11px 0 10px;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
-:root[data-style="nomad"] #nav button.on{background:transparent;box-shadow:inset 0 2px 0 var(--ink);color:var(--ink)}
-:root[data-style="nomad"] #nav button.on svg{color:var(--ink);filter:none}
-:root[data-style="nomad"] .card,:root[data-style="nomad"] .post,:root[data-style="nomad"] .row,:root[data-style="nomad"] .stats>*{background:transparent;box-shadow:none;border-radius:0;border-width:0 0 1px;border-color:var(--line);margin-left:0;margin-right:0}
-:root[data-style="nomad"] .post{margin-top:0;margin-bottom:0;padding:18px 0 6px}
-:root[data-style="nomad"] .ph,:root[data-style="nomad"] .post p,:root[data-style="nomad"] .pa{padding-left:18px;padding-right:18px}
-:root[data-style="nomad"] .post p{margin-left:18px;margin-right:18px;font-size:16px;line-height:1.6}
-:root[data-style="nomad"] .art,:root[data-style="nomad"] .igrid{margin:14px 18px 0;border-radius:4px}
-:root[data-style="nomad"] .composer{padding:16px 18px;background:var(--surface)}
-:root[data-style="nomad"] .row{width:100%;padding:14px 18px}
-:root[data-style="nomad"] .stats{gap:0;margin:16px 0;border:1px solid var(--line)}
-:root[data-style="nomad"] .stats>*{border-width:0;border-right:1px solid var(--line);padding:14px 16px}
-:root[data-style="nomad"] .stats>*:last-child{border-right:0}
-:root[data-style="nomad"] .stats b{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--ink);font-size:22px;font-family:var(--display);font-weight:500}
-:root[data-style="nomad"] .sec{font-family:var(--body);font-weight:800;letter-spacing:.14em;font-size:11px;color:var(--mute);border-top:1px solid var(--line);margin-top:6px}
-:root[data-style="nomad"] .btn{border-radius:4px;box-shadow:none;background:var(--ink);color:var(--bg);font-weight:700;letter-spacing:.02em}
-:root[data-style="nomad"] .btn.line{background:transparent;color:var(--ink);border:1px solid var(--ink)}
-:root[data-style="nomad"] .btn.ghost{color:var(--ink);border-color:var(--ink)}
-:root[data-style="nomad"] .ib{border-radius:50%;background:transparent;border-color:transparent}
-:root[data-style="nomad"] .chip,:root[data-style="nomad"] .search,:root[data-style="nomad"] .cmf input,:root[data-style="nomad"] .mf input{border-radius:4px;background:var(--surface);color:var(--ink)}
-:root[data-style="nomad"] .tabs2{gap:20px;padding:6px 18px 0;border-bottom:1px solid var(--line)}
-:root[data-style="nomad"] .tabs2 button{border:0;border-radius:0;padding:10px 0;background:transparent;color:var(--mute);font-weight:700;letter-spacing:.04em}
-:root[data-style="nomad"] .tabs2 button.on{background:transparent;color:var(--ink);box-shadow:inset 0 -2px 0 var(--ink)}
-:root[data-style="nomad"] .pa button{border-radius:4px;padding:9px 12px}
-:root[data-style="nomad"] .pa button.liked{filter:none}
-:root[data-style="nomad"] .b{border-radius:4px;padding:10px 14px}
-:root[data-style="nomad"] .b.me{background:var(--bubble-me);color:#fff;box-shadow:none;border-bottom-right-radius:4px}
-:root[data-style="nomad"] .b.them{background:var(--bubble-them);color:var(--ink);border-bottom-left-radius:4px}
-:root[data-style="nomad"] .mf{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none;border-top:1px solid var(--line)}
-:root[data-style="nomad"] .sheet{border-radius:12px 12px 0 0;background:var(--bg);box-shadow:none;border-color:var(--ink)}
-:root[data-style="nomad"] .badge{box-shadow:none;background:var(--like)}
-:root[data-style="nomad"] .unread{background:var(--ink);color:var(--bg)}
-:root[data-style="nomad"] .dot{box-shadow:none}
-:root[data-style="nomad"] h2,:root[data-style="nomad"] h3,:root[data-style="nomad"] .title{font-family:var(--display);font-weight:500;letter-spacing:-.01em}
-/* дугуй аватар */
-:root[data-style="nomad"] .hx{height:var(--s);clip-path:circle(50% at 50% 50%)}
-:root[data-style="nomad"] .hx-a{inset:calc(var(--s)*.045);clip-path:circle(50% at 50% 50%)}
-:root[data-style="nomad"] .hx-b{inset:calc(var(--s)*.09);clip-path:circle(50% at 50% 50%)}
-:root[data-style="nomad"] .st .plus i{background:var(--ink);color:var(--bg);box-shadow:none}
-:root[data-style="nomad"] .cover{margin:0;border-radius:0;height:120px}
-
-/* ===== Загвар "Поп": пастел, том дугуй, өнгөлөг ===== */
-:root[data-style="pop"]{--bg:#F1EDFF;--surface:#FFFFFF;--ink:#2A2350;--mute:#8A82B5;--line:#E4DEFA;--dune:#FFB84D;--sky:#7A5CFF;--green:#22C993;--like:#FF5C93;--bubble-me:linear-gradient(135deg,#8A6BFF,#FF6FB1);--bubble-them:#FFFFFF;--glass:rgba(241,237,255,.85);--glow:0 10px 24px -8px rgba(122,92,255,.5);--grad:linear-gradient(135deg,#8A6BFF,#FF6FB1);--ring:conic-gradient(#FFB84D,#FF5C93,#7A5CFF,#22C993,#FFB84D);--r:30px;--shadow:0 12px 28px -14px rgba(90,60,200,.35)}
-@media (prefers-color-scheme:dark){:root[data-style="pop"]:not([data-theme="light"]){--bg:#17132B;--surface:#221C3F;--ink:#F3EFFF;--mute:#A79FD6;--line:#302853;--dune:#FFC766;--sky:#A28BFF;--green:#4BE3B0;--like:#FF74A6;--bubble-me:linear-gradient(135deg,#8A6BFF,#FF6FB1);--bubble-them:#2C2450;--glass:rgba(23,19,43,.85);--glow:0 10px 24px -8px rgba(162,139,255,.5);--grad:linear-gradient(135deg,#8A6BFF,#FF6FB1);--ring:conic-gradient(#FFC766,#FF74A6,#A28BFF,#4BE3B0,#FFC766);--shadow:0 12px 28px -14px rgba(0,0,0,.6)}}
-:root[data-style="pop"][data-theme="dark"]{--bg:#17132B;--surface:#221C3F;--ink:#F3EFFF;--mute:#A79FD6;--line:#302853;--dune:#FFC766;--sky:#A28BFF;--green:#4BE3B0;--like:#FF74A6;--bubble-me:linear-gradient(135deg,#8A6BFF,#FF6FB1);--bubble-them:#2C2450;--glass:rgba(23,19,43,.85);--glow:0 10px 24px -8px rgba(162,139,255,.5);--grad:linear-gradient(135deg,#8A6BFF,#FF6FB1);--ring:conic-gradient(#FFC766,#FF74A6,#A28BFF,#4BE3B0,#FFC766);--shadow:0 12px 28px -14px rgba(0,0,0,.6)}
-:root[data-style="pop"] #app::before{background:radial-gradient(closest-side,rgba(255,111,177,.28),transparent),radial-gradient(closest-side at 80% 30%,rgba(122,92,255,.25),transparent)}
-:root[data-style="pop"] #hd{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom:0}
-:root[data-style="pop"] .logo{font-weight:700}
-:root[data-style="pop"] #nav{border-radius:999px;margin:0 16px 14px;background:var(--surface);border-color:transparent;box-shadow:var(--shadow);padding:6px}
-:root[data-style="pop"] #nav button{border-radius:999px}
-:root[data-style="pop"] #nav button.on{background:var(--grad);color:#fff;box-shadow:var(--glow)}
-:root[data-style="pop"] #nav button.on svg{color:#fff;filter:none}
-:root[data-style="pop"] .card,:root[data-style="pop"] .post,:root[data-style="pop"] .row,:root[data-style="pop"] .stats>*{background:var(--surface);border-color:transparent;box-shadow:var(--shadow)}
-:root[data-style="pop"] .post{margin:16px 14px;padding-top:18px}
-:root[data-style="pop"] .row{border-radius:26px;padding:14px 16px;margin-bottom:12px}
-:root[data-style="pop"] .art,:root[data-style="pop"] .igrid{margin:14px 14px 0;border-radius:24px;overflow:hidden}
-:root[data-style="pop"] .btn{border-radius:999px;padding:12px 24px;font-weight:700;box-shadow:var(--glow)}
-:root[data-style="pop"] .btn.line{background:var(--surface);color:var(--ink);border-color:var(--line);box-shadow:none}
-:root[data-style="pop"] .ib{border-radius:50%;background:var(--surface);border-color:transparent;box-shadow:var(--shadow)}
-:root[data-style="pop"] .chip,:root[data-style="pop"] .search,:root[data-style="pop"] .cmf input,:root[data-style="pop"] .mf input{border-color:transparent;background:var(--surface);box-shadow:var(--shadow);border-radius:999px}
-:root[data-style="pop"] .tabs2 button{border-color:transparent;background:var(--surface);box-shadow:var(--shadow);color:var(--mute)}
-:root[data-style="pop"] .tabs2 button.on{background:var(--grad);color:#fff}
-:root[data-style="pop"] .pa button{border-radius:999px}
-:root[data-style="pop"] .pa button.liked{filter:none;background:color-mix(in srgb,var(--like) 14%,transparent)}
-:root[data-style="pop"] .b{border-radius:24px;padding:11px 16px}
-:root[data-style="pop"] .b.me{border-bottom-right-radius:8px;box-shadow:var(--glow)}
-:root[data-style="pop"] .b.them{background:var(--bubble-them);border-bottom-left-radius:8px;box-shadow:var(--shadow)}
-:root[data-style="pop"] .mf{background:var(--surface);border-radius:999px;margin:0 12px 10px;border-top:0;box-shadow:var(--shadow);-webkit-backdrop-filter:none;backdrop-filter:none}
-:root[data-style="pop"] .mf input{box-shadow:none;background:transparent}
-:root[data-style="pop"] .sheet{border-radius:38px 38px 0 0;background:var(--surface);box-shadow:0 -20px 60px rgba(70,40,180,.35)}
-:root[data-style="pop"] .stats>*{border-radius:26px}
-:root[data-style="pop"] .cover{border-radius:30px}
-:root[data-style="pop"] .unread{background:var(--like)}
-:root[data-style="pop"] .sec{color:var(--sky);letter-spacing:.1em}
-
-/* ===== Нэмэлт загварууд ===== */
-:root[data-style="neon"]{--bg:#EFFFF8;--surface:#FFFFFF;--ink:#06231A;--mute:#4B7A68;--line:#BFEBD8;--sky:#00A86B;--green:#00A86B;--like:#E0245E;--dune:#C99A00;--bubble-me:linear-gradient(135deg,#00A86B,#0091C7);--bubble-them:#FFFFFF;--glass:#EFFFF8;--grad:linear-gradient(135deg,#00A86B,#0091C7);--ring:conic-gradient(#C99A00,#E0245E,#00A86B,#0091C7,#C99A00);--on:#FFFFFF;--r:4px;--shadow:none;--glow:0 0 22px #00FFA366}
-@media (prefers-color-scheme:dark){:root[data-style="neon"]:not([data-theme="light"]){--bg:#05060A;--surface:#0C0F18;--ink:#E9FFF4;--mute:#6E8A80;--line:#15302A;--sky:#00FFA3;--green:#00FFA3;--like:#FF3D81;--dune:#FFE14D;--bubble-me:linear-gradient(135deg,#00FFA3,#00C2FF);--bubble-them:#0C0F18;--glass:#05060A;--grad:linear-gradient(135deg,#00FFA3,#00C2FF);--ring:conic-gradient(#FFE14D,#FF3D81,#00FFA3,#00C2FF,#FFE14D);--on:#03130C}}
-:root[data-style="neon"][data-theme="dark"]{--bg:#05060A;--surface:#0C0F18;--ink:#E9FFF4;--mute:#6E8A80;--line:#15302A;--sky:#00FFA3;--green:#00FFA3;--like:#FF3D81;--dune:#FFE14D;--bubble-me:linear-gradient(135deg,#00FFA3,#00C2FF);--bubble-them:#0C0F18;--glass:#05060A;--grad:linear-gradient(135deg,#00FFA3,#00C2FF);--ring:conic-gradient(#FFE14D,#FF3D81,#00FFA3,#00C2FF,#FFE14D);--on:#03130C}
-:root[data-style="neon"] #app::before{display:none}
-:root[data-style="neon"] #hd,:root[data-style="neon"] .mf{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}
-:root[data-style="neon"] #hd{border-bottom:1px solid var(--line)}
-:root[data-style="neon"] .btn{border-radius:6px;box-shadow:none;color:var(--on);font-weight:700}
-:root[data-style="neon"] .btn.line{background:transparent;color:var(--ink);border:1px solid var(--sky);box-shadow:none}
-:root[data-style="neon"] .b.me{color:var(--on);border-radius:4px}
-:root[data-style="neon"] .b.them{background:var(--bubble-them);color:var(--ink);border-radius:4px}
-:root[data-style="neon"] .tabs2 button.on,:root[data-style="neon"] .unread{color:var(--on)}
-:root[data-style="neon"] .logo,:root[data-style="neon"] .stats b{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--sky)}
-:root[data-style="neon"] .sec{color:var(--sky)}
-:root[data-style="neon"] .ib,:root[data-style="neon"] .chip,:root[data-style="neon"] .search,:root[data-style="neon"] .cmf input,:root[data-style="neon"] .mf input{border-radius:4px}
-:root[data-style="neon"] #nav{margin:0;border:0;border-top:1px solid var(--line);border-radius:0;background:var(--bg);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0}
-:root[data-style="neon"] #nav button{border-radius:0}
-:root[data-style="neon"] #nav button.on{background:transparent;box-shadow:inset 0 2px 0 var(--sky);color:var(--sky)}
-:root[data-style="neon"] #nav button.on svg{color:var(--sky);filter:drop-shadow(0 0 6px var(--sky))}
-:root[data-style="neon"] .card,:root[data-style="neon"] .post,:root[data-style="neon"] .row,:root[data-style="neon"] .stats>*{background:var(--surface);border:1px solid var(--line);border-radius:4px;box-shadow:0 0 0 1px #00FFA322}
-:root[data-style="neon"] .post{margin:10px 12px}:root[data-style="neon"] .row{margin-bottom:8px}
-:root[data-style="neon"] .sheet{border-radius:4px 4px 0 0;background:var(--bg);border-color:var(--sky)}
-:root[data-style="neon"] .tabs2 button{border-radius:6px;border-color:var(--line);background:transparent}
-:root[data-style="neon"] .tabs2 button.on{background:var(--sky);border-color:var(--sky)}
-:root[data-style="ocean"]{--bg:#E9F6FB;--surface:#FFFFFF;--ink:#0A2A3A;--mute:#5A8397;--line:#CBE5EF;--sky:#0C8FCF;--green:#0EB98E;--like:#E5476B;--dune:#E0A020;--bubble-me:linear-gradient(135deg,#0C8FCF,#0EB98E);--bubble-them:#FFFFFF;--glass:#E9F6FB;--grad:linear-gradient(135deg,#0C8FCF,#0EB98E);--ring:conic-gradient(#E0A020,#E5476B,#0C8FCF,#0EB98E,#E0A020);--on:#FFFFFF;--r:26px;--shadow:0 12px 28px -14px rgba(0,0,0,.28);--glow:0 10px 24px -10px #0C8FCF99}
-@media (prefers-color-scheme:dark){:root[data-style="ocean"]:not([data-theme="light"]){--bg:#06141D;--surface:#0C2230;--ink:#E6F6FF;--mute:#7FA4B8;--line:#15384B;--sky:#2EC4FF;--green:#1FE0B5;--like:#FF6B8B;--dune:#FFD166;--bubble-me:linear-gradient(135deg,#2EC4FF,#1FE0B5);--bubble-them:#0C2230;--glass:#06141D;--grad:linear-gradient(135deg,#2EC4FF,#1FE0B5);--ring:conic-gradient(#FFD166,#FF6B8B,#2EC4FF,#1FE0B5,#FFD166);--on:#04222E}}
-:root[data-style="ocean"][data-theme="dark"]{--bg:#06141D;--surface:#0C2230;--ink:#E6F6FF;--mute:#7FA4B8;--line:#15384B;--sky:#2EC4FF;--green:#1FE0B5;--like:#FF6B8B;--dune:#FFD166;--bubble-me:linear-gradient(135deg,#2EC4FF,#1FE0B5);--bubble-them:#0C2230;--glass:#06141D;--grad:linear-gradient(135deg,#2EC4FF,#1FE0B5);--ring:conic-gradient(#FFD166,#FF6B8B,#2EC4FF,#1FE0B5,#FFD166);--on:#04222E}
-:root[data-style="ocean"] #app::before{display:none}
-:root[data-style="ocean"] #hd,:root[data-style="ocean"] .mf{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}
-:root[data-style="ocean"] #hd{border-bottom:1px solid var(--line)}
-:root[data-style="ocean"] .btn{border-radius:999px;color:var(--on);font-weight:700}
-:root[data-style="ocean"] .btn.line{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none}
-:root[data-style="ocean"] .b.me{color:var(--on);border-radius:22px}
-:root[data-style="ocean"] .b.them{background:var(--bubble-them);color:var(--ink);border-radius:22px}
-:root[data-style="ocean"] .tabs2 button.on,:root[data-style="ocean"] .unread{color:var(--on)}
-:root[data-style="ocean"] .logo,:root[data-style="ocean"] .stats b{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--sky)}
-:root[data-style="ocean"] .sec{color:var(--sky)}
-:root[data-style="ocean"] .ib,:root[data-style="ocean"] .chip,:root[data-style="ocean"] .search,:root[data-style="ocean"] .cmf input,:root[data-style="ocean"] .mf input{border-radius:999px}
-:root[data-style="ocean"] #nav{border-radius:999px;margin:0 16px 14px;background:var(--surface);border-color:transparent;box-shadow:var(--shadow);padding:6px}
-:root[data-style="ocean"] #nav button{border-radius:999px}
-:root[data-style="ocean"] #nav button.on{background:var(--grad);color:var(--on);box-shadow:var(--glow)}
-:root[data-style="ocean"] #nav button.on svg{color:var(--on);filter:none}
-:root[data-style="ocean"] .card,:root[data-style="ocean"] .post,:root[data-style="ocean"] .row,:root[data-style="ocean"] .stats>*{background:var(--surface);border-color:transparent;box-shadow:var(--shadow)}
-:root[data-style="ocean"] .post{margin:14px}:root[data-style="ocean"] .row{border-radius:24px;margin-bottom:10px}
-:root[data-style="ocean"] .sheet{border-radius:34px 34px 0 0;background:var(--surface)}
-:root[data-style="ocean"] .mf{border-radius:999px;margin:0 12px 10px;background:var(--surface);border-top:0;box-shadow:var(--shadow)}
-:root[data-style="ocean"] .mf input{background:transparent}
-:root[data-style="retro"]{--bg:#F2EFE0;--surface:#FBF9EE;--ink:#2A2A1F;--mute:#7B7A62;--line:#D8D4B8;--sky:#2F6B2A;--green:#2F6B2A;--like:#B4451F;--dune:#9A7400;--bubble-me:#2F6B2A;--bubble-them:#FBF9EE;--glass:#F2EFE0;--grad:linear-gradient(#2F6B2A,#2F6B2A);--ring:conic-gradient(#9A7400,#B4451F,#2F6B2A,#2F6B2A,#9A7400);--on:#FBF9EE;--r:0px;--shadow:none;--glow:none;--display:ui-monospace,Menlo,Consolas,monospace;--body:ui-monospace,Menlo,Consolas,monospace}
-@media (prefers-color-scheme:dark){:root[data-style="retro"]:not([data-theme="light"]){--bg:#0A0D08;--surface:#10150D;--ink:#B7F5A0;--mute:#6B9160;--line:#243019;--sky:#7CFF4D;--green:#7CFF4D;--like:#FF7A4D;--dune:#FFD24D;--bubble-me:#7CFF4D;--bubble-them:#10150D;--glass:#0A0D08;--grad:linear-gradient(#7CFF4D,#7CFF4D);--ring:conic-gradient(#FFD24D,#FF7A4D,#7CFF4D,#7CFF4D,#FFD24D);--on:#0A1405}}
-:root[data-style="retro"][data-theme="dark"]{--bg:#0A0D08;--surface:#10150D;--ink:#B7F5A0;--mute:#6B9160;--line:#243019;--sky:#7CFF4D;--green:#7CFF4D;--like:#FF7A4D;--dune:#FFD24D;--bubble-me:#7CFF4D;--bubble-them:#10150D;--glass:#0A0D08;--grad:linear-gradient(#7CFF4D,#7CFF4D);--ring:conic-gradient(#FFD24D,#FF7A4D,#7CFF4D,#7CFF4D,#FFD24D);--on:#0A1405}
-:root[data-style="retro"] #app::before{display:none}
-:root[data-style="retro"] #hd,:root[data-style="retro"] .mf{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}
-:root[data-style="retro"] #hd{border-bottom:1px solid var(--line)}
-:root[data-style="retro"] .btn{border-radius:0;box-shadow:none;color:var(--on);font-weight:700}
-:root[data-style="retro"] .btn.line{background:transparent;color:var(--ink);border:1px solid var(--sky);box-shadow:none}
-:root[data-style="retro"] .b.me{color:var(--on);border-radius:0px}
-:root[data-style="retro"] .b.them{background:var(--bubble-them);color:var(--ink);border-radius:0px}
-:root[data-style="retro"] .tabs2 button.on,:root[data-style="retro"] .unread{color:var(--on)}
-:root[data-style="retro"] .logo,:root[data-style="retro"] .stats b{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--sky)}
-:root[data-style="retro"] .sec{color:var(--sky)}
-:root[data-style="retro"] .ib,:root[data-style="retro"] .chip,:root[data-style="retro"] .search,:root[data-style="retro"] .cmf input,:root[data-style="retro"] .mf input{border-radius:0px}
-:root[data-style="retro"] #nav{margin:0;border:0;border-top:1px solid var(--line);border-radius:0;background:var(--bg);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0}
-:root[data-style="retro"] #nav button{border-radius:0}
-:root[data-style="retro"] #nav button.on{background:transparent;box-shadow:inset 0 2px 0 var(--sky);color:var(--sky)}
-:root[data-style="retro"] #nav button.on svg{color:var(--sky);filter:none}
-:root[data-style="retro"] .card,:root[data-style="retro"] .post,:root[data-style="retro"] .row,:root[data-style="retro"] .stats>*{background:var(--surface);border:1px solid var(--line);border-radius:0px;box-shadow:none}
-:root[data-style="retro"] .post{margin:10px 12px}:root[data-style="retro"] .row{margin-bottom:8px}
-:root[data-style="retro"] .sheet{border-radius:0px 0px 0 0;background:var(--bg);border-color:var(--sky)}
-:root[data-style="retro"] .tabs2 button{border-radius:0;border-color:var(--line);background:transparent}
-:root[data-style="retro"] .tabs2 button.on{background:var(--sky);border-color:var(--sky)}
-:root[data-style="retro"] .hx{height:var(--s);clip-path:none;border-radius:0}:root[data-style="retro"] .hx-a,:root[data-style="retro"] .hx-b{clip-path:none;border-radius:0;inset:2px}
-:root[data-style="sakura"]{--bg:#FFF3F7;--surface:#FFFFFF;--ink:#3B1E2A;--mute:#A6788B;--line:#F6D7E2;--sky:#E8578B;--green:#2EB58A;--like:#E8578B;--dune:#DE9B24;--bubble-me:linear-gradient(135deg,#E8578B,#F28B6E);--bubble-them:#FFFFFF;--glass:#FFF3F7;--grad:linear-gradient(135deg,#E8578B,#F28B6E);--ring:conic-gradient(#DE9B24,#E8578B,#E8578B,#F28B6E,#DE9B24);--on:#FFFFFF;--r:26px;--shadow:0 12px 28px -14px rgba(0,0,0,.28);--glow:0 10px 24px -10px #E8578B99}
-@media (prefers-color-scheme:dark){:root[data-style="sakura"]:not([data-theme="light"]){--bg:#1C1116;--surface:#2A1A22;--ink:#FFE9F1;--mute:#C79AAE;--line:#42232F;--sky:#FF8FB5;--green:#7EE0B0;--like:#FF8FB5;--dune:#FFC978;--bubble-me:linear-gradient(135deg,#FF8FB5,#FFB199);--bubble-them:#2A1A22;--glass:#1C1116;--grad:linear-gradient(135deg,#FF8FB5,#FFB199);--ring:conic-gradient(#FFC978,#FF8FB5,#FF8FB5,#FFB199,#FFC978);--on:#2A0F1A}}
-:root[data-style="sakura"][data-theme="dark"]{--bg:#1C1116;--surface:#2A1A22;--ink:#FFE9F1;--mute:#C79AAE;--line:#42232F;--sky:#FF8FB5;--green:#7EE0B0;--like:#FF8FB5;--dune:#FFC978;--bubble-me:linear-gradient(135deg,#FF8FB5,#FFB199);--bubble-them:#2A1A22;--glass:#1C1116;--grad:linear-gradient(135deg,#FF8FB5,#FFB199);--ring:conic-gradient(#FFC978,#FF8FB5,#FF8FB5,#FFB199,#FFC978);--on:#2A0F1A}
-:root[data-style="sakura"] #app::before{display:none}
-:root[data-style="sakura"] #hd,:root[data-style="sakura"] .mf{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}
-:root[data-style="sakura"] #hd{border-bottom:1px solid var(--line)}
-:root[data-style="sakura"] .btn{border-radius:999px;color:var(--on);font-weight:700}
-:root[data-style="sakura"] .btn.line{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none}
-:root[data-style="sakura"] .b.me{color:var(--on);border-radius:22px}
-:root[data-style="sakura"] .b.them{background:var(--bubble-them);color:var(--ink);border-radius:22px}
-:root[data-style="sakura"] .tabs2 button.on,:root[data-style="sakura"] .unread{color:var(--on)}
-:root[data-style="sakura"] .logo,:root[data-style="sakura"] .stats b{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--sky)}
-:root[data-style="sakura"] .sec{color:var(--sky)}
-:root[data-style="sakura"] .ib,:root[data-style="sakura"] .chip,:root[data-style="sakura"] .search,:root[data-style="sakura"] .cmf input,:root[data-style="sakura"] .mf input{border-radius:999px}
-:root[data-style="sakura"] #nav{border-radius:999px;margin:0 16px 14px;background:var(--surface);border-color:transparent;box-shadow:var(--shadow);padding:6px}
-:root[data-style="sakura"] #nav button{border-radius:999px}
-:root[data-style="sakura"] #nav button.on{background:var(--grad);color:var(--on);box-shadow:var(--glow)}
-:root[data-style="sakura"] #nav button.on svg{color:var(--on);filter:none}
-:root[data-style="sakura"] .card,:root[data-style="sakura"] .post,:root[data-style="sakura"] .row,:root[data-style="sakura"] .stats>*{background:var(--surface);border-color:transparent;box-shadow:var(--shadow)}
-:root[data-style="sakura"] .post{margin:14px}:root[data-style="sakura"] .row{border-radius:24px;margin-bottom:10px}
-:root[data-style="sakura"] .sheet{border-radius:34px 34px 0 0;background:var(--surface)}
-:root[data-style="sakura"] .mf{border-radius:999px;margin:0 12px 10px;background:var(--surface);border-top:0;box-shadow:var(--shadow)}
-:root[data-style="sakura"] .mf input{background:transparent}
-:root[data-style="amber"]{--bg:#FFF6E5;--surface:#FFFFFF;--ink:#3A2610;--mute:#9A7B50;--line:#F3DEB6;--sky:#E8890C;--green:#2FA765;--like:#D8433F;--dune:#C8890B;--bubble-me:linear-gradient(135deg,#E8890C,#E5532A);--bubble-them:#FFFFFF;--glass:#FFF6E5;--grad:linear-gradient(135deg,#E8890C,#E5532A);--ring:conic-gradient(#C8890B,#D8433F,#E8890C,#E5532A,#C8890B);--on:#FFFFFF;--r:26px;--shadow:0 12px 28px -14px rgba(0,0,0,.28);--glow:0 10px 24px -10px #E8890C99}
-@media (prefers-color-scheme:dark){:root[data-style="amber"]:not([data-theme="light"]){--bg:#15100A;--surface:#211A10;--ink:#FFF1D9;--mute:#B79E76;--line:#38291A;--sky:#FFA726;--green:#7FD99A;--like:#FF6B6B;--dune:#FFCB47;--bubble-me:linear-gradient(135deg,#FFA726,#FF6F3C);--bubble-them:#211A10;--glass:#15100A;--grad:linear-gradient(135deg,#FFA726,#FF6F3C);--ring:conic-gradient(#FFCB47,#FF6B6B,#FFA726,#FF6F3C,#FFCB47);--on:#1E1100}}
-:root[data-style="amber"][data-theme="dark"]{--bg:#15100A;--surface:#211A10;--ink:#FFF1D9;--mute:#B79E76;--line:#38291A;--sky:#FFA726;--green:#7FD99A;--like:#FF6B6B;--dune:#FFCB47;--bubble-me:linear-gradient(135deg,#FFA726,#FF6F3C);--bubble-them:#211A10;--glass:#15100A;--grad:linear-gradient(135deg,#FFA726,#FF6F3C);--ring:conic-gradient(#FFCB47,#FF6B6B,#FFA726,#FF6F3C,#FFCB47);--on:#1E1100}
-:root[data-style="amber"] #app::before{display:none}
-:root[data-style="amber"] #hd,:root[data-style="amber"] .mf{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}
-:root[data-style="amber"] #hd{border-bottom:1px solid var(--line)}
-:root[data-style="amber"] .btn{border-radius:999px;color:var(--on);font-weight:700}
-:root[data-style="amber"] .btn.line{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none}
-:root[data-style="amber"] .b.me{color:var(--on);border-radius:22px}
-:root[data-style="amber"] .b.them{background:var(--bubble-them);color:var(--ink);border-radius:22px}
-:root[data-style="amber"] .tabs2 button.on,:root[data-style="amber"] .unread{color:var(--on)}
-:root[data-style="amber"] .logo,:root[data-style="amber"] .stats b{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--sky)}
-:root[data-style="amber"] .sec{color:var(--sky)}
-:root[data-style="amber"] .ib,:root[data-style="amber"] .chip,:root[data-style="amber"] .search,:root[data-style="amber"] .cmf input,:root[data-style="amber"] .mf input{border-radius:999px}
-:root[data-style="amber"] #nav{border-radius:999px;margin:0 16px 14px;background:var(--surface);border-color:transparent;box-shadow:var(--shadow);padding:6px}
-:root[data-style="amber"] #nav button{border-radius:999px}
-:root[data-style="amber"] #nav button.on{background:var(--grad);color:var(--on);box-shadow:var(--glow)}
-:root[data-style="amber"] #nav button.on svg{color:var(--on);filter:none}
-:root[data-style="amber"] .card,:root[data-style="amber"] .post,:root[data-style="amber"] .row,:root[data-style="amber"] .stats>*{background:var(--surface);border-color:transparent;box-shadow:var(--shadow)}
-:root[data-style="amber"] .post{margin:14px}:root[data-style="amber"] .row{border-radius:24px;margin-bottom:10px}
-:root[data-style="amber"] .sheet{border-radius:34px 34px 0 0;background:var(--surface)}
-:root[data-style="amber"] .mf{border-radius:999px;margin:0 12px 10px;background:var(--surface);border-top:0;box-shadow:var(--shadow)}
-:root[data-style="amber"] .mf input{background:transparent}
-:root[data-style="nomad"] .seg,:root[data-style="nomad"] .seg button,:root[data-style="nomad"] .fld input{border-radius:4px}
-:root[data-style="nomad"] .seg button.on{background:var(--ink);color:var(--bg);box-shadow:none}
-:root[data-style="messenger"]{--bg:#F0F2F5;--surface:#FFFFFF;--ink:#050505;--mute:#65676B;--line:#E4E6EB;--sky:#0084FF;--green:#31A24C;--like:#F3425F;--dune:#0084FF;--bubble-me:#0084FF;--bubble-them:#E4E6EB;--glass:#FFFFFF;--grad:linear-gradient(135deg,#00C6FF,#0084FF);--ring:conic-gradient(#0084FF,#00C6FF,#31A24C,#0084FF);--on:#FFFFFF;--r:18px;--shadow:0 1px 2px rgba(0,0,0,.08);--glow:0 6px 16px -8px rgba(0,132,255,.5);--display:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;--body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
-@media (prefers-color-scheme:dark){:root[data-style="messenger"]:not([data-theme="light"]){--bg:#18191A;--surface:#242526;--ink:#E4E6EB;--mute:#B0B3B8;--line:#3A3B3C;--sky:#2E89FF;--green:#4BCB71;--like:#F3425F;--dune:#2E89FF;--bubble-me:#0084FF;--bubble-them:#3E4042;--glass:#242526;--grad:linear-gradient(135deg,#2E89FF,#0084FF);--ring:conic-gradient(#2E89FF,#4BCB71,#0084FF,#2E89FF);--on:#FFFFFF}}
-:root[data-style="messenger"][data-theme="dark"]{--bg:#18191A;--surface:#242526;--ink:#E4E6EB;--mute:#B0B3B8;--line:#3A3B3C;--sky:#2E89FF;--green:#4BCB71;--like:#F3425F;--dune:#2E89FF;--bubble-me:#0084FF;--bubble-them:#3E4042;--glass:#242526;--grad:linear-gradient(135deg,#2E89FF,#0084FF);--ring:conic-gradient(#2E89FF,#4BCB71,#0084FF,#2E89FF);--on:#FFFFFF}
-:root[data-style="messenger"] #app::before{display:none}
-:root[data-style="messenger"] #hd,:root[data-style="messenger"] .mf{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}
-:root[data-style="messenger"] #hd{border-bottom:1px solid var(--line)}
-:root[data-style="messenger"] .btn{border-radius:999px;color:var(--on);font-weight:600}
-:root[data-style="messenger"] .btn.line{background:transparent;color:var(--sky);border:1px solid var(--line);box-shadow:none}
-:root[data-style="messenger"] .b.me{background:var(--bubble-me);color:#fff;border-radius:18px;border-bottom-right-radius:4px;box-shadow:none}
-:root[data-style="messenger"] .b.them{background:var(--bubble-them);color:var(--ink);border-radius:18px;border-bottom-left-radius:4px}
-:root[data-style="messenger"] .tabs2 button.on,:root[data-style="messenger"] .unread{color:var(--sky)}
-:root[data-style="messenger"] .logo,:root[data-style="messenger"] .stats b{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--sky)}
-:root[data-style="messenger"] .sec{color:var(--sky)}
-:root[data-style="messenger"] .ib,:root[data-style="messenger"] .chip,:root[data-style="messenger"] .search,:root[data-style="messenger"] .cmf input,:root[data-style="messenger"] .mf input{border-radius:999px;background:var(--bg)}
-:root[data-style="messenger"] #nav{border-radius:0;margin:0;background:var(--surface);border-color:transparent;border-top:1px solid var(--line);box-shadow:none;padding:6px}
-:root[data-style="messenger"] #nav button{border-radius:12px}
-:root[data-style="messenger"] #nav button.on{background:transparent;color:var(--sky)}
-:root[data-style="messenger"] #nav button.on svg{color:var(--sky);filter:none}
-:root[data-style="messenger"] .card,:root[data-style="messenger"] .post,:root[data-style="messenger"] .row,:root[data-style="messenger"] .stats>*{background:var(--surface);border-color:var(--line);box-shadow:none}
-:root[data-style="messenger"] .post{margin:10px}:root[data-style="messenger"] .row{border-radius:12px;margin-bottom:6px}
-:root[data-style="messenger"] .sheet{border-radius:20px 20px 0 0;background:var(--surface)}
-:root[data-style="messenger"] .mf{border-radius:999px;margin:0 8px 8px;background:var(--surface);border-top:0;box-shadow:none;border:1px solid var(--line)}
-:root[data-style="messenger"] .mf input{background:transparent}
-:root[data-style="messenger"] .hx{height:var(--s);clip-path:circle(50% at 50% 50%)}
-:root[data-style="messenger"] .hx-a{inset:calc(var(--s)*.045);clip-path:circle(50% at 50% 50%)}
-:root[data-style="messenger"] .hx-b{inset:calc(var(--s)*.09);clip-path:circle(50% at 50% 50%)}
-:root[data-style="messenger"] .fld input{border-radius:22px;background:var(--bg)}
-:root[data-style="messenger"] .seg{background:var(--bg);border-color:transparent}
-:root[data-style="messenger"] .seg button.on{background:var(--sky);box-shadow:none}
-:root[data-style="messenger"] .unread{background:var(--sky)}
-:root[data-style="messenger"] .badge{box-shadow:none}
+:root[data-style="discord"]{--bg:#FFFFFF;--surface:#F2F3F5;--ink:#060607;--mute:#5C5E66;--line:#E3E5E8;--sky:#5865F2;--green:#248046;--like:#DA373C;--dune:#F0B232;--bubble-me:#5865F2;--bubble-them:#F2F3F5;--glass:rgba(255,255,255,.9);--grad:linear-gradient(135deg,#5865F2,#7A70FF);--ring:conic-gradient(#5865F2,#7A70FF,#5865F2,#7A70FF);--on:#FFFFFF;--r:8px;--shadow:0 1px 2px rgba(0,0,0,.08);--glow:0 6px 16px -8px rgba(88,101,242,.5);--display:'gg sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;--body:'gg sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+@media (prefers-color-scheme:dark){:root[data-style="discord"]:not([data-theme="light"]){--bg:#313338;--surface:#2B2D31;--ink:#F2F3F5;--mute:#949BA4;--line:#3F4147;--sky:#5865F2;--green:#23A55A;--like:#F23F42;--dune:#FEE75C;--bubble-me:#5865F2;--bubble-them:#2B2D31;--glass:rgba(49,51,56,.92);--grad:linear-gradient(135deg,#5865F2,#404EED);--ring:conic-gradient(#5865F2,#404EED,#5865F2,#404EED);--on:#FFFFFF;--shadow:0 1px 2px rgba(0,0,0,.3);--glow:0 6px 20px -8px rgba(88,101,242,.6)}}
+:root[data-style="discord"][data-theme="dark"]{--bg:#313338;--surface:#2B2D31;--ink:#F2F3F5;--mute:#949BA4;--line:#3F4147;--sky:#5865F2;--green:#23A55A;--like:#F23F42;--dune:#FEE75C;--bubble-me:#5865F2;--bubble-them:#2B2D31;--glass:rgba(49,51,56,.92);--grad:linear-gradient(135deg,#5865F2,#404EED);--ring:conic-gradient(#5865F2,#404EED,#5865F2,#404EED);--on:#FFFFFF;--shadow:0 1px 2px rgba(0,0,0,.3);--glow:0 6px 20px -8px rgba(88,101,242,.6)}
+:root[data-style="discord"] #app::before{display:none}
+:root[data-style="discord"] #hd{background:var(--surface);border-bottom:1px solid var(--line);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root[data-style="discord"] .logo{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--sky);font-weight:700}
+:root[data-style="discord"] #nav{border-radius:12px;margin:0 10px 10px;background:var(--surface);border:1px solid var(--line);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:6px}
+:root[data-style="discord"] #nav button{border-radius:8px}
+:root[data-style="discord"] #nav button.on{background:color-mix(in srgb,var(--sky) 16%,transparent);color:var(--sky);box-shadow:none;font-weight:700}
+:root[data-style="discord"] #nav button.on svg{color:var(--sky);filter:none}
+:root[data-style="discord"] .card,:root[data-style="discord"] .post,:root[data-style="discord"] .row,:root[data-style="discord"] .stats>*{background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:none}
+:root[data-style="discord"] .post{margin:10px 12px}
+:root[data-style="discord"] .row{border-radius:8px;margin-bottom:6px}
+:root[data-style="discord"] .btn{border-radius:4px;font-weight:600;box-shadow:none;background:var(--sky);color:#fff}
+:root[data-style="discord"] .btn:hover{filter:brightness(1.08)}
+:root[data-style="discord"] .btn.line{background:transparent;border:1px solid var(--line);color:var(--ink);box-shadow:none}
+:root[data-style="discord"] .ib{border-radius:8px;background:var(--surface);border:1px solid var(--line)}
+:root[data-style="discord"] .chip,:root[data-style="discord"] .search,:root[data-style="discord"] .cmf input,:root[data-style="discord"] .mf input{border-radius:4px;background:var(--bg);border-color:var(--line)}
+:root[data-style="discord"] .tabs2 button{border-radius:4px;background:var(--surface);border:1px solid var(--line);color:var(--mute)}
+:root[data-style="discord"] .tabs2 button.on{background:var(--sky);color:#fff;border-color:transparent}
+:root[data-style="discord"] .sheet{border-radius:8px 8px 0 0;background:var(--surface);box-shadow:0 -8px 24px rgba(0,0,0,.35);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root[data-style="discord"] .sec{color:var(--mute);letter-spacing:.02em;font-weight:700;text-transform:uppercase;font-size:11px}
+:root[data-style="discord"] .hx{clip-path:circle(50% at 50% 50%)}
+:root[data-style="discord"] .hx-a{inset:calc(var(--s)*.045);clip-path:circle(50% at 50% 50%)}
+:root[data-style="discord"] .hx-b{inset:calc(var(--s)*.09);clip-path:circle(50% at 50% 50%)}
+:root[data-style="discord"] .dot{background:var(--green);box-shadow:none}
+:root[data-style="discord"] .avd i{background:var(--green);box-shadow:none}
+:root[data-style="discord"] .pres.on{color:var(--green)}
+:root[data-style="discord"] .badge,:root[data-style="discord"] .unread{background:var(--like);box-shadow:none;border-radius:999px}
+/* Discord маягийн мессеж мөр: аватар зүүн талд, нэр+мессеж баганаар, бөмбөлөг сүүдэргүй */
+:root[data-style="discord"] .mw{max-width:92%;flex-direction:row;align-items:flex-end;gap:8px}
+:root[data-style="discord"] .mw.me{flex-direction:row-reverse;align-items:flex-end}
+:root[data-style="discord"] .mav{display:block;flex:none;align-self:flex-end}
+:root[data-style="discord"] .mav .hx{box-shadow:0 0 0 1px var(--line)}
+:root[data-style="discord"] .mcol{display:flex;flex-direction:column;min-width:0;max-width:100%}
+:root[data-style="discord"] .mw.them .mcol{align-items:flex-start}
+:root[data-style="discord"] .mw.me .mcol{align-items:flex-end}
+:root[data-style="discord"] .mn{font-weight:700;color:var(--sky);font-size:13.5px;margin:0 8px 3px}
+:root[data-style="discord"] .b{border-radius:8px;box-shadow:none;line-height:1.375}
+:root[data-style="discord"] .b.me{background:var(--sky);color:#fff;border-bottom-right-radius:8px}
+:root[data-style="discord"] .b.them{background:var(--bubble-them);color:var(--ink);border-bottom-left-radius:8px;border:1px solid var(--line)}
+:root[data-style="discord"] .mf{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none;border-top:1px solid var(--line)}
+:root[data-style="discord"] .mf input{border-radius:8px;background:var(--bg)}
 </style>
 </head>
 <body>
@@ -742,8 +573,8 @@ async function loadFirebase(){
 /* ---------- state ---------- */
 const S={me:null,tab:'feed',thread:null,posts:[],mine:[],stories:[],friends:new Map(),reqIn:[],reqOut:new Set(),chats:new Map(),msgs:[],
   cm:new Map(),open:new Set(),people:[],q:'',draftImg:null,sv:null,gsel:0,readMap:{},seenMap:{},errShown:false,
-  view:null,vposts:[],pq:'',cq:'',rxOpen:null,blocked:new Set(),blockedBy:new Set(),draftPhoto:null,stick:false,
-  reply:null,fwd:null,feedTab:'all',draftImgs:[],draftStory:null,prefs:{},act:{},mfEmoji:false};
+  view:null,vposts:[],pq:'',cq:'',rxOpen:null,blocked:new Set(),blockedBy:new Set(),draftPhoto:null,draftCover:null,stick:false,
+  reply:null,fwd:null,feedTab:'all',draftImgs:[],draftStory:null,prefs:{},act:{},mfEmoji:false,gcalls:new Map()};
 const U=new Map(),seenSent=new Map();
 const A={mode:'login',msg:'',ok:false};
 let subs=[],cmSubs=new Map(),msgSub=null,svT=null,regBusy=false,tt,peopleT,vSub=null,uT,rec=null;
@@ -771,9 +602,12 @@ const I={
  back:'<path d="M15 5l-7 7 7 7"/>',
  close:'<path d="M6 6l12 12M18 6L6 18"/>',
  image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',
+ screen:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M9.5 10l2.5-2.5 2.5 2.5M12 7.5V13"/>',
+ link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
  video:'<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/>',
  mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
  phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>',
+ speaker:'<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>',
  more:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
  smile:'<circle cx="12" cy="12" r="9"/><path d="M8 14a4 4 0 0 0 8 0M9 9.5h.01M15 9.5h.01"/>',
  bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2H4.5z"/><path d="M10 21h4"/>',
@@ -896,7 +730,7 @@ const safeImg=s=>typeof s==='string'&&/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+
 function toast(m,ms=1900){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),ms)}
 function onErr(e){console.error(e);if(S.errShown)return;S.errShown=true;
   toast(e&&e.code==='permission-denied'?'Эрх хүрэхгүй байна. Firestore-ийн дүрмээ (rules) шалгана уу.':'Өгөгдөл уншиж чадсангүй. Интернэтээ шалгана уу.',4500)}
-function cover(){return '<svg viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="sd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2C08E"/><stop offset="1" stop-color="#F8E6CB"/></linearGradient></defs><rect width="400" height="240" fill="url(#sd)"/><circle cx="300" cy="92" r="34" fill="#EE8656" opacity=".92"/><path d="M0 172 Q90 120 190 166 T400 150 V240 H0z" fill="#D9A867"/><path d="M0 207 Q120 162 250 202 T400 192 V240 H0z" fill="#B87F45"/></svg>'}
+function cover(){return '<svg viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="cvg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6C4CFF"/><stop offset=".55" stop-color="#FF4EA0"/><stop offset="1" stop-color="#FF9A3C"/></linearGradient></defs><rect width="400" height="240" fill="url(#cvg)"/><circle cx="64" cy="52" r="68" fill="#fff" opacity=".13"/><circle cx="252" cy="36" r="32" fill="#fff" opacity=".2"/><circle cx="338" cy="172" r="94" fill="#fff" opacity=".1"/><path d="M0 188 Q100 148 200 184 T400 172 V240 H0z" fill="#fff" opacity=".16"/></svg>'}
 // Зургийг найдвартай уншина: том (48MP) зураг, HEIC, EXIF эргэлт
 async function loadImg(file){
   if(window.createImageBitmap){
@@ -971,16 +805,16 @@ function notes(){
 }
 function notesSeen(){S.mine.forEach(p=>{S.act.p[p.id]={lk:p.likes.slice(),c:p.cc}});lsSet('maze-act-'+S.me.uid,S.act);refreshNav()}
 function headerHTML(){
-  if(S.thread){const th=S.thread,pr=cpref(th.cid),call=th.group||hid(th.uid)?'':`<button class="ib" data-a="acall" aria-label="Дуут дуудлага">${ic('phone',20)}</button><button class="ib" data-a="call" aria-label="Видео дуудлага">${ic('video',22)}</button>`;
+  if(S.thread){const th=S.thread,pr=cpref(th.cid),call=th.group?(S.gcalls.has(th.cid)?`<button class="gjoin" data-a="call" aria-label="Дуудлагад нэгдэх">${ic('video',18)}Нэгдэх</button>`:`<button class="ib" data-a="acall" aria-label="Бүлгийн дуут дуудлага">${ic('phone',20)}</button><button class="ib" data-a="call" aria-label="Бүлгийн видео дуудлага">${ic('video',22)}</button>`):hid(th.uid)?'':`<button class="ib" data-a="acall" aria-label="Дуут дуудлага">${ic('phone',20)}</button><button class="ib" data-a="call" aria-label="Видео дуудлага">${ic('video',22)}</button>`;
     return `<button class="ib" data-a="back" aria-label="Буцах">${ic('back',24)}</button>${th.group?`<span data-a="ginfo" role="button" style="display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0">${av(th.uid,th.name,38)}<b style="font-weight:600">👥 ${esc(th.name)}${pr.p?' 📌':''}${pr.m?' 🔇':''}</b></span>`:`<span data-a="user" data-id="${esc(th.uid)}" data-n="${esc(th.name)}" role="button" style="display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0">${av(th.uid,th.name,38)}<span style="display:flex;flex-direction:column;line-height:1.25;min-width:0"><b style="font-weight:600">${esc(th.name)}${pr.p?' 📌':''}${pr.m?' 🔇':''}</b>${presence(th.uid)}</span></span>`}<span style="margin-left:auto;display:flex;gap:6px;align-items:center">${call}<button class="ib" data-a="cmenu" aria-label="Цэс">${ic('more',20)}</button></span>`}
   if(S.view)return `<button class="ib" data-a="uback" aria-label="Буцах">${ic('back',24)}</button>${av(S.view.uid,S.view.name,38)}<b style="font-weight:600">${esc((U.get(S.view.uid)||S.view).name)}</b>`;
   if(S.tab==='feed')return `<div class="logo"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M4 24V4h20v20H10V10h8v6" fill="none" stroke="var(--sky)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="14" cy="19" r="2.2" fill="var(--green)"/></svg>MAZE APP</div>${(()=>{const n=notes().length;return `<button class="ib hbell" data-a="notes" aria-label="Мэдэгдэл">${ic('bell',22)}${n?`<span class="badge">${n>9?'9+':n}</span>`:''}</button>`})()}`;
   return `<div class="title">${{friends:'Найзууд',chat:'Чат',profile:'Профайл'}[S.tab]}</div>`;
 }
 function navHTML(){
-  const items=[['feed','home','Мэдээ'],['friends','users','Найзууд'],['chat','chat','Чат'],['profile','user','Профайл']];
+  const items=[['feed','home','Мэдээ'],['friends','users','Найзууд'],['chat','chat','Чат'],['meet','video','Уулзалт'],['profile','user','Профайл']];
   const bd={friends:S.reqIn.length,chat:unreadChats()};
-  return items.map(([k,i,l])=>`<button data-a="tab" data-t="${k}" class="${S.tab===k?'on':''}" ${S.tab===k?'aria-current="page"':''}>${ic(i,24,S.tab===k)}<span>${l}</span>${bd[k]?`<span class="badge">${bd[k]}</span>`:''}</button>`).join('');
+  return items.map(([k,i,l])=>k==='meet'?`<button data-a="meet">${ic(i,24)}<span>${l}</span></button>`:`<button data-a="tab" data-t="${k}" class="${S.tab===k?'on':''}" ${S.tab===k?'aria-current="page"':''}>${ic(i,24,S.tab===k)}<span>${l}</span>${bd[k]?`<span class="badge">${bd[k]}</span>`:''}</button>`).join('');
 }
 function storyGroups(){
   const m=new Map();S.stories.filter(s=>!hid(s.uid)).forEach(s=>{if(!m.has(s.uid))m.set(s.uid,{uid:s.uid,name:s.name,list:[]});m.get(s.uid).list.push(s)});
@@ -1073,7 +907,8 @@ function msgsHTML(){
     let seen='';
     if(i===lm){const os=(th.group?(c.members||[]):[th.uid]).filter(u=>u!==S.me.uid),n=os.filter(u=>(sn[u]||0)>=m.ms).length;if(n)seen=`<span class="seenl">${th.group?'Үзсэн '+n:'Үзсэн ✓'}</span>`}
     const rb=dl?'':rxSum(m.rx),who=th.group&&!me?`<span class="mn">${esc((U.get(m.f)||{}).name||m.fn||'')}</span>`:'';
-    return `<div class="mw ${me?'me':'them'}"${dl?'':` data-mid="${esc(m.id)}"`}>${who}<div class="mline"><div class="b ${me?'me':'them'}"${me&&myClr?` style="background:${myClr}"`:''}>${body}<span class="bt">${hhmm(m.ms)}${m.ed&&!dl?' · засварласан':''}</span></div>${dl?'':`<button class="mrxb" data-a="mrx" data-id="${esc(m.id)}" aria-label="Реакц">${ic('smile',16)}</button>`}${!dl?`<button class="mrxb" data-a="mmenu" data-id="${esc(m.id)}" aria-label="Цэс">${ic('more',16)}</button>`:''}</div>${rb?`<div class="rxs">${rb}</div>`:''}${S.rxOpen===m.id&&!dl?rxPick('m',m.id):''}${seen}</div>`}).join('');
+    const avName=th.group?((U.get(m.f)||{}).name||m.fn||''):th.name,avatar=(!me&&!dl)?`<span class="mav">${av(m.f,avName,28)}</span>`:'';
+    return `<div class="mw ${me?'me':'them'}"${dl?'':` data-mid="${esc(m.id)}"`}>${avatar}<div class="mcol">${who}<div class="mline"><div class="b ${me?'me':'them'}"${me&&myClr?` style="background:${myClr}"`:''}>${body}<span class="bt">${hhmm(m.ms)}${m.ed&&!dl?' · засварласан':''}</span></div>${dl?'':`<button class="mrxb" data-a="mrx" data-id="${esc(m.id)}" aria-label="Реакц">${ic('smile',16)}</button>`}${!dl?`<button class="mrxb" data-a="mmenu" data-id="${esc(m.id)}" aria-label="Цэс">${ic('more',16)}</button>`:''}</div>${rb?`<div class="rxs">${rb}</div>`:''}${S.rxOpen===m.id&&!dl?rxPick('m',m.id):''}</div>${seen}</div>`}).join('');
 }
 const mfLike=()=>S.thread?cpref(S.thread.cid).emo||'👍':'👍';
 function mfInner(){
@@ -1138,8 +973,26 @@ function swEnd(){
 }
 document.addEventListener('pointerup',swEnd);
 document.addEventListener('pointercancel',swEnd);
-/* шудрасны дараах санамсаргүй дарагдалтыг (мессежийн цэс нээгдэхийг) хаана */
-document.addEventListener('click',e=>{if(Date.now()<swBlock){e.stopPropagation();e.preventDefault()}},true);
+/* чатны мөр дээр удаан дарахад устгах цэс гаргана */
+let CLP=null,lpBlock=0;
+document.addEventListener('pointerdown',e=>{
+  const w=e.target.closest&&e.target.closest('#clist .row[data-a="thread"]');
+  if(!w||e.button>0)return;
+  CLP={w,x:e.clientX,y:e.clientY,id:e.pointerId,t:setTimeout(()=>{
+    CLP=null;lpBlock=Date.now()+350;try{navigator.vibrate&&navigator.vibrate(15)}catch(_){}
+    const cid=w.dataset.g||chatId(S.me.uid,w.dataset.id);
+    msgPopup(w,`<button class="dng" data-a="delchat" data-cid="${esc(cid)}"><i>🗑</i>Устгах</button>`,false);
+  },480)};
+});
+document.addEventListener('pointermove',e=>{
+  if(!CLP||e.pointerId!==CLP.id)return;
+  if(Math.abs(e.clientX-CLP.x)>8||Math.abs(e.clientY-CLP.y)>8){clearTimeout(CLP.t);CLP=null}
+});
+const clpEnd=()=>{if(CLP){clearTimeout(CLP.t);CLP=null}};
+document.addEventListener('pointerup',clpEnd);
+document.addEventListener('pointercancel',clpEnd);
+/* шудрасны/удаан дарсны дараах санамсаргүй дарагдалтыг (мессежийн цэс нээгдэхийг) хаана */
+document.addEventListener('click',e=>{if(Date.now()<swBlock||Date.now()<lpBlock){e.stopPropagation();e.preventDefault()}},true);
 /* давхар дарахаас хамгаалах: нэг товчийг 400мс дотор дахин дарвал үл тооно (дараалан дарах шаардлагатай товчнуудаас бусад) */
 const REPEAT_OK=new Set(['snext','sprev','zoom','pzoom']);let lastBtn=null,lastBtnT=0;
 document.addEventListener('click',e=>{
@@ -1173,12 +1026,12 @@ function settingsHTML(){
   sec('Аккаунт')+`<button class="btn line" data-a="editprofile">Профайл засах</button>`+
   sec('Хувийн байдал')+`<p class="mute" style="margin:0;font-size:13px">Хэн танд чатаар шууд бичиж болох вэ?</p><div style="display:flex;gap:8px"><button class="btn ${dm==='all'?'':'line'}" style="flex:1" data-a="dmset" data-v="all">Бүгд${dm==='all'?' ✓':''}</button><button class="btn ${dm==='friends'?'':'line'}" style="flex:1" data-a="dmset" data-v="friends">Зөвхөн найзууд${dm==='friends'?' ✓':''}</button></div><button class="btn line" data-a="blocklist">Блоклосон хэрэглэгчид (${S.blocked.size})</button>`+
   sec('Дуудлага ба мэдэгдэл')+`<button class="btn line" data-a="ringset">Дуудлагын дуу</button>`+(np?`<button class="btn line" data-a="${np==='granted'?'pushcheck':'notif'}">${np==='granted'?'🔔 Мэдэгдэл асаалттай — дахин шалгах':np==='denied'?'🔕 Мэдэгдэл хаалттай (браузерийн тохиргооноос нээнэ)':'🔔 Мэдэгдэл асаах'}</button>`:'')+
-  sec('Харагдац')+`<button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><div class="tabs2" style="padding:8px 0 0;flex-wrap:wrap;border:0">${[['glass','Aurora'],['nomad','Нутаг'],['messenger','Messenger'],['pop','Поп'],['neon','Неон'],['ocean','Далай'],['retro','Ретро'],['sakura','Сакура'],['amber','Шаргал'],['minimal','Минимал'],['card','Карт']].map(([v,n])=>`<button data-a="dstyle" data-v="${v}" class="${(document.documentElement.dataset.style||'glass')===v?'on':''}">${n}</button>`).join('')}</div>`+
+  sec('Харагдац')+`<button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><div class="tabs2" style="padding:8px 0 0;flex-wrap:wrap;border:0">${[['glass','Aurora'],['discord','Discord'],['pop','Поп'],['minimal','Минимал'],['card','Карт']].map(([v,n])=>`<button data-a="dstyle" data-v="${v}" class="${(document.documentElement.dataset.style||'glass')===v?'on':''}">${n}</button>`).join('')}</div>`+
   sec('Аюулгүй байдал')+secInfo()+`<button class="btn line" data-a="logout">Гарах</button><button class="btn line" data-a="delaccask" style="color:var(--like)">Акаунт устгах</button>`;
 }
 function profileHTML(){
   const me=S.me;
-  return `<div class="cover">${me.cover?`<img src="${me.cover}" alt="">`:cover()}<label class="covedit" aria-label="Ковер зураг солих">${ic('image',18)}<input type="file" id="coverfile" accept="image/*" class="vh"></label></div><div class="pinfo"><span class="av">${pav(me.uid,me.name,96)}</span><h2>${esc(me.name)}</h2>${me.bio?`<p>${esc(me.bio)}</p>`:'<p class="mute">Танилцуулга нэмээгүй байна.</p>'}<div class="stats"><div><b>${S.mine.length}</b><span>Нийтлэл</span></div><div><b>${S.friends.size}</b><span>Найз</span></div></div><div class="pbtns"><button class="btn" data-a="editprofile">Профайл засах</button><button class="btn line" data-a="settings">⚙ Тохиргоо</button></div></div><div class="sec">Миний нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
+  return `<div class="cover">${me.cover?`<img src="${me.cover}" alt="">`:cover()}</div><div class="pinfo"><span class="av">${pav(me.uid,me.name,96)}</span><h2>${esc(me.name)}</h2>${me.bio?`<p>${esc(me.bio)}</p>`:'<p class="mute">Танилцуулга нэмээгүй байна.</p>'}<div class="stats"><div><b>${S.mine.length}</b><span>Нийтлэл</span></div><div><b>${S.friends.size}</b><span>Найз</span></div></div><div class="pbtns"><button class="btn" data-a="editprofile">Профайл засах</button><button class="btn line" data-a="settings">⚙ Тохиргоо</button></div></div><div class="sec">Миний нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
 }
 /* профайл хуудасны том зураг: бүтэн харагдана, дарвал томорно */
 function pav(uid,name,s){
@@ -1342,11 +1195,11 @@ async function startSession(u){
     if(sn.exists())p=sn.data();
     else{const nm=(u.displayName||(u.email||'Хэрэглэгч').split('@')[0]).slice(0,40);p={name:nm,bio:''};await FS.setDoc(ref,{name:nm,nameLower:nm.toLowerCase(),bio:'',createdAt:FS.serverTimestamp()})}
     unsubAll();U.clear();seenSent.clear();
-    Object.assign(S,{me:{uid:u.uid,name:p.name,bio:p.bio||'',dm:p.dm||'all',cover:safeImg(p.cover)},tab:'feed',thread:null,posts:[],mine:[],stories:[],friends:new Map(),reqIn:[],reqOut:new Set(),chats:new Map(),msgs:[],cm:new Map(),open:new Set(),people:[],q:'',draftImg:null,errShown:false,view:null,vposts:[],pq:'',cq:'',rxOpen:null,blocked:new Set(),blockedBy:new Set(),draftPhoto:null,stick:false,
+    Object.assign(S,{me:{uid:u.uid,name:p.name,bio:p.bio||'',dm:p.dm||'all',cover:safeImg(p.cover)},tab:'feed',thread:null,posts:[],mine:[],stories:[],friends:new Map(),reqIn:[],reqOut:new Set(),chats:new Map(),msgs:[],cm:new Map(),open:new Set(),people:[],q:'',draftImg:null,errShown:false,view:null,vposts:[],pq:'',cq:'',rxOpen:null,blocked:new Set(),blockedBy:new Set(),draftPhoto:null,draftCover:null,stick:false,
       readMap:lsGet('nutag-read-'+u.uid,{}),seenMap:lsGet('nutag-seen-'+u.uid,{}),
       reply:null,fwd:null,feedTab:'all',draftImgs:[],draftStory:null,prefs:lsGet('maze-cp-'+u.uid,{}),act:lsGet('maze-act-'+u.uid,null)});
     if(!S.act){S.act={t0:Date.now(),p:{}};lsSet('maze-act-'+u.uid,S.act)}
-    subscribe();heartbeat();registerPush();render();toast('Тавтай морил, '+S.me.name);notifNudge();
+    subscribe();heartbeat();registerPush();loadIce();render();toast('Тавтай морил, '+S.me.name);notifNudge();
   }catch(e){onErr(e);A.mode='login';amsg('Профайлаа уншиж чадсангүй. Firestore-ийн тохиргоогоо шалгана уу.');S.me=null;render()}
 }
 function endSession(){vfStop();clearInterval(hbT);endCall(true);INC=null;recStop(false);unsubAll();clearTimeout(svT);const o=$('#ov');o.className='';o.innerHTML='';S.me=null;S.thread=null;A.mode='login';A.msg='';A.ok=false}
@@ -1395,7 +1248,16 @@ function subscribe(){
       if(CALL||INC){FS.updateDoc(ch.doc.ref,{status:'declined'}).catch(()=>{});return}
       showIncoming(ch.doc.id,d)}
     else if(ch.type==='removed'&&INC&&INC.id===ch.doc.id)closeIncoming()}));
+  // бүлгийн дуудлага: шинээр эхэлсэн бол дуугарна, явагдаж буй дуудлагад чатын толгойгоос нэгдэж болно
+  subs.push(FS.onSnapshot(query(collection(db,'gcalls'),where('members','array-contains',uid),where('status','==','active')),sn=>{
+    sn.docChanges().forEach(ch=>{const d=ch.doc.data({serverTimestamps:'estimate'});
+      if(ch.type==='added'&&d.from!==uid&&!(d.live||[]).includes(uid)&&Date.now()-tms(d.createdAt)<60000&&!CALL&&!INC&&!(S.blocked.has(d.from)||S.blockedBy.has(d.from)))showGroupIncoming(ch.doc.id,d);
+      else if(ch.type==='removed'&&INC&&INC.id===ch.doc.id)closeIncoming()});
+    S.gcalls=new Map();
+    sn.docs.forEach(x=>{const d=x.data({serverTimestamps:'estimate'});if((d.live||[]).length&&Date.now()-tms(d.createdAt)<4*36e5)S.gcalls.set(d.cid,{id:x.id,d})});
+    if(S.thread&&S.thread.group)setHd()},e=>console.warn('gcalls',e&&e.code))); // алдаа гарвал (rules deploy хийгээгүй г.м) аппыг бүхэлд нь саатуулахгүй
   loadPeople('');
+  if(S.pendMeet){const m=S.pendMeet;S.pendMeet='';openSheet(`<h3>🎥 Уулзалтад нэгдэх</h3><p class="mute" style="margin:0">Уулзалтын код: <b>${esc(m)}</b></p><button class="btn" data-a="mjoin" data-id="${esc(m)}">Нэгдэх</button>`)}
 }
 function loadPeople(){refreshFriends()}
 /* ---------- overlay ---------- */
@@ -1435,20 +1297,30 @@ function prevStory(){if(S.sv.i>0)S.sv.i--;drawStory()}
 
 /* ---------- видео дуудлага (WebRTC, signaling = Firestore) ---------- */
 // Өөр сүлжээнээс (мобайл дата ↔ WiFi) холбогдоход TURN сервер заавал хэрэгтэй.
-// Metered.ca-ийн бүртгэлгүй нээлттэй TURN (OpenRelay). Илүү найдвартай/өөрийн эрхтэй болгохыг хүсвэл
-// dashboard.metered.ca дээр бүртгүүлж, "Using the API" хэсгээс өөрийн apiKey-г эндхийн оронд тавина.
-const TURN=[{urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
-  {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
-  {urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}];
-const ICE={iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302','stun:stun.cloudflare.com:3478']},...TURN]};
+// Cloudflare TURN-ийн түр (24 цаг) эрхийг push-worker-ийн /turn-ээс авч, 12 цаг тутам шинэчилнэ.
+const STUN={urls:['stun:stun.cloudflare.com:3478','stun:stun.l.google.com:19302']};
+let TURN=[],ICE={iceServers:[STUN]},iceAt=0,iceP=null;
+function loadIce(){
+  if(iceAt&&Date.now()-iceAt<12*36e5)return Promise.resolve();
+  if(iceP)return iceP;
+  const u=auth&&auth.currentUser;if(!PUSH_URL||!u)return Promise.resolve();
+  iceP=u.getIdToken().then(t=>fetch(PUSH_URL+'/turn',{method:'POST',headers:{Authorization:'Bearer '+t}}))
+    .then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.iceServers,l=Array.isArray(v)?v:v?[v]:[];
+      TURN=l.filter(x=>[].concat(x.urls||[]).some(x=>/^turns?:/.test(x)));
+      if(TURN.length){ICE={iceServers:[STUN,...TURN]};iceAt=Date.now()}})
+    .catch(e=>console.warn('turn',e)).finally(()=>{iceP=null});
+  return iceP;
+}
+const iceReady=()=>Promise.race([loadIce(),new Promise(r=>setTimeout(r,4000))]); // TURN авч чадахгүй бол удаан хүлээлгүй STUN-ээр оролдоно
 let CALL=null,INC=null,ringCtx=null,ringT=null;
 function callStatus(t){const s=$('.cinfo span');if(s)s.textContent=t}
 const RINGS={
+  aurora:{n:'✨ Aurora',type:'sine',loop:2.6,seq:[[523.25,0,.24],[659.25,.16,.24],[783.99,.32,.24],[1046.5,.5,.5]]},
   bell:{n:'🔔 Хонх',type:'triangle',loop:2.2,seq:[[880,0,.16],[660,.18,.16],[880,.4,.16],[660,.58,.16],[880,.8,.3]]},
   soft:{n:'🎵 Зөөлөн',type:'sine',loop:2.4,seq:[[523.25,0,.3],[659.25,.22,.3],[783.99,.44,.3],[1046.5,.66,.55]]},
   mongol:{n:'🏔 Монгол ая',type:'triangle',loop:3,seq:[[293.66,0,.28],[392,.3,.28],[440,.6,.28],[587.33,.9,.4],[440,1.35,.28],[392,1.65,.28],[293.66,1.95,.6]]}
 };
-let RING=lsGet('maze-ring',{tone:'bell',vol:.6});if(!RINGS[RING.tone])RING.tone='bell';
+let RING=lsGet('maze-ring',{tone:'aurora',vol:.6});if(!RINGS[RING.tone])RING.tone='aurora';
 function ringOnce(tone,vol){
   const ctx=ringCtx,r=RINGS[tone]||RINGS.bell,t0=ctx.currentTime+.02;
   r.seq.forEach(([fq,st,du])=>{
@@ -1467,15 +1339,16 @@ function ringStart(tone,vol){
   }catch(_){}
 }function ringStop(){clearInterval(ringT);ringT=null}
 function playRemote(){
-  const rv=$('#rv'),lv=$('#lv');if(!rv)return;
+  const rv=$('#rv'),lv=$('#lv');
   const tap=()=>{const c=$('.call');if(!c||c.dataset.tapArmed)return;c.dataset.tapArmed='1';
     const retry=()=>{document.querySelectorAll('.call video').forEach(v=>v.play().catch(()=>{}));delete c.dataset.tapArmed};
     c.addEventListener('pointerdown',retry,{once:true})};
+  if(!rv){if($('.call.gc'))tap();return} // бүлгийн дуудлага: автоматаар тоглуулж чадаагүй бол дарахад дахин оролдоно
   const go=v=>{const p=v.play();if(p&&p.catch)p.catch(tap)};go(rv);if(lv)go(lv);
 }
 function drawCall(st){
   const c=CALL,au=c.audio,ph=au&&safeImg((U.get(c.peer)||{}).photo);
-  ov.innerHTML=`<div class="call${au?' audio':''}">${ph?`<div class="cbg" style="background-image:url('${ph}')"></div><div class="cscrim"></div>`:''}${au?`<div class="cav">${av(c.peer,c.name,120,'new')}</div>`:''}<video id="rv" autoplay playsinline></video><video id="lv" autoplay playsinline muted></video><div class="cinfo"><b>${au?'📞 ':''}${esc(c.name)}</b><span>${st}</span></div><div class="cbar"><button class="cb" data-a="cmute" aria-label="Микрофон">${ic('mic',24)}</button>${au?'':`<button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button>`}<button class="cb end" data-a="cend" aria-label="Таслах">${ic('phone',24)}</button></div></div>`;
+  ov.innerHTML=`<div class="call${au?' audio':''}">${ph?`<div class="cbg" style="background-image:url('${ph}')"></div><div class="cscrim"></div>`:''}${au?`<div class="cav">${av(c.peer,c.name,120,'new')}</div>`:''}<video id="rv" autoplay playsinline></video><video id="lv" autoplay playsinline muted></video><div class="cinfo"><b>${au?'📞 ':''}${esc(c.name)}</b><span>${st}</span></div><div class="cbar"><button class="cb" data-a="callmute" aria-label="Микрофон">${ic('mic',24)}</button><button class="cb${c.spk===false?' off':''}" data-a="callspk" aria-label="Чангаруулагч">${ic('speaker',24)}</button>${au?'':`<button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button>`}<button class="cb end" data-a="cend" aria-label="Таслах">${ic('phone',24)}</button></div></div>`;
   ov.className='open';$('#lv').srcObject=c.local;$('#rv').srcObject=c.remote;if(!c.local.getVideoTracks().length)$('#lv').style.display='none';
   $('#rv').onloadedmetadata=playRemote;playRemote();
 }
@@ -1486,7 +1359,7 @@ function connWatch(ms=25000){
 }
 function makeCall(id,peer,name,local,mine,audio){
   const pc=new RTCPeerConnection(ICE),remote=new MediaStream(),{collection,addDoc}=FS,q=[];
-  CALL={id,peer,name,local,remote,pc,unsubs:[],q,ready:false,mine,over:false,audio:!!audio};
+  CALL={id,peer,name,local,remote,pc,unsubs:[],q,ready:false,mine,over:false,audio:!!audio,spk:true};
   local.getTracks().forEach(t=>pc.addTrack(t,local));
   if(!local.getAudioTracks().length)pc.addTransceiver('audio',{direction:'recvonly'});
   if(!local.getVideoTracks().length&&!audio)pc.addTransceiver('video',{direction:'recvonly'});
@@ -1500,7 +1373,8 @@ function makeCall(id,peer,name,local,mine,audio){
   CALL.flush=()=>{CALL.ready=true;q.splice(0).forEach(send)};
   pc.onconnectionstatechange=()=>{if(!CALL||CALL.pc!==pc)return;const s=pc.connectionState;
     if(s==='connected'){clearTimeout(CALL.ct);clearTimeout(CALL.dt);callStatus('Холбогдсон')}
-    else if(s==='disconnected'){clearTimeout(CALL.dt);CALL.dt=setTimeout(()=>{if(CALL&&CALL.pc===pc&&pc.connectionState!=='connected'){toast('Холболт тасарлаа');endCall(true)}},8000)}
+    // интернэт түр тасарвал (машинд, WiFi↔дата солигдох г.м) 30 секунд хүлээж дахин холбогдохыг оролдоно
+    else if(s==='disconnected'){clearTimeout(CALL.dt);callStatus('Холболт тасарлаа, дахин холбогдож байна…');CALL.dt=setTimeout(()=>{if(CALL&&CALL.pc===pc&&pc.connectionState!=='connected'){toast('Холболт тасарлаа');endCall(true)}},30000)}
     else if(s==='failed'){toast('Холбогдож чадсангүй');endCall(true)}};
   return pc;
 }
@@ -1551,7 +1425,7 @@ const hashLink=s=>s.replace(/(https?:\/\/(?:(?!&quot;|&#39;|&lt;|&gt;)\S)+)|(^|[
   if(u){const x=u.match(/[.,!?;:)\]]+$/),tr=x?x[0]:'',url=tr?u.slice(0,-tr.length):u;return '<a class="ht" href="'+url+'" target="_blank" rel="noopener noreferrer nofollow">'+url+'</a>'+tr}
   return pre+'<a class="ht" data-a="tag" data-t="'+t+'">#'+t+'</a>'});
 async function startCall(uid,name,audio){
-  if(CALL||INC)return;
+  if(CALL||INC)return;await iceReady();
   const {doc,setDoc,onSnapshot,serverTimestamp}=FS;let local;
   try{local=await getMedia(audio)}catch(e){toast(mediaErr(e),4500);return}
   if(local.__none)toast('Камер/микрофон ашиглах боломжгүй тул зөвхөн харах/сонсох горимд орлоо',4500);
@@ -1579,9 +1453,9 @@ function showIncoming(id,d){
   ov.innerHTML=`<div class="call audio inc" role="alertdialog">${ph?`<div class="cbg" style="background-image:url('${ph}')"></div><div class="cscrim"></div>`:''}<div class="cav">${av(d.from,d.fromName,120,'new')}</div><div class="cinfo center"><b>${esc(d.fromName)}</b><span>${d.audio?'Дуут дуудлагаар залгаж байна…':'Видео дуудлагаар залгаж байна…'}</span></div><div class="cbar"><button class="cb end" data-a="cdec" aria-label="Татгалзах">${ic('phone',26)}</button><button class="cb acc" data-a="cacc" aria-label="Хариулах">${ic('phone',26)}</button></div></div>`;
   ov.className='open';
 }
-function closeIncoming(){ringStop();INC=null;if(!CALL){ov.className='';ov.innerHTML=''}}
+function closeIncoming(){ringStop();if(INC)clearTimeout(INC.t);INC=null;if(!CALL){ov.className='';ov.innerHTML=''}}
 async function acceptCall(){
-  if(!INC||CALL)return;ringStop();const {id,d}=INC;INC=null;const {doc,updateDoc,onSnapshot}=FS;let local;
+  if(!INC||CALL)return;ringStop();clearTimeout(INC.t);const {id,d,group}=INC;INC=null;await iceReady();if(group){joinGroupCall(id,d);return}const {doc,updateDoc,onSnapshot}=FS;let local;
   try{local=await getMedia(d.audio)}catch(e){toast(mediaErr(e),4500);await updateDoc(doc(db,'calls',id),{status:'declined'}).catch(()=>{});ov.className='';ov.innerHTML='';return}
   if(local.__none)toast('Камер/микрофон ашиглах боломжгүй тул зөвхөн харах/сонсох горимд орлоо',4500);
   try{
@@ -1593,20 +1467,232 @@ async function acceptCall(){
   }catch(e){console.error(e);toast('Холбогдож чадсангүй ('+(e&&(e.code||e.name)||'алдаа')+')',4000);endCall(true)}
 }
 async function declineCall(){
-  if(!INC)return;ringStop();const {id}=INC;INC=null;ov.className='';ov.innerHTML='';
+  if(!INC)return;ringStop();clearTimeout(INC.t);const {id,group}=INC;INC=null;ov.className='';ov.innerHTML='';if(group)return; // бүлгийн дуудлагаас татгалзвал зөвхөн өөрөө л ордоггүй
   try{await FS.updateDoc(FS.doc(db,'calls',id),{status:'declined'})}catch(_){}
 }
 function endCall(tell){
-  const c=CALL;if(!c||c.over)return;c.over=true;CALL=null;[c.timer,c.hint,c.ct,c.dt].forEach(clearTimeout);
+  const c=CALL;if(!c||c.over)return;c.over=true;CALL=null;if(c.group)return endGroupCall(c);[c.timer,c.hint,c.ct,c.dt].forEach(clearTimeout);
   c.unsubs.forEach(u=>u());try{c.pc.close()}catch(_){}c.local.getTracks().forEach(t=>t.stop());
   if(tell&&db)FS.updateDoc(FS.doc(db,'calls',c.id),{status:'ended'}).catch(()=>{});
   if(tell&&c.caller&&!c.answered&&c.uid)sendTo({uid:c.uid,name:c.name,cid:chatId(S.me.uid,c.uid),group:false},{text:c.audio?'📞 Аваагүй дуут дуудлага':'📞 Аваагүй видео дуудлага'}).catch(()=>{});
   ov.className='';ov.innerHTML='';
 }
+/* ---------- бүлгийн дуудлага: хүн бүр хоорондоо шууд (mesh) холбогдоно, сигналыг gcalls/{id}/sig-ээр дамжуулна ---------- */
+const GMAX=8; // mesh тул оролцогчийн тоог хязгаарлана
+function drawGCall(){
+  const c=CALL;
+  ov.innerHTML=`<div class="call gc${c.audio?' audio':''}"><div class="gg" id="gg"></div><div class="cinfo"><b>${c.meet?'🎥 ':'👥 '}${esc(c.name)}</b><span>${c.meet?'Нэгдэж байна...':'Залгаж байна...'}</span></div>${c.meet?`<button class="mlink" data-a="mlink" aria-label="Холбоос хуваалцах">${ic('link',16)}${esc(c.id)}</button>`:''}<div class="cbar"><button class="cb" data-a="callmute" aria-label="Микрофон">${ic('mic',24)}</button><button class="cb${c.spk===false?' off':''}" data-a="callspk" aria-label="Чангаруулагч">${ic('speaker',24)}</button>${c.audio?'':`<button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button>`}${c.audio?'':`<button class="cb" data-a="gshare" aria-label="Дэлгэц хуваалцах">${ic('screen',24)}</button>`}<button class="cb end" data-a="cend" aria-label="Гарах">${ic('phone',24)}</button></div></div>`;
+  ov.className='open';gTiles();
+}
+function gTile(u,s,me){
+  const gg=$('#gg');if(!gg)return;let t=[...gg.children].find(x=>x.dataset.u===u);
+  const nm=me?'Та':((CALL&&CALL.names&&CALL.names[u])||(U.get(u)||{}).name||'Хэрэглэгч');
+  if(!t){t=document.createElement('div');t.className='gt';t.dataset.u=u;t.onclick=()=>{gg.dataset.f=gg.dataset.f===u?'':u;gTiles()}; // дарахад томруулна
+    t.innerHTML=`<div class="gav">${av(u,nm,64)}</div><video autoplay playsinline${me?' muted class="me"':''}></video><span class="gn">${esc(nm)}</span>`;gg.appendChild(t)}
+  const gn=t.querySelector('.gn');if(gn.textContent!==nm)gn.textContent=nm;
+  t.classList.toggle('f',gg.dataset.f===u);t.classList.toggle('sc',!me&&!!(CALL&&CALL.peers.get(u)||{}).scr);
+  const v=t.querySelector('video');if(v.srcObject!==s){v.srcObject=s;if(!me&&CALL&&CALL.spk===false)v.volume=.55}
+  t.classList.toggle('nov',!s||!s.getVideoTracks().some(x=>x.readyState==='live'&&x.enabled!==false&&!x.muted));
+  const p=v.play();if(p&&p.catch)p.catch(()=>playRemote());
+}
+function gTiles(){
+  const c=CALL,gg=$('#gg');if(!c||!c.group||!gg)return;
+  const live=[...c.peers].filter(([,p])=>p.s);
+  [...gg.children].forEach(t=>{const u=t.dataset.u;if(u!==S.me.uid&&!live.some(([x])=>x===u))t.remove()});
+  gTile(S.me.uid,c.local,true);live.forEach(([u,p])=>gTile(u,p.s,false));
+  if(gg.dataset.f&&![...gg.children].some(t=>t.dataset.u===gg.dataset.f)){gg.dataset.f='';gTiles();return}
+  gg.dataset.n=Math.min(live.length+1,GMAX);
+  const n=[...c.peers.values()].filter(p=>p.pc.connectionState==='connected').length;
+  callStatus(n?(n+1)+(c.meet?' хүн уулзалтад байна':' хүн дуудлагад байна'):c.meet?'Бусдыг хүлээж байна… Холбоосоо хуваалцана уу':c.anyConn?'Бусад нь гарлаа':'Хариу хүлээж байна...');
+}
+function gSig(t,k,d){const c=CALL;return FS.addDoc(FS.collection(db,c.col,c.id,'sig'),{f:S.me.uid,t,s:c.sid,k,d:JSON.stringify(d)}).catch(()=>{})}
+function gPeer(u){
+  const c=CALL,pc=new RTCPeerConnection(ICE),p={pc,rsid:null,rd:false,out:[],ready:false};
+  const old=c.peers.get(u);if(old){clearTimeout(old.dt);try{old.pc.close()}catch(_){}}
+  c.peers.set(u,p);
+  c.local.getTracks().forEach(t=>pc.addTrack(t,c.local));
+  if(!c.local.getAudioTracks().length)pc.addTransceiver('audio',{direction:'recvonly'});
+  if(!c.local.getVideoTracks().length&&!c.audio)pc.addTransceiver('video',{direction:'sendrecv',streams:[c.local]}); // камергүй ч дараа нь дэлгэц хуваалцахад шинэ тохиролцоо хэрэггүй
+  pc.ontrack=e=>{const s=e.streams&&e.streams[0];if(!s||CALL!==c||c.peers.get(u)!==p)return;p.s=s;gTiles();
+    e.track.onunmute=e.track.onmute=e.track.onended=()=>{if(CALL===c)gTiles()}};
+  pc.onicecandidate=e=>{if(!e.candidate||CALL!==c)return;if(p.ready)gSig(u,'c',e.candidate);else p.out.push(e.candidate)};
+  pc.onconnectionstatechange=()=>{if(CALL!==c||c.peers.get(u)!==p)return;const s=pc.connectionState;
+    if(s==='connected'){c.anyConn=true;clearTimeout(p.dt);gTiles()}
+    else if(s==='failed')gDrop(u);
+    else if(s==='disconnected'){clearTimeout(p.dt);p.dt=setTimeout(()=>{if(CALL===c&&c.peers.get(u)===p&&pc.connectionState!=='connected')gDrop(u)},30000)}};
+  return p;
+}
+function gReady(u,p){p.ready=true;p.out.splice(0).forEach(x=>gSig(u,'c',x));if(CALL.scr)gSig(u,'v',true)}
+function gRemote(u,p,s){ // алсын тайлбар тогтсоны дараа хүлээлгэсэн ICE кандидатуудыг нэмнэ
+  p.rsid=s;p.rd=true;const k=u+'|'+s,q=CALL.pend[k]||[];delete CALL.pend[k];
+  q.forEach(x=>p.pc.addIceCandidate(x).catch(()=>{}));
+}
+async function gOffer(u){
+  const p=gPeer(u),o=await p.pc.createOffer();await p.pc.setLocalDescription(o);
+  await gSig(u,'o',{type:o.type,sdp:o.sdp});gReady(u,p);
+}
+async function gOnSig(x){
+  const c=CALL;if(!c||!c.group)return;const {f,s,k}=x,d=JSON.parse(x.d);
+  if(k==='o'){
+    const p=gPeer(f);await p.pc.setRemoteDescription(d);gRemote(f,p,s);
+    const a=await p.pc.createAnswer();await p.pc.setLocalDescription(a);
+    await gSig(f,'a',{type:a.type,sdp:a.sdp});gReady(f,p);
+  }else if(k==='a'){
+    const p=c.peers.get(f);if(!p||p.rd)return;await p.pc.setRemoteDescription(d);gRemote(f,p,s);
+  }else if(k==='v'){ // нөгөө тал дэлгэцээ хуваалцаж эхэлсэн/зогсоосон: бүтнээр нь томруулж харуулна
+    const p=c.peers.get(f);if(p)p.scr=!!d;const gg=$('#gg');if(gg){if(d)gg.dataset.f=f;else if(gg.dataset.f===f)gg.dataset.f=''}gTiles();
+  }else if(k==='c'){
+    const p=c.peers.get(f);
+    if(p&&p.rd&&p.rsid===s)p.pc.addIceCandidate(d).catch(()=>{});
+    else (c.pend[f+'|'+s]=c.pend[f+'|'+s]||[]).push(d);
+  }
+}
+function gDrop(u){
+  const c=CALL;if(!c||!c.group)return;const p=c.peers.get(u);if(!p)return;
+  clearTimeout(p.dt);try{p.pc.close()}catch(_){}c.peers.delete(u);gTiles();
+  if(!c.meet&&c.anyConn&&!c.peers.size){toast('Дуудлага дууслаа');endCall(true)}
+}
+async function startGroupCall(audio){
+  const th=S.thread,ch=th&&S.chats.get(th.cid);if(CALL||INC||!th||!th.group||!ch)return;
+  const cur=S.gcalls.get(th.cid);if(cur){joinGroupCall(cur.id,cur.d);return}
+  let local;try{local=await getMedia(audio)}catch(e){toast(mediaErr(e),4500);return}
+  const {doc,collection,setDoc,serverTimestamp}=FS,ref=doc(collection(db,'gcalls'));
+  const d={cid:th.cid,from:S.me.uid,fromName:S.me.name,name:th.name.slice(0,40),members:ch.members,live:[],status:'active',...(audio?{audio:true}:{})};
+  try{await setDoc(ref,{...d,createdAt:serverTimestamp()})}catch(e){console.error(e);toast(callErr(e),5000);local.getTracks().forEach(t=>t.stop());return}
+  if(await joinGroupCall(ref.id,d,local))pushPing({kind:'gcall',id:ref.id});
+}
+async function joinGroupCall(id,d,pre){
+  const starter=!!pre;if(CALL){if(pre)pre.getTracks().forEach(t=>t.stop());return false}
+  const {doc,collection,query,where,getDocs,deleteDoc,onSnapshot,runTransaction,arrayUnion}=FS,me=S.me.uid,col=d.col||'gcalls',meet=col==='meets',ref=doc(db,col,id);let local;
+  await iceReady();
+  if(pre)local=pre;else try{local=await getMedia(d.audio)}catch(e){toast(mediaErr(e),4500);if($('.call.inc')){ov.className='';ov.innerHTML=''}return false}
+  if(local.__none)toast('Камер/микрофон ашиглах боломжгүй тул зөвхөн харах/сонсох горимд орлоо',4500);
+  if(CALL){local.getTracks().forEach(t=>t.stop());return false}
+  const c=CALL={group:true,col,meet,names:{},id,cid:d.cid,name:d.name||'Бүлэг',local,peers:new Map(),pend:{},sid:Math.random().toString(36).slice(2,10),audio:!!d.audio,spk:true,unsubs:[],over:false,anyConn:false,seen:new Set(),chain:Promise.resolve()};
+  drawGCall();
+  try{
+    const sig=collection(db,col,id,'sig');
+    // өмнө нь орж гарсан бол надад үлдсэн хуучин сигналуудыг цэвэрлэнэ
+    await Promise.all((await getDocs(query(sig,where('t','==',me)))).docs.map(x=>deleteDoc(x.ref).catch(()=>{})));
+    if(CALL!==c)return false;
+    c.unsubs.push(onSnapshot(query(sig,where('t','==',me)),sn=>sn.docChanges().forEach(ch=>{
+      if(ch.type!=='added')return;const x=ch.doc.data();c.chain=c.chain.then(()=>gOnSig(x)).catch(e=>console.warn('gcall sig',e))}),onErr));
+    // transaction: зэрэг нэгдсэн хоёр хүний хооронд яг нэг нь л offer илгээнэ (сүүлд орсон нь)
+    const others=await runTransaction(db,async tx=>{
+      const x=(await tx.get(ref)).data();
+      if(!x||x.status!=='active')throw Object.assign(new Error('ended'),{code:'gc-ended'});
+      const o=(x.live||[]).filter(u=>u!==me);if(o.length>=GMAX)throw Object.assign(new Error('full'),{code:'gc-full'});
+      tx.update(ref,meet?{live:arrayUnion(me),['names.'+me]:S.me.name.slice(0,40)}:{live:arrayUnion(me)});return o});
+    c.joined=true;if(CALL!==c){gLeave(c);return false} // нэгдэж байх хооронд тасалсан
+    for(const u of others)c.chain=c.chain.then(()=>gOffer(u)).catch(e=>console.warn('gcall offer',e));
+    c.unsubs.push(onSnapshot(ref,sn=>{const x=sn.data();if(CALL!==c)return;
+      if(!x||(meet&&x.status==='ended')){toast(meet?'Уулзалт дууслаа':'Дуудлага дууслаа');endCall(false);return}
+      if(meet){c.names=x.names||{};c.host=x.host;gTiles()}
+      const inn=x.live||[];inn.forEach(u=>c.seen.add(u));
+      [...c.peers.keys()].forEach(u=>{if(c.seen.has(u)&&!inn.includes(u))gDrop(u)})},onErr));
+    if(!meet)c.timer=setTimeout(()=>{if(CALL===c&&!c.anyConn){c.kill=true;toast(starter?'Хэн ч хариулсангүй':'Холбогдож чадсангүй');endCall(true)}},60000);
+    return true;
+  }catch(e){
+    console.error(e);toast(e.code==='gc-ended'?(meet?'Уулзалт дууссан байна':'Дуудлага аль хэдийн дууссан байна'):e.code==='gc-full'?(meet?'Уулзалтад хэт олон хүн байна (дээд тал нь '+GMAX+')':'Дуудлагад хэт олон хүн байна'):callErr(e),4500);
+    if(starter&&!meet)FS.updateDoc(ref,{status:'ended'}).catch(()=>{});
+    endCall(false);return false;
+  }
+}
+function endGroupCall(c){
+  clearTimeout(c.timer);c.unsubs.forEach(u=>u());
+  c.peers.forEach(p=>{clearTimeout(p.dt);try{p.pc.close()}catch(_){}});c.local.getTracks().forEach(t=>t.stop());if(c.cam)c.cam.stop();
+  ov.className='';ov.innerHTML='';gLeave(c);
+}
+function gLeave(c){
+  const me=S.me&&S.me.uid;if(!c.joined||!db||!me)return;
+  const {doc,runTransaction,arrayRemove}=FS,ref=doc(db,c.col,c.id);
+  runTransaction(db,async tx=>{const x=(await tx.get(ref)).data();if(!x)return;
+    const rest=(x.live||[]).filter(u=>u!==me),up={live:arrayRemove(me)};
+    // сүүлчийн хүн гарах эсвэл 1 минутад хэнтэй ч холбогдоогүй (үлдсэн нь унтарсан төхөөрөмж) бол шинээр нэгдэхийг хаана
+    if(!c.meet&&x.status==='active'&&(!rest.length||c.kill))up.status='ended';
+    tx.update(ref,up)}).catch(e=>console.warn('gcall leave',e));
+}
+function showGroupIncoming(id,d){
+  INC={id,d,group:true};
+  notify(d.audio?'📞 Бүлгийн дуут дуудлага':'📹 Бүлгийн видео дуудлага',d.fromName+' · '+d.name,'gcall-'+id);ringStart();
+  try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(_){}
+  ov.innerHTML=`<div class="call audio inc" role="alertdialog"><div class="cav">${av(d.cid,d.name,120,'new')}</div><div class="cinfo center"><b>👥 ${esc(d.name)}</b><span>${esc(d.fromName)} ${d.audio?'дуут':'видео'} дуудлага эхлүүллээ…</span></div><div class="cbar"><button class="cb end" data-a="cdec" aria-label="Татгалзах">${ic('phone',26)}</button><button class="cb acc" data-a="cacc" aria-label="Нэгдэх">${ic('phone',26)}</button></div></div>`;
+  ov.className='open';
+  INC.t=setTimeout(()=>{if(INC&&INC.id===id)closeIncoming()},45000);
+}
+/* ---------- онлайн уулзалт (Google Meet шиг): кодтой холбоосоор хэн ч (нэвтэрсэн) нэгдэнэ, meets/{код} ---------- */
+const meetCode=()=>{const a='abcdefghijkmnopqrstuvwxyz',r=crypto.getRandomValues(new Uint8Array(10)),s=[...r].map(x=>a[x%a.length]).join('');return s.slice(0,3)+'-'+s.slice(3,7)+'-'+s.slice(7)};
+const meetParse=v=>{const m=String(v||'').match(/(?:meet=)?([a-z]{3})-?([a-z]{4})-?([a-z]{3})(?![a-z])/i);return m?(m[1]+'-'+m[2]+'-'+m[3]).toLowerCase():''};
+// апп (Capacitor) дотроос хуваалцахад вэб хаягийг ашиглана
+const meetUrl=code=>(/^https?:$/.test(location.protocol)?location.origin+location.pathname:'https://maze0101.github.io/maze-app/')+'?meet='+code;
+async function meetSheet(){
+  openSheet(`<h3>🎥 Онлайн уулзалт</h3><label>Уулзалтын нэр<input id="mtitle" maxlength="60" placeholder="${esc(S.me.name)}-ийн уулзалт"></label><div class="crow"><button class="btn" data-a="mnew">${ic('video',18)} Шинэ уулзалт</button><button class="btn line" data-a="mnew" data-au="1">${ic('phone',18)} Зөвхөн дуу</button></div>
+  <div class="sec" style="padding:14px 0 0">Кодоор нэгдэх</div><div class="crow"><input id="mcode" class="search" placeholder="abc-defg-hij эсвэл холбоос" autocomplete="off" autocapitalize="off"><button class="btn line" data-a="mjoin" style="flex:0 0 auto">Нэгдэх</button></div>
+  <div id="mmine"></div>`);
+  try{const {collection,query,where,getDocs}=FS;
+    const ls=(await getDocs(query(collection(db,'meets'),where('host','==',S.me.uid)))).docs.map(x=>({id:x.id,...x.data()})).filter(x=>x.status==='active').sort((a,b)=>tms(b.createdAt)-tms(a.createdAt)).slice(0,5);
+    const el=$('#mmine');if(el&&ls.length)el.innerHTML=`<div class="sec" style="padding:14px 0 4px">Миний уулзалтууд</div>`+ls.map(x=>`<div class="mrow"><button class="row" style="flex:1;margin:0" data-a="mjoin" data-id="${esc(x.id)}"><div class="rt"><b>${esc(x.title)}</b><span class="mute">${esc(x.id)}${(x.live||[]).length?' · '+x.live.length+' хүн байна':''}</span></div></button><button class="ib" data-a="mcopy" data-id="${esc(x.id)}" aria-label="Холбоос хуулах">${ic('link',18)}</button><button class="ib" data-a="mend" data-id="${esc(x.id)}" aria-label="Уулзалтыг хаах">${ic('close',18)}</button></div>`).join('');
+  }catch(e){console.warn('meets',e)}
+}
+async function meetNew(audio){
+  if(CALL||INC)return;const title=(($('#mtitle')||{}).value||'').trim().slice(0,60)||S.me.name.slice(0,40)+'-ийн уулзалт';
+  let local;try{local=await getMedia(audio)}catch(e){toast(mediaErr(e),4500);return}
+  const {doc,setDoc,serverTimestamp}=FS,code=meetCode();
+  const d={host:S.me.uid,hostName:S.me.name.slice(0,40),title,live:[],names:{},status:'active',...(audio?{audio:true}:{})};
+  try{await setDoc(doc(db,'meets',code),{...d,createdAt:serverTimestamp()})}catch(e){console.error(e);toast(callErr(e),5000);local.getTracks().forEach(t=>t.stop());return}
+  closeOv();
+  if(await joinGroupCall(code,{col:'meets',name:title,audio:!!audio},local))meetShare(code);
+}
+async function meetJoin(v){
+  const code=meetParse(v);if(!code){toast('Уулзалтын код буруу байна');return}
+  if(CALL||INC){toast('Та өөр дуудлагад байна');return}
+  let x;try{const sn=await FS.getDoc(FS.doc(db,'meets',code));x=sn.exists()?sn.data():null}catch(e){console.error(e);toast(callErr(e),4500);return}
+  if(!x){toast('Уулзалт олдсонгүй');return}
+  if(x.status!=='active'){toast('Уулзалт дууссан байна');return}
+  closeOv();joinGroupCall(code,{col:'meets',name:x.title,audio:!!x.audio});
+}
+async function meetShare(code){
+  const url=meetUrl(code),t=(CALL&&CALL.meet&&CALL.name)||'Онлайн уулзалт';
+  if(navigator.share)try{await navigator.share({title:t,text:t+' — нэгдэх холбоос',url});return}catch(e){if(e&&e.name==='AbortError')return}
+  try{await navigator.clipboard.writeText(url);toast('Холбоос хуулагдлаа: '+code,3500)}catch(_){toast('Уулзалтын код: '+code,5000)}
+}
+/* дэлгэц хуваалцах: камерын видеог бүх холболт дээр дэлгэцийн видеогоор сольж, дуусахад буцаана */
+function gSwap(from,to){
+  const c=CALL;if(from)c.local.removeTrack(from);if(to)c.local.addTrack(to);
+  c.peers.forEach(p=>{const tr=p.pc.getTransceivers().find(x=>x.receiver.track&&x.receiver.track.kind==='video');if(tr)tr.sender.replaceTrack(to).catch(()=>{})});
+  const v=$('#gg video.me');if(v){v.srcObject=null;v.srcObject=c.local;v.classList.toggle('scr',!!c.scr);v.play().catch(()=>{})}
+  const b=$('[data-a="gshare"]');if(b)b.classList.toggle('off',!!c.scr);
+  c.peers.forEach((p,u)=>gSig(u,'v',!!c.scr));gTiles();
+}
+async function gShare(){
+  const c=CALL;if(!c||!c.group)return;
+  if(c.scr){gUnshare();return}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia){toast('Энэ төхөөрөмж дэлгэц хуваалцахыг дэмжихгүй байна. Компьютерын Chrome, Edge эсвэл Safari ашиглана уу',5000);return}
+  const cam=c.local.getVideoTracks()[0]||null;
+  let st;try{st=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false})}catch(e){if(e&&e.name!=='NotAllowedError')toast('Дэлгэц хуваалцаж чадсангүй');return}
+  const t=st.getVideoTracks()[0];if(CALL!==c||!t){st.getTracks().forEach(x=>x.stop());return}
+  try{t.contentHint='detail'}catch(_){} // текст тод харагдана
+  c.scr=t;c.cam=cam;gSwap(cam,t);t.onended=()=>{if(CALL===c&&c.scr===t)gUnshare()};
+  toast('Дэлгэцээ хуваалцаж байна');
+}
+function gUnshare(){const c=CALL,t=c&&c.scr;if(!t)return;c.scr=null;gSwap(t,c.cam||null);c.cam=null;t.stop()}
 window.addEventListener('pagehide',()=>{if(CALL)endCall(true)});
 function toggleTrack(kind,btn){
   if(!CALL)return;const ts=kind==='audio'?CALL.local.getAudioTracks():CALL.local.getVideoTracks();
   const on=!(ts[0]&&ts[0].enabled);ts.forEach(t=>t.enabled=on);btn.classList.toggle('off',!on);
+}
+/* Чангаруулагч: Chrome/Android дээр setSinkId-ээр бодит гаралтын төхөөрөмж сольж, дэмжигдэхгүй бол (Safari/iOS) дуу чанга/намуухныг сольж орлуулна */
+async function toggleSpeaker(btn){
+  if(!CALL)return;const vs=[...document.querySelectorAll('.call video:not(#lv):not(.me)')],on=!CALL.spk;
+  let spk=null;
+  if(vs.some(v=>typeof v.setSinkId==='function'))try{spk=(await navigator.mediaDevices.enumerateDevices()).find(d=>d.kind==='audiooutput'&&/speaker/i.test(d.label))}catch(_){}
+  for(const rv of vs){
+    if(typeof rv.setSinkId==='function'){
+      try{await rv.setSinkId(on?(spk?spk.deviceId:'default'):'default')} // асаахад чанга яригч руу шилжинэ (боломжтой бол), унтраахад системийн үндсэн гаралт (жишээ нь Bluetooth) руу буцна
+      catch(_){rv.volume=on?1:.55}
+    }else rv.volume=on?1:.55; // Safari/iOS: setSinkId дэмжихгүй тул дууны түвшингээр орлуулна
+  }
+  CALL.spk=on;btn.classList.toggle('off',!on);
 }
 
 /* ---------- акаунт устгах ---------- */
@@ -1738,7 +1824,7 @@ document.addEventListener('click',async e=>{
   if(!S.me)return;
   if(a==='wdis'){lsSet('maze-welcome-'+S.me.uid,true);render();return}
   if(a==='ucall'){startCall(id,b.dataset.n,!!b.dataset.au);return}
-  const {doc,updateDoc,deleteDoc,setDoc,addDoc,collection,writeBatch,serverTimestamp,arrayUnion,arrayRemove,increment,query,orderBy,limit,onSnapshot,deleteField}=FS;
+  const {doc,updateDoc,deleteDoc,setDoc,addDoc,collection,writeBatch,serverTimestamp,arrayUnion,arrayRemove,increment,query,orderBy,limit,onSnapshot,deleteField,getDocs}=FS;
   const allPosts=()=>[...S.posts,...S.mine,...S.vposts],nmOf=u=>(U.get(u)||{}).name||S.friends.get(u)||'Хэрэглэгч';
   try{
   switch(a){
@@ -1770,6 +1856,15 @@ document.addEventListener('click',async e=>{
       await sendTo(th,{text:m.t,img:m.img||undefined,aud:m.aud||undefined,fw:true});S.fwd=null;closeOv();toast('Дамжууллаа');break}
     case 'reqok':{if(!S.thread)break;await updateDoc(doc(db,'chats',S.thread.cid),{ok:true});toast('Зөвшөөрлөө');break}
     case 'reqdel':{if(!S.thread||!confirm('Энэ чатыг устгах уу?'))break;const cid=S.thread.cid;closeThread();await deleteDoc(doc(db,'chats',cid));toast('Устгагдлаа');break}
+    case 'delchat':{const cid=b.dataset.cid;closeOv();if(!cid||!confirm('Энэ чатыг бүх мессежийн хамт устгах уу?'))break;
+      try{
+        const msgs=(await getDocs(collection(db,'chats',cid,'messages'))).docs;
+        for(let i=0;i<msgs.length;i+=400){const bt=writeBatch(db);msgs.slice(i,i+400).forEach(d=>bt.delete(d.ref));await bt.commit()}
+        await deleteDoc(doc(db,'chats',cid));
+        if(S.thread&&S.thread.cid===cid)closeThread();
+        toast('Чат устгагдлаа');
+      }catch(_){toast('Устгаж чадсангүй')}
+      break}
     case 'cmenu':{if(!S.thread)break;const cid=S.thread.cid,pr=cpref(cid);
       openSheet(`<h3>${esc(S.thread.name)}</h3><button class="btn line" data-a="msearch">🔍 Мессеж хайх</button><button class="btn line" data-a="mgal">🖼 Зурагнууд</button><button class="btn line" data-a="ccustomize">🎨 Чат тохируулах</button><button class="btn line" data-a="cpin">${pr.p?'📌 Тогтоосныг болиулах':'📌 Чатыг дээр тогтоох'}</button><button class="btn line" data-a="cmute">${pr.m?'🔔 Дууг нээх':'🔇 Дуу хаах'}</button>${S.thread.group?`<button class="btn line" data-a="ginfo">👥 Бүлгийн мэдээлэл</button>`:`<button class="btn line" data-a="report" data-id="${esc(S.thread.uid)}" data-n="${esc(S.thread.name)}">Гомдол өгөх</button><button class="btn line" data-a="block" data-id="${esc(S.thread.uid)}" style="color:var(--like)">Блоклох</button>`}`);break}
     case 'ccustomize':openSheet(customizeHTML());break;
@@ -1809,6 +1904,14 @@ document.addEventListener('click',async e=>{
     case 'reccancel':recStop(false);break;
     case 'mfemoji':S.mfEmoji=!S.mfEmoji;renderMf();break;
     case 'mfe':{const inp=$('#mi');if(inp){const e2=b.dataset.e,s=inp.selectionStart??inp.value.length,en=inp.selectionEnd??inp.value.length;inp.value=inp.value.slice(0,s)+e2+inp.value.slice(en);inp.focus();inp.selectionStart=inp.selectionEnd=s+e2.length;inp.dispatchEvent(new Event('input',{bubbles:true}))}break}
+    case 'meet':meetSheet();break;
+    case 'mnew':meetNew(!!b.dataset.au);break;
+    case 'mjoin':meetJoin(id||($('#mcode')||{}).value);break;
+    case 'mcopy':meetShare(id);break;
+    case 'mlink':if(CALL&&CALL.meet)meetShare(CALL.id);break;
+    case 'gshare':gShare();break;
+    case 'mend':{if(!confirm('Энэ уулзалтыг хаах уу? Холбоос ажиллахаа болино.'))break;
+      try{await FS.updateDoc(FS.doc(db,'meets',id),{status:'ended'});toast('Уулзалт хаагдлаа');meetSheet()}catch(e){toast(callErr(e))}break}
     case 'newgroup':{const fr=[...S.friends.entries()].filter(([u])=>!hid(u));
       if(!fr.length){toast('Эхлээд найз нэм');break}
       S.draftGroup=null;openSheet(`<h3>Бүлэг үүсгэх</h3><div class="phrow">${av('',n0(),56)}<label class="chip">${ic('image',18)}Бүлгийн зураг<input type="file" id="gfile" accept="image/*" class="vh"></label></div><label>Нэр<input id="gn" maxlength="40" placeholder="Бүлгийн нэр"></label><div class="pick">${fr.map(([u,n])=>`<label class="pk"><input type="checkbox" value="${esc(u)}">${av(u,nmOf(u),30)}<span>${esc(nmOf(u))}</span></label>`).join('')}</div><button class="btn" data-a="mkgroup">Үүсгэх</button>`);break}
@@ -1879,12 +1982,13 @@ document.addEventListener('click',async e=>{
     case 'snext':nextStory();break;
     case 'closeov':closeOv();break;
     case 'newpost':openSheet(composerFormHTML());break;
-    case 'call':startCall(S.thread.uid,S.thread.name);break;
-    case 'acall':startCall(S.thread.uid,S.thread.name,true);break;
+    case 'call':if(S.thread.group)startGroupCall(false);else startCall(S.thread.uid,S.thread.name);break;
+    case 'acall':if(S.thread.group)startGroupCall(true);else startCall(S.thread.uid,S.thread.name,true);break;
     case 'cacc':acceptCall();break;
     case 'cdec':declineCall();break;
     case 'cend':endCall(true);break;
-    case 'cmute':toggleTrack('audio',b);break;
+    case 'callmute':toggleTrack('audio',b);break;
+    case 'callspk':toggleSpeaker(b);break;
     case 'ccam':toggleTrack('video',b);break;
     case 'addstory':
       S.gsel=0;S.draftStory=null;openSheet(`<h3>Story нэмэх</h3><div id="sprev"></div><label class="chip" style="align-self:flex-start">${ic('image',18)}Зураг нэмэх<input type="file" id="sfile" accept="image/*" class="vh"></label><label>Текст<textarea id="st-t" maxlength="120" placeholder="Юу хуваалцах вэ?"></textarea></label><div class="sw">${GR.map((g,i)=>`<button data-a="grad" data-i="${i}" class="${i===0?'on':''}" style="background:${g}" aria-label="Өнгө ${i+1}"></button>`).join('')}</div><button class="btn" data-a="savestory">Story нийтлэх</button>`);break;
@@ -1925,11 +2029,12 @@ document.addEventListener('click',async e=>{
       toast(r.fromName+' найз боллоо');break}
     case 'decline':await deleteDoc(doc(db,'requests',id));break;
     case 'thread':openThread(id,b.dataset.n,b.dataset.g||null);break;
-    case 'editprofile':S.draftPhoto=null;openSheet(`<h3>Профайл засах</h3><div class="phrow">${av(S.me.uid,S.me.name,56)}<label class="chip" id="pchip">${ic('image',18)}Зураг солих<input type="file" id="pfile" accept="image/*" class="vh"></label></div><label>Нэр<input id="pn" value="${esc(S.me.name)}" maxlength="40"></label><label>Танилцуулга<textarea id="pb" maxlength="140">${esc(S.me.bio)}</textarea></label><button class="btn" data-a="saveprofile">Хадгалах</button>`);break;
+    case 'editprofile':S.draftPhoto=null;S.draftCover=null;openSheet(`<h3>Профайл засах</h3><div class="cover" id="pcover" style="height:100px;margin:0">${S.me.cover?`<img src="${S.me.cover}" alt="">`:cover()}</div><label class="chip" id="pcoverchip" style="margin-top:8px">${ic('image',18)}Ковер зураг солих<input type="file" id="pcoverfile" accept="image/*" class="vh"></label><div class="phrow">${av(S.me.uid,S.me.name,56)}<label class="chip" id="pchip">${ic('image',18)}Зураг солих<input type="file" id="pfile" accept="image/*" class="vh"></label></div><label>Нэр<input id="pn" value="${esc(S.me.name)}" maxlength="40"></label><label>Танилцуулга<textarea id="pb" maxlength="140">${esc(S.me.bio)}</textarea></label><button class="btn" data-a="saveprofile">Хадгалах</button>`);break;
     case 'saveprofile':{const n=$('#pn').value.trim();if(!n){toast('Нэр хоосон байж болохгүй');break}
-      const bio=$('#pb').value.trim(),up={name:n,nameLower:n.toLowerCase(),bio};if(S.draftPhoto)up.photo=S.draftPhoto;
+      const bio=$('#pb').value.trim(),up={name:n,nameLower:n.toLowerCase(),bio};if(S.draftPhoto)up.photo=S.draftPhoto;if(S.draftCover)up.cover=S.draftCover;
       await updateDoc(doc(db,'users',S.me.uid),up);
-      const old=U.get(S.me.uid)||{};U.set(S.me.uid,{name:n,bio,photo:S.draftPhoto||old.photo||'',cover:S.me.cover||'',dm:S.me.dm||'all'});S.draftPhoto=null;
+      const old=U.get(S.me.uid)||{};U.set(S.me.uid,{name:n,bio,photo:S.draftPhoto||old.photo||'',cover:S.draftCover||S.me.cover||'',dm:S.me.dm||'all'});
+      if(S.draftCover)S.me.cover=S.draftCover;S.draftPhoto=null;S.draftCover=null;
       S.me.name=n;S.me.bio=bio;closeOv();render();toast('Хадгалагдлаа');break}
     case 'dstyle':{const v=b.dataset.v;document.documentElement.dataset.style=v;try{localStorage.setItem('maze-style',v)}catch(_){}document.querySelectorAll('[data-a=dstyle]').forEach(x=>x.classList.toggle('on',x.dataset.v===v));break}
     case 'theme':{const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
@@ -2022,25 +2127,22 @@ document.addEventListener('change',async e=>{
     const f=e.target.files[0];if(!f)return;
     try{S.draftPhoto=await fitSq(f,320);const ph=$('.phrow');if(ph&&ph.firstElementChild)ph.firstElementChild.outerHTML=`<span class="hx" style="--s:56px;background:url('${S.draftPhoto}') center/cover"></span>`;toast('Зураг сонгогдлоо. Хадгалах дарна уу.')}catch(er){console.warn('photo',er);toast('Зургийг уншиж чадсангүй. Өөр зураг сонгоно уу.',3500)}
   }
-  if(e.target.id==='coverfile'){
+  if(e.target.id==='pcoverfile'){
     const f=e.target.files[0];if(!f)return;
-    try{
-      const d=await fitWide(f,800,300),{doc,updateDoc}=FS;
-      await updateDoc(doc(db,'users',S.me.uid),{cover:d});
-      S.me.cover=d;U.set(S.me.uid,Object.assign({},U.get(S.me.uid)||{},{cover:d}));
-      const cv=$('.cover');if(cv)cv.innerHTML=`<img src="${d}" alt=""><label class="covedit" aria-label="Ковер зураг солих">${ic('image',18)}<input type="file" id="coverfile" accept="image/*" class="vh"></label>`;
-      toast('Ковер зураг шинэчлэгдлээ');
-    }catch(er){console.warn('cover photo',er);toast('Зургийг уншиж чадсангүй. Өөр зураг сонгоно уу.',3500)}
+    try{S.draftCover=await fitWide(f,800,300);const pc=$('#pcover');if(pc)pc.innerHTML=`<img src="${S.draftCover}" alt="">`;toast('Ковер зураг сонгогдлоо. Хадгалах дарна уу.')}catch(er){console.warn('cover photo',er);toast('Зургийг уншиж чадсангүй. Өөр зураг сонгоно уу.',3500)}
   }
 });
 
 /* ---------- эхлүүлэлт ---------- */
 async function main(){
-  try{const st=localStorage.getItem('maze-style');if(st)document.documentElement.dataset.style=st}catch(_){}
+  try{const st=localStorage.getItem('maze-style');if(st){if(['glass','discord','pop','minimal','card'].includes(st))document.documentElement.dataset.style=st;else localStorage.removeItem('maze-style')}}catch(_){}
   try{const t=localStorage.getItem('nutag-theme');if(t)document.documentElement.dataset.theme=t}catch(_){}
   if(!configured&&!window.__FB_MOCK){setupRender();return}
   $('#main').innerHTML='<div style="min-height:70vh;display:grid;align-items:center">'+loader()+'</div>';
-  const bootT0=Date.now(),MIN_BOOT=2200;
+  // Дуудлагын push мэдэгдлээс (?call=) нээгдсэн бол эхлэлийн хиймэл хүлээлтийг алгасаж, дуудлагын дэлгэцийг аль болох хурдан харуулна
+  const qs=new URLSearchParams(location.search),fromCall=qs.has('call');S.pendMeet=meetParse(qs.get('meet')||'');
+  if(fromCall||S.pendMeet)try{history.replaceState(null,'',location.pathname+location.hash)}catch(_){}
+  const bootT0=Date.now(),MIN_BOOT=fromCall?0:2200;
   try{
     const fb=await loadFirebase();
     const app=fb.app.initializeApp(CFG);FBAPP=app;AU=fb.auth;FS=fb.fs;auth=AU.getAuth(app);auth.languageCode="mn";db=FS.getFirestore(app);

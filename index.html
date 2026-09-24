@@ -1199,7 +1199,7 @@ async function startSession(u){
       readMap:lsGet('nutag-read-'+u.uid,{}),seenMap:lsGet('nutag-seen-'+u.uid,{}),
       reply:null,fwd:null,feedTab:'all',draftImgs:[],draftStory:null,prefs:lsGet('maze-cp-'+u.uid,{}),act:lsGet('maze-act-'+u.uid,null)});
     if(!S.act){S.act={t0:Date.now(),p:{}};lsSet('maze-act-'+u.uid,S.act)}
-    subscribe();heartbeat();registerPush();render();toast('Тавтай морил, '+S.me.name);notifNudge();
+    subscribe();heartbeat();registerPush();loadIce();render();toast('Тавтай морил, '+S.me.name);notifNudge();
   }catch(e){onErr(e);A.mode='login';amsg('Профайлаа уншиж чадсангүй. Firestore-ийн тохиргоогоо шалгана уу.');S.me=null;render()}
 }
 function endSession(){vfStop();clearInterval(hbT);endCall(true);INC=null;recStop(false);unsubAll();clearTimeout(svT);const o=$('#ov');o.className='';o.innerHTML='';S.me=null;S.thread=null;A.mode='login';A.msg='';A.ok=false}
@@ -1297,12 +1297,21 @@ function prevStory(){if(S.sv.i>0)S.sv.i--;drawStory()}
 
 /* ---------- видео дуудлага (WebRTC, signaling = Firestore) ---------- */
 // Өөр сүлжээнээс (мобайл дата ↔ WiFi) холбогдоход TURN сервер заавал хэрэгтэй.
-// Metered.ca-ийн бүртгэлгүй нээлттэй TURN (OpenRelay). Илүү найдвартай/өөрийн эрхтэй болгохыг хүсвэл
-// dashboard.metered.ca дээр бүртгүүлж, "Using the API" хэсгээс өөрийн apiKey-г эндхийн оронд тавина.
-const TURN=[{urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
-  {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
-  {urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}];
-const ICE={iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302','stun:stun.cloudflare.com:3478']},...TURN]};
+// Cloudflare TURN-ийн түр (24 цаг) эрхийг push-worker-ийн /turn-ээс авч, 12 цаг тутам шинэчилнэ.
+const STUN={urls:['stun:stun.cloudflare.com:3478','stun:stun.l.google.com:19302']};
+let TURN=[],ICE={iceServers:[STUN]},iceAt=0,iceP=null;
+function loadIce(){
+  if(iceAt&&Date.now()-iceAt<12*36e5)return Promise.resolve();
+  if(iceP)return iceP;
+  const u=auth&&auth.currentUser;if(!PUSH_URL||!u)return Promise.resolve();
+  iceP=u.getIdToken().then(t=>fetch(PUSH_URL+'/turn',{method:'POST',headers:{Authorization:'Bearer '+t}}))
+    .then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.iceServers,l=Array.isArray(v)?v:v?[v]:[];
+      TURN=l.filter(x=>[].concat(x.urls||[]).some(x=>/^turns?:/.test(x)));
+      if(TURN.length){ICE={iceServers:[STUN,...TURN]};iceAt=Date.now()}})
+    .catch(e=>console.warn('turn',e)).finally(()=>{iceP=null});
+  return iceP;
+}
+const iceReady=()=>Promise.race([loadIce(),new Promise(r=>setTimeout(r,4000))]); // TURN авч чадахгүй бол удаан хүлээлгүй STUN-ээр оролдоно
 let CALL=null,INC=null,ringCtx=null,ringT=null;
 function callStatus(t){const s=$('.cinfo span');if(s)s.textContent=t}
 const RINGS={
@@ -1416,7 +1425,7 @@ const hashLink=s=>s.replace(/(https?:\/\/(?:(?!&quot;|&#39;|&lt;|&gt;)\S)+)|(^|[
   if(u){const x=u.match(/[.,!?;:)\]]+$/),tr=x?x[0]:'',url=tr?u.slice(0,-tr.length):u;return '<a class="ht" href="'+url+'" target="_blank" rel="noopener noreferrer nofollow">'+url+'</a>'+tr}
   return pre+'<a class="ht" data-a="tag" data-t="'+t+'">#'+t+'</a>'});
 async function startCall(uid,name,audio){
-  if(CALL||INC)return;
+  if(CALL||INC)return;await iceReady();
   const {doc,setDoc,onSnapshot,serverTimestamp}=FS;let local;
   try{local=await getMedia(audio)}catch(e){toast(mediaErr(e),4500);return}
   if(local.__none)toast('Камер/микрофон ашиглах боломжгүй тул зөвхөн харах/сонсох горимд орлоо',4500);
@@ -1446,7 +1455,7 @@ function showIncoming(id,d){
 }
 function closeIncoming(){ringStop();if(INC)clearTimeout(INC.t);INC=null;if(!CALL){ov.className='';ov.innerHTML=''}}
 async function acceptCall(){
-  if(!INC||CALL)return;ringStop();clearTimeout(INC.t);const {id,d,group}=INC;INC=null;if(group){joinGroupCall(id,d);return}const {doc,updateDoc,onSnapshot}=FS;let local;
+  if(!INC||CALL)return;ringStop();clearTimeout(INC.t);const {id,d,group}=INC;INC=null;await iceReady();if(group){joinGroupCall(id,d);return}const {doc,updateDoc,onSnapshot}=FS;let local;
   try{local=await getMedia(d.audio)}catch(e){toast(mediaErr(e),4500);await updateDoc(doc(db,'calls',id),{status:'declined'}).catch(()=>{});ov.className='';ov.innerHTML='';return}
   if(local.__none)toast('Камер/микрофон ашиглах боломжгүй тул зөвхөн харах/сонсох горимд орлоо',4500);
   try{
@@ -1555,6 +1564,7 @@ async function startGroupCall(audio){
 async function joinGroupCall(id,d,pre){
   const starter=!!pre;if(CALL){if(pre)pre.getTracks().forEach(t=>t.stop());return false}
   const {doc,collection,query,where,getDocs,deleteDoc,onSnapshot,runTransaction,arrayUnion}=FS,me=S.me.uid,col=d.col||'gcalls',meet=col==='meets',ref=doc(db,col,id);let local;
+  await iceReady();
   if(pre)local=pre;else try{local=await getMedia(d.audio)}catch(e){toast(mediaErr(e),4500);if($('.call.inc')){ov.className='';ov.innerHTML=''}return false}
   if(local.__none)toast('Камер/микрофон ашиглах боломжгүй тул зөвхөн харах/сонсох горимд орлоо',4500);
   if(CALL){local.getTracks().forEach(t=>t.stop());return false}
@@ -1614,7 +1624,7 @@ function showGroupIncoming(id,d){
 const meetCode=()=>{const a='abcdefghijkmnopqrstuvwxyz',r=crypto.getRandomValues(new Uint8Array(10)),s=[...r].map(x=>a[x%a.length]).join('');return s.slice(0,3)+'-'+s.slice(3,7)+'-'+s.slice(7)};
 const meetParse=v=>{const m=String(v||'').match(/(?:meet=)?([a-z]{3})-?([a-z]{4})-?([a-z]{3})(?![a-z])/i);return m?(m[1]+'-'+m[2]+'-'+m[3]).toLowerCase():''};
 // апп (Capacitor) дотроос хуваалцахад вэб хаягийг ашиглана
-const meetUrl=code=>(/^https?:$/.test(location.protocol)?location.origin+location.pathname:'https://'+CFG.authDomain.replace('firebaseapp.com','web.app')+'/')+'?meet='+code;
+const meetUrl=code=>(/^https?:$/.test(location.protocol)?location.origin+location.pathname:'https://maze0101.github.io/maze-app/')+'?meet='+code;
 async function meetSheet(){
   openSheet(`<h3>🎥 Онлайн уулзалт</h3><label>Уулзалтын нэр<input id="mtitle" maxlength="60" placeholder="${esc(S.me.name)}-ийн уулзалт"></label><div class="crow"><button class="btn" data-a="mnew">${ic('video',18)} Шинэ уулзалт</button><button class="btn line" data-a="mnew" data-au="1">${ic('phone',18)} Зөвхөн дуу</button></div>
   <div class="sec" style="padding:14px 0 0">Кодоор нэгдэх</div><div class="crow"><input id="mcode" class="search" placeholder="abc-defg-hij эсвэл холбоос" autocomplete="off" autocapitalize="off"><button class="btn line" data-a="mjoin" style="flex:0 0 auto">Нэгдэх</button></div>
