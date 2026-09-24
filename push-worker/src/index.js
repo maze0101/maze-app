@@ -160,12 +160,20 @@ export default {
     };
     if (req.method === 'OPTIONS') return new Response(null, {status: 204, headers: cors});
     if (req.method !== 'POST') return new Response('maze-push ok', {headers: cors});
-    // /turn: нэвтэрсэн хэрэглэгчид Cloudflare TURN-ийн түр (24 цаг) нэвтрэх эрх олгоно.
-    // Тохиргоо: dashboard → Realtime → TURN Server → Create → `wrangler secret put TURN_KEY_ID`, `wrangler secret put TURN_KEY_TOKEN`
+    // /turn: нэвтэрсэн хэрэглэгчид TURN-ийн нэвтрэх эрх олгоно (ExpressTURN эсвэл Cloudflare TURN).
+    // Cloudflare тохиргоо: dashboard → Realtime → TURN Server → Create → `wrangler secret put TURN_KEY_ID`, `wrangler secret put TURN_KEY_TOKEN`
     if (new URL(req.url).pathname === '/turn') {
       const json = (o, status = 200) => new Response(JSON.stringify(o), {status, headers: {...cors, 'Content-Type': 'application/json'}});
-      if (!env.TURN_KEY_ID || !env.TURN_KEY_TOKEN) return json({error: 'turn not configured'}, 503);
       try { await verifyIdToken((req.headers.get('Authorization') || '').replace(/^Bearer /, ''), env.PROJECT_ID); } catch (e) { return json({error: 'bad token'}, 401); }
+      // ExpressTURN (картгүй, сард 1000GB үнэгүй): `wrangler secret put TURN_HOST` (жишээ relay1.expressturn.com), TURN_USER, TURN_PASS
+      if (env.TURN_HOST && env.TURN_USER && env.TURN_PASS) {
+        const h = env.TURN_HOST.replace(/^turns?:/, '').replace(/:d+$/, '');
+        return json({iceServers: [{
+          urls: [`turn:${h}:3478`, `turn:${h}:3478?transport=tcp`, `turn:${h}:80`, `turn:${h}:443?transport=tcp`],
+          username: env.TURN_USER, credential: env.TURN_PASS,
+        }]});
+      }
+      if (!env.TURN_KEY_ID || !env.TURN_KEY_TOKEN) return json({error: 'turn not configured'}, 503);
       const r = await fetch(`https://rtc.live.cloudflare.com/v1/turn/keys/${env.TURN_KEY_ID}/credentials/generate-ice-servers`, {
         method: 'POST', headers: {Authorization: 'Bearer ' + env.TURN_KEY_TOKEN, 'Content-Type': 'application/json'}, body: JSON.stringify({ttl: 86400}),
       });
