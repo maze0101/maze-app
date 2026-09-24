@@ -169,7 +169,7 @@ export default {
       if (env.TURN_HOST && env.TURN_USER && env.TURN_PASS) {
         const h = env.TURN_HOST.replace(/^turns?:/, '').replace(/:\d+$/, '');
         return json({iceServers: [{
-          urls: [`turn:${h}:3478`, `turn:${h}:3478?transport=tcp`, `turn:${h}:80`, `turn:${h}:443?transport=tcp`],
+          urls: [`turn:${h}:3478`, `turn:${h}:3478?transport=tcp`], // үнэгүй багц зөвхөн 3478 портыг (UDP+TCP) нээдэг
           username: env.TURN_USER, credential: env.TURN_PASS,
         }]});
       }
