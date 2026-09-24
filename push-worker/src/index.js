@@ -167,7 +167,7 @@ export default {
       try { await verifyIdToken((req.headers.get('Authorization') || '').replace(/^Bearer /, ''), env.PROJECT_ID); } catch (e) { return json({error: 'bad token'}, 401); }
       // ExpressTURN (картгүй, сард 1000GB үнэгүй): `wrangler secret put TURN_HOST` (жишээ relay1.expressturn.com), TURN_USER, TURN_PASS
       if (env.TURN_HOST && env.TURN_USER && env.TURN_PASS) {
-        const h = env.TURN_HOST.replace(/^turns?:/, '').replace(/:d+$/, '');
+        const h = env.TURN_HOST.replace(/^turns?:/, '').replace(/:\d+$/, '');
         return json({iceServers: [{
           urls: [`turn:${h}:3478`, `turn:${h}:3478?transport=tcp`, `turn:${h}:80`, `turn:${h}:443?transport=tcp`],
           username: env.TURN_USER, credential: env.TURN_PASS,
