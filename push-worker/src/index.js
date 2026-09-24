@@ -125,6 +125,19 @@ async function handle(req, env) {
     }, 60);
     return 200;
   }
+  if (b.kind === 'gcall') {
+    const id = String(b.id || '');
+    const c = await fsGet(env, tok, 'gcalls/' + encodeURIComponent(id));
+    if (!c || c.from !== uid || c.status !== 'active') return 403;
+    if (Date.now() - Date.parse(c.createdAt || 0) > 120e3) return 403;
+    const members = (c.members || []).filter(x => x !== uid);
+    const blocked = await Promise.all(members.map(u => fsGet(env, tok, `blocks/${u}_${uid}`)));
+    await push(env, tok, members.filter((_, i) => !blocked[i]), {
+      type: 'call', title: (c.audio ? '📞 ' : '📹 ') + short(c.name, 40) + (c.audio ? ' бүлгийн дуут дуудлага' : ' бүлгийн видео дуудлага'),
+      body: short(c.fromName, 40) + ' дуудлага эхлүүллээ. Нэгдэхийн тулд дарна уу', tag: 'gcall-' + id, url: './index.html?call=' + encodeURIComponent(id),
+    }, 60);
+    return 200;
+  }
   if (b.kind === 'req') {
     const id = String(b.id || '');
     const r = await fsGet(env, tok, 'requests/' + encodeURIComponent(id));

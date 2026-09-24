@@ -1,1 +1,1 @@
-{"indexes":[],"fieldOverrides":[{"collectionGroup":"comments","fieldPath":"uid","indexes":[{"order":"ASCENDING","queryScope":"COLLECTION"},{"order":"ASCENDING","queryScope":"COLLECTION_GROUP"}]}]}
+{"indexes":[{"collectionGroup":"gcalls","queryScope":"COLLECTION","fields":[{"fieldPath":"members","arrayConfig":"CONTAINS"},{"fieldPath":"status","order":"ASCENDING"}]}],"fieldOverrides":[{"collectionGroup":"comments","fieldPath":"uid","indexes":[{"order":"ASCENDING","queryScope":"COLLECTION"},{"order":"ASCENDING","queryScope":"COLLECTION_GROUP"}]}]}

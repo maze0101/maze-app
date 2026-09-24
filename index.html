@@ -230,6 +230,17 @@ html,body{touch-action:manipulation}
 .cscrim{position:absolute;inset:0;background:rgba(0,0,0,.25);z-index:0}
 .cinfo.center{left:0;right:0;top:auto;bottom:38%;align-items:center;text-align:center}
 .cinfo.center b{font-size:22px}
+.call.gc{background:#05070E}
+.gg{position:absolute;inset:calc(64px + env(safe-area-inset-top,0px)) 8px calc(112px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;grid-template-columns:1fr;grid-auto-rows:1fr}
+.gg[data-n="3"],.gg[data-n="4"]{grid-template-columns:1fr 1fr}
+.gg[data-n="5"],.gg[data-n="6"],.gg[data-n="7"],.gg[data-n="8"]{grid-template-columns:1fr 1fr}
+.gt{position:relative;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#1b2a55,#0b1020 75%);min-height:0}
+.gt video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.gt video.me{transform:scaleX(-1)}
+.gt.nov video,.call.audio .gt video{opacity:0}
+.gav{position:absolute;inset:0;display:grid;place-items:center}
+.gn{position:absolute;left:8px;bottom:8px;font-size:12px;padding:3px 8px;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gjoin{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:18px;background:var(--green);color:#fff;font-weight:600;font-size:13px}
 .crow{display:flex;gap:10px}.crow .btn{flex:1;padding:13px}
 .ph .del+.del{margin-left:0}
 .ph [data-a="user"]{cursor:pointer}
@@ -557,7 +568,7 @@ async function loadFirebase(){
 const S={me:null,tab:'feed',thread:null,posts:[],mine:[],stories:[],friends:new Map(),reqIn:[],reqOut:new Set(),chats:new Map(),msgs:[],
   cm:new Map(),open:new Set(),people:[],q:'',draftImg:null,sv:null,gsel:0,readMap:{},seenMap:{},errShown:false,
   view:null,vposts:[],pq:'',cq:'',rxOpen:null,blocked:new Set(),blockedBy:new Set(),draftPhoto:null,draftCover:null,stick:false,
-  reply:null,fwd:null,feedTab:'all',draftImgs:[],draftStory:null,prefs:{},act:{},mfEmoji:false};
+  reply:null,fwd:null,feedTab:'all',draftImgs:[],draftStory:null,prefs:{},act:{},mfEmoji:false,gcalls:new Map()};
 const U=new Map(),seenSent=new Map();
 const A={mode:'login',msg:'',ok:false};
 let subs=[],cmSubs=new Map(),msgSub=null,svT=null,regBusy=false,tt,peopleT,vSub=null,uT,rec=null;
@@ -786,7 +797,7 @@ function notes(){
 }
 function notesSeen(){S.mine.forEach(p=>{S.act.p[p.id]={lk:p.likes.slice(),c:p.cc}});lsSet('maze-act-'+S.me.uid,S.act);refreshNav()}
 function headerHTML(){
-  if(S.thread){const th=S.thread,pr=cpref(th.cid),call=th.group||hid(th.uid)?'':`<button class="ib" data-a="acall" aria-label="Дуут дуудлага">${ic('phone',20)}</button><button class="ib" data-a="call" aria-label="Видео дуудлага">${ic('video',22)}</button>`;
+  if(S.thread){const th=S.thread,pr=cpref(th.cid),call=th.group?(S.gcalls.has(th.cid)?`<button class="gjoin" data-a="call" aria-label="Дуудлагад нэгдэх">${ic('video',18)}Нэгдэх</button>`:`<button class="ib" data-a="acall" aria-label="Бүлгийн дуут дуудлага">${ic('phone',20)}</button><button class="ib" data-a="call" aria-label="Бүлгийн видео дуудлага">${ic('video',22)}</button>`):hid(th.uid)?'':`<button class="ib" data-a="acall" aria-label="Дуут дуудлага">${ic('phone',20)}</button><button class="ib" data-a="call" aria-label="Видео дуудлага">${ic('video',22)}</button>`;
     return `<button class="ib" data-a="back" aria-label="Буцах">${ic('back',24)}</button>${th.group?`<span data-a="ginfo" role="button" style="display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0">${av(th.uid,th.name,38)}<b style="font-weight:600">👥 ${esc(th.name)}${pr.p?' 📌':''}${pr.m?' 🔇':''}</b></span>`:`<span data-a="user" data-id="${esc(th.uid)}" data-n="${esc(th.name)}" role="button" style="display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0">${av(th.uid,th.name,38)}<span style="display:flex;flex-direction:column;line-height:1.25;min-width:0"><b style="font-weight:600">${esc(th.name)}${pr.p?' 📌':''}${pr.m?' 🔇':''}</b>${presence(th.uid)}</span></span>`}<span style="margin-left:auto;display:flex;gap:6px;align-items:center">${call}<button class="ib" data-a="cmenu" aria-label="Цэс">${ic('more',20)}</button></span>`}
   if(S.view)return `<button class="ib" data-a="uback" aria-label="Буцах">${ic('back',24)}</button>${av(S.view.uid,S.view.name,38)}<b style="font-weight:600">${esc((U.get(S.view.uid)||S.view).name)}</b>`;
   if(S.tab==='feed')return `<div class="logo"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M4 24V4h20v20H10V10h8v6" fill="none" stroke="var(--sky)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="14" cy="19" r="2.2" fill="var(--green)"/></svg>MAZE APP</div>${(()=>{const n=notes().length;return `<button class="ib hbell" data-a="notes" aria-label="Мэдэгдэл">${ic('bell',22)}${n?`<span class="badge">${n>9?'9+':n}</span>`:''}</button>`})()}`;
@@ -1229,6 +1240,14 @@ function subscribe(){
       if(CALL||INC){FS.updateDoc(ch.doc.ref,{status:'declined'}).catch(()=>{});return}
       showIncoming(ch.doc.id,d)}
     else if(ch.type==='removed'&&INC&&INC.id===ch.doc.id)closeIncoming()}));
+  // бүлгийн дуудлага: шинээр эхэлсэн бол дуугарна, явагдаж буй дуудлагад чатын толгойгоос нэгдэж болно
+  on(query(collection(db,'gcalls'),where('members','array-contains',uid),where('status','==','active')),sn=>{
+    sn.docChanges().forEach(ch=>{const d=ch.doc.data({serverTimestamps:'estimate'});
+      if(ch.type==='added'&&d.from!==uid&&!(d.live||[]).includes(uid)&&Date.now()-tms(d.createdAt)<60000&&!CALL&&!INC&&!(S.blocked.has(d.from)||S.blockedBy.has(d.from)))showGroupIncoming(ch.doc.id,d);
+      else if(ch.type==='removed'&&INC&&INC.id===ch.doc.id)closeIncoming()});
+    S.gcalls=new Map();
+    sn.docs.forEach(x=>{const d=x.data({serverTimestamps:'estimate'});if((d.live||[]).length&&Date.now()-tms(d.createdAt)<4*36e5)S.gcalls.set(d.cid,{id:x.id,d})});
+    if(S.thread&&S.thread.group)setHd()});
   loadPeople('');
 }
 function loadPeople(){refreshFriends()}
@@ -1302,10 +1321,11 @@ function ringStart(tone,vol){
   }catch(_){}
 }function ringStop(){clearInterval(ringT);ringT=null}
 function playRemote(){
-  const rv=$('#rv'),lv=$('#lv');if(!rv)return;
+  const rv=$('#rv'),lv=$('#lv');
   const tap=()=>{const c=$('.call');if(!c||c.dataset.tapArmed)return;c.dataset.tapArmed='1';
     const retry=()=>{document.querySelectorAll('.call video').forEach(v=>v.play().catch(()=>{}));delete c.dataset.tapArmed};
     c.addEventListener('pointerdown',retry,{once:true})};
+  if(!rv){if($('.call.gc'))tap();return} // бүлгийн дуудлага: автоматаар тоглуулж чадаагүй бол дарахад дахин оролдоно
   const go=v=>{const p=v.play();if(p&&p.catch)p.catch(tap)};go(rv);if(lv)go(lv);
 }
 function drawCall(st){
@@ -1335,7 +1355,8 @@ function makeCall(id,peer,name,local,mine,audio){
   CALL.flush=()=>{CALL.ready=true;q.splice(0).forEach(send)};
   pc.onconnectionstatechange=()=>{if(!CALL||CALL.pc!==pc)return;const s=pc.connectionState;
     if(s==='connected'){clearTimeout(CALL.ct);clearTimeout(CALL.dt);callStatus('Холбогдсон')}
-    else if(s==='disconnected'){clearTimeout(CALL.dt);CALL.dt=setTimeout(()=>{if(CALL&&CALL.pc===pc&&pc.connectionState!=='connected'){toast('Холболт тасарлаа');endCall(true)}},8000)}
+    // интернэт түр тасарвал (машинд, WiFi↔дата солигдох г.м) 30 секунд хүлээж дахин холбогдохыг оролдоно
+    else if(s==='disconnected'){clearTimeout(CALL.dt);callStatus('Холболт тасарлаа, дахин холбогдож байна…');CALL.dt=setTimeout(()=>{if(CALL&&CALL.pc===pc&&pc.connectionState!=='connected'){toast('Холболт тасарлаа');endCall(true)}},30000)}
     else if(s==='failed'){toast('Холбогдож чадсангүй');endCall(true)}};
   return pc;
 }
@@ -1414,9 +1435,9 @@ function showIncoming(id,d){
   ov.innerHTML=`<div class="call audio inc" role="alertdialog">${ph?`<div class="cbg" style="background-image:url('${ph}')"></div><div class="cscrim"></div>`:''}<div class="cav">${av(d.from,d.fromName,120,'new')}</div><div class="cinfo center"><b>${esc(d.fromName)}</b><span>${d.audio?'Дуут дуудлагаар залгаж байна…':'Видео дуудлагаар залгаж байна…'}</span></div><div class="cbar"><button class="cb end" data-a="cdec" aria-label="Татгалзах">${ic('phone',26)}</button><button class="cb acc" data-a="cacc" aria-label="Хариулах">${ic('phone',26)}</button></div></div>`;
   ov.className='open';
 }
-function closeIncoming(){ringStop();INC=null;if(!CALL){ov.className='';ov.innerHTML=''}}
+function closeIncoming(){ringStop();if(INC)clearTimeout(INC.t);INC=null;if(!CALL){ov.className='';ov.innerHTML=''}}
 async function acceptCall(){
-  if(!INC||CALL)return;ringStop();const {id,d}=INC;INC=null;const {doc,updateDoc,onSnapshot}=FS;let local;
+  if(!INC||CALL)return;ringStop();clearTimeout(INC.t);const {id,d,group}=INC;INC=null;if(group){joinGroupCall(id,d);return}const {doc,updateDoc,onSnapshot}=FS;let local;
   try{local=await getMedia(d.audio)}catch(e){toast(mediaErr(e),4500);await updateDoc(doc(db,'calls',id),{status:'declined'}).catch(()=>{});ov.className='';ov.innerHTML='';return}
   if(local.__none)toast('Камер/микрофон ашиглах боломжгүй тул зөвхөн харах/сонсох горимд орлоо',4500);
   try{
@@ -1428,15 +1449,151 @@ async function acceptCall(){
   }catch(e){console.error(e);toast('Холбогдож чадсангүй ('+(e&&(e.code||e.name)||'алдаа')+')',4000);endCall(true)}
 }
 async function declineCall(){
-  if(!INC)return;ringStop();const {id}=INC;INC=null;ov.className='';ov.innerHTML='';
+  if(!INC)return;ringStop();clearTimeout(INC.t);const {id,group}=INC;INC=null;ov.className='';ov.innerHTML='';if(group)return; // бүлгийн дуудлагаас татгалзвал зөвхөн өөрөө л ордоггүй
   try{await FS.updateDoc(FS.doc(db,'calls',id),{status:'declined'})}catch(_){}
 }
 function endCall(tell){
-  const c=CALL;if(!c||c.over)return;c.over=true;CALL=null;[c.timer,c.hint,c.ct,c.dt].forEach(clearTimeout);
+  const c=CALL;if(!c||c.over)return;c.over=true;CALL=null;if(c.group)return endGroupCall(c);[c.timer,c.hint,c.ct,c.dt].forEach(clearTimeout);
   c.unsubs.forEach(u=>u());try{c.pc.close()}catch(_){}c.local.getTracks().forEach(t=>t.stop());
   if(tell&&db)FS.updateDoc(FS.doc(db,'calls',c.id),{status:'ended'}).catch(()=>{});
   if(tell&&c.caller&&!c.answered&&c.uid)sendTo({uid:c.uid,name:c.name,cid:chatId(S.me.uid,c.uid),group:false},{text:c.audio?'📞 Аваагүй дуут дуудлага':'📞 Аваагүй видео дуудлага'}).catch(()=>{});
   ov.className='';ov.innerHTML='';
+}
+/* ---------- бүлгийн дуудлага: хүн бүр хоорондоо шууд (mesh) холбогдоно, сигналыг gcalls/{id}/sig-ээр дамжуулна ---------- */
+const GMAX=8; // mesh тул оролцогчийн тоог хязгаарлана
+function drawGCall(){
+  const c=CALL;
+  ov.innerHTML=`<div class="call gc${c.audio?' audio':''}"><div class="gg" id="gg"></div><div class="cinfo"><b>👥 ${esc(c.name)}</b><span>Залгаж байна...</span></div><div class="cbar"><button class="cb" data-a="callmute" aria-label="Микрофон">${ic('mic',24)}</button><button class="cb${c.spk===false?' off':''}" data-a="callspk" aria-label="Чангаруулагч">${ic('speaker',24)}</button>${c.audio?'':`<button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button>`}<button class="cb end" data-a="cend" aria-label="Гарах">${ic('phone',24)}</button></div></div>`;
+  ov.className='open';gTiles();
+}
+function gTile(u,s,me){
+  const gg=$('#gg');if(!gg)return;let t=[...gg.children].find(x=>x.dataset.u===u);
+  const nm=me?'Та':((U.get(u)||{}).name||'Хэрэглэгч');
+  if(!t){t=document.createElement('div');t.className='gt';t.dataset.u=u;
+    t.innerHTML=`<div class="gav">${av(u,nm,64)}</div><video autoplay playsinline${me?' muted class="me"':''}></video><span class="gn">${esc(nm)}</span>`;gg.appendChild(t)}
+  const v=t.querySelector('video');if(v.srcObject!==s){v.srcObject=s;if(!me&&CALL&&CALL.spk===false)v.volume=.55}
+  t.classList.toggle('nov',!s||!s.getVideoTracks().some(x=>x.readyState==='live'&&x.enabled!==false&&!x.muted));
+  const p=v.play();if(p&&p.catch)p.catch(()=>playRemote());
+}
+function gTiles(){
+  const c=CALL,gg=$('#gg');if(!c||!c.group||!gg)return;
+  const live=[...c.peers].filter(([,p])=>p.s);
+  [...gg.children].forEach(t=>{const u=t.dataset.u;if(u!==S.me.uid&&!live.some(([x])=>x===u))t.remove()});
+  gTile(S.me.uid,c.local,true);live.forEach(([u,p])=>gTile(u,p.s,false));
+  gg.dataset.n=Math.min(live.length+1,GMAX);
+  const n=[...c.peers.values()].filter(p=>p.pc.connectionState==='connected').length;
+  callStatus(n?(n+1)+' хүн дуудлагад байна':c.anyConn?'Бусад нь гарлаа':'Хариу хүлээж байна...');
+}
+function gSig(t,k,d){const c=CALL;return FS.addDoc(FS.collection(db,'gcalls',c.id,'sig'),{f:S.me.uid,t,s:c.sid,k,d:JSON.stringify(d)}).catch(()=>{})}
+function gPeer(u){
+  const c=CALL,pc=new RTCPeerConnection(ICE),p={pc,rsid:null,rd:false,out:[],ready:false};
+  const old=c.peers.get(u);if(old){clearTimeout(old.dt);try{old.pc.close()}catch(_){}}
+  c.peers.set(u,p);
+  c.local.getTracks().forEach(t=>pc.addTrack(t,c.local));
+  if(!c.local.getAudioTracks().length)pc.addTransceiver('audio',{direction:'recvonly'});
+  if(!c.local.getVideoTracks().length&&!c.audio)pc.addTransceiver('video',{direction:'recvonly'});
+  pc.ontrack=e=>{const s=e.streams&&e.streams[0];if(!s||CALL!==c||c.peers.get(u)!==p)return;p.s=s;gTiles();
+    e.track.onunmute=e.track.onmute=e.track.onended=()=>{if(CALL===c)gTiles()}};
+  pc.onicecandidate=e=>{if(!e.candidate||CALL!==c)return;if(p.ready)gSig(u,'c',e.candidate);else p.out.push(e.candidate)};
+  pc.onconnectionstatechange=()=>{if(CALL!==c||c.peers.get(u)!==p)return;const s=pc.connectionState;
+    if(s==='connected'){c.anyConn=true;clearTimeout(p.dt);gTiles()}
+    else if(s==='failed')gDrop(u);
+    else if(s==='disconnected'){clearTimeout(p.dt);p.dt=setTimeout(()=>{if(CALL===c&&c.peers.get(u)===p&&pc.connectionState!=='connected')gDrop(u)},30000)}};
+  return p;
+}
+function gReady(u,p){p.ready=true;p.out.splice(0).forEach(x=>gSig(u,'c',x))}
+function gRemote(u,p,s){ // алсын тайлбар тогтсоны дараа хүлээлгэсэн ICE кандидатуудыг нэмнэ
+  p.rsid=s;p.rd=true;const k=u+'|'+s,q=CALL.pend[k]||[];delete CALL.pend[k];
+  q.forEach(x=>p.pc.addIceCandidate(x).catch(()=>{}));
+}
+async function gOffer(u){
+  const p=gPeer(u),o=await p.pc.createOffer();await p.pc.setLocalDescription(o);
+  await gSig(u,'o',{type:o.type,sdp:o.sdp});gReady(u,p);
+}
+async function gOnSig(x){
+  const c=CALL;if(!c||!c.group)return;const {f,s,k}=x,d=JSON.parse(x.d);
+  if(k==='o'){
+    const p=gPeer(f);await p.pc.setRemoteDescription(d);gRemote(f,p,s);
+    const a=await p.pc.createAnswer();await p.pc.setLocalDescription(a);
+    await gSig(f,'a',{type:a.type,sdp:a.sdp});gReady(f,p);
+  }else if(k==='a'){
+    const p=c.peers.get(f);if(!p||p.rd)return;await p.pc.setRemoteDescription(d);gRemote(f,p,s);
+  }else if(k==='c'){
+    const p=c.peers.get(f);
+    if(p&&p.rd&&p.rsid===s)p.pc.addIceCandidate(d).catch(()=>{});
+    else (c.pend[f+'|'+s]=c.pend[f+'|'+s]||[]).push(d);
+  }
+}
+function gDrop(u){
+  const c=CALL;if(!c||!c.group)return;const p=c.peers.get(u);if(!p)return;
+  clearTimeout(p.dt);try{p.pc.close()}catch(_){}c.peers.delete(u);gTiles();
+  if(c.anyConn&&!c.peers.size){toast('Дуудлага дууслаа');endCall(true)}
+}
+async function startGroupCall(audio){
+  const th=S.thread,ch=th&&S.chats.get(th.cid);if(CALL||INC||!th||!th.group||!ch)return;
+  const cur=S.gcalls.get(th.cid);if(cur){joinGroupCall(cur.id,cur.d);return}
+  let local;try{local=await getMedia(audio)}catch(e){toast(mediaErr(e),4500);return}
+  const {doc,collection,setDoc,serverTimestamp}=FS,ref=doc(collection(db,'gcalls'));
+  const d={cid:th.cid,from:S.me.uid,fromName:S.me.name,name:th.name.slice(0,40),members:ch.members,live:[],status:'active',...(audio?{audio:true}:{})};
+  try{await setDoc(ref,{...d,createdAt:serverTimestamp()})}catch(e){console.error(e);toast(callErr(e),5000);local.getTracks().forEach(t=>t.stop());return}
+  if(await joinGroupCall(ref.id,d,local))pushPing({kind:'gcall',id:ref.id});
+}
+async function joinGroupCall(id,d,pre){
+  const starter=!!pre;if(CALL){if(pre)pre.getTracks().forEach(t=>t.stop());return false}
+  const {doc,collection,query,where,getDocs,deleteDoc,onSnapshot,runTransaction,arrayUnion}=FS,me=S.me.uid,ref=doc(db,'gcalls',id);let local;
+  if(pre)local=pre;else try{local=await getMedia(d.audio)}catch(e){toast(mediaErr(e),4500);if($('.call.inc')){ov.className='';ov.innerHTML=''}return false}
+  if(local.__none)toast('Камер/микрофон ашиглах боломжгүй тул зөвхөн харах/сонсох горимд орлоо',4500);
+  if(CALL){local.getTracks().forEach(t=>t.stop());return false}
+  const c=CALL={group:true,id,cid:d.cid,name:d.name||'Бүлэг',local,peers:new Map(),pend:{},sid:Math.random().toString(36).slice(2,10),audio:!!d.audio,spk:true,unsubs:[],over:false,anyConn:false,seen:new Set(),chain:Promise.resolve()};
+  drawGCall();
+  try{
+    const sig=collection(db,'gcalls',id,'sig');
+    // өмнө нь орж гарсан бол надад үлдсэн хуучин сигналуудыг цэвэрлэнэ
+    await Promise.all((await getDocs(query(sig,where('t','==',me)))).docs.map(x=>deleteDoc(x.ref).catch(()=>{})));
+    if(CALL!==c)return false;
+    c.unsubs.push(onSnapshot(query(sig,where('t','==',me)),sn=>sn.docChanges().forEach(ch=>{
+      if(ch.type!=='added')return;const x=ch.doc.data();c.chain=c.chain.then(()=>gOnSig(x)).catch(e=>console.warn('gcall sig',e))}),onErr));
+    // transaction: зэрэг нэгдсэн хоёр хүний хооронд яг нэг нь л offer илгээнэ (сүүлд орсон нь)
+    const others=await runTransaction(db,async tx=>{
+      const x=(await tx.get(ref)).data();
+      if(!x||x.status!=='active')throw Object.assign(new Error('ended'),{code:'gc-ended'});
+      const o=(x.live||[]).filter(u=>u!==me);if(o.length>=GMAX)throw Object.assign(new Error('full'),{code:'gc-full'});
+      tx.update(ref,{live:arrayUnion(me)});return o});
+    c.joined=true;if(CALL!==c){gLeave(c);return false} // нэгдэж байх хооронд тасалсан
+    for(const u of others)c.chain=c.chain.then(()=>gOffer(u)).catch(e=>console.warn('gcall offer',e));
+    c.unsubs.push(onSnapshot(ref,sn=>{const x=sn.data();if(CALL!==c)return;
+      if(!x){toast('Дуудлага дууслаа');endCall(false);return}
+      const inn=x.live||[];inn.forEach(u=>c.seen.add(u));
+      [...c.peers.keys()].forEach(u=>{if(c.seen.has(u)&&!inn.includes(u))gDrop(u)})},onErr));
+    c.timer=setTimeout(()=>{if(CALL===c&&!c.anyConn){c.kill=true;toast(starter?'Хэн ч хариулсангүй':'Холбогдож чадсангүй');endCall(true)}},60000);
+    return true;
+  }catch(e){
+    console.error(e);toast(e.code==='gc-ended'?'Дуудлага аль хэдийн дууссан байна':e.code==='gc-full'?'Дуудлагад хэт олон хүн байна':callErr(e),4500);
+    if(starter)FS.updateDoc(ref,{status:'ended'}).catch(()=>{});
+    endCall(false);return false;
+  }
+}
+function endGroupCall(c){
+  clearTimeout(c.timer);c.unsubs.forEach(u=>u());
+  c.peers.forEach(p=>{clearTimeout(p.dt);try{p.pc.close()}catch(_){}});c.local.getTracks().forEach(t=>t.stop());
+  ov.className='';ov.innerHTML='';gLeave(c);
+}
+function gLeave(c){
+  const me=S.me&&S.me.uid;if(!c.joined||!db||!me)return;
+  const {doc,runTransaction,arrayRemove}=FS,ref=doc(db,'gcalls',c.id);
+  runTransaction(db,async tx=>{const x=(await tx.get(ref)).data();if(!x)return;
+    const rest=(x.live||[]).filter(u=>u!==me),up={live:arrayRemove(me)};
+    // сүүлчийн хүн гарах эсвэл 1 минутад хэнтэй ч холбогдоогүй (үлдсэн нь унтарсан төхөөрөмж) бол шинээр нэгдэхийг хаана
+    if(x.status==='active'&&(!rest.length||c.kill))up.status='ended';
+    tx.update(ref,up)}).catch(e=>console.warn('gcall leave',e));
+}
+function showGroupIncoming(id,d){
+  INC={id,d,group:true};
+  notify(d.audio?'📞 Бүлгийн дуут дуудлага':'📹 Бүлгийн видео дуудлага',d.fromName+' · '+d.name,'gcall-'+id);ringStart();
+  try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(_){}
+  ov.innerHTML=`<div class="call audio inc" role="alertdialog"><div class="cav">${av(d.cid,d.name,120,'new')}</div><div class="cinfo center"><b>👥 ${esc(d.name)}</b><span>${esc(d.fromName)} ${d.audio?'дуут':'видео'} дуудлага эхлүүллээ…</span></div><div class="cbar"><button class="cb end" data-a="cdec" aria-label="Татгалзах">${ic('phone',26)}</button><button class="cb acc" data-a="cacc" aria-label="Нэгдэх">${ic('phone',26)}</button></div></div>`;
+  ov.className='open';
+  INC.t=setTimeout(()=>{if(INC&&INC.id===id)closeIncoming()},45000);
 }
 window.addEventListener('pagehide',()=>{if(CALL)endCall(true)});
 function toggleTrack(kind,btn){
@@ -1445,14 +1602,15 @@ function toggleTrack(kind,btn){
 }
 /* Чангаруулагч: Chrome/Android дээр setSinkId-ээр бодит гаралтын төхөөрөмж сольж, дэмжигдэхгүй бол (Safari/iOS) дуу чанга/намуухныг сольж орлуулна */
 async function toggleSpeaker(btn){
-  if(!CALL)return;const rv=$('#rv');if(!rv)return;const on=!CALL.spk;
-  if(typeof rv.setSinkId==='function'){
-    try{
-      const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='audiooutput');
-      const spk=devs.find(d=>/speaker/i.test(d.label));
-      await rv.setSinkId(on?(spk?spk.deviceId:'default'):'default'); // асаахад чанга яригч руу шилжинэ (боломжтой бол), унтраахад системийн үндсэн гаралт (жишээ нь Bluetooth) руу буцна
-    }catch(_){rv.volume=on?1:.55}
-  }else rv.volume=on?1:.55; // Safari/iOS: setSinkId дэмжихгүй тул дууны түвшингээр орлуулна
+  if(!CALL)return;const vs=[...document.querySelectorAll('.call video:not(#lv):not(.me)')],on=!CALL.spk;
+  let spk=null;
+  if(vs.some(v=>typeof v.setSinkId==='function'))try{spk=(await navigator.mediaDevices.enumerateDevices()).find(d=>d.kind==='audiooutput'&&/speaker/i.test(d.label))}catch(_){}
+  for(const rv of vs){
+    if(typeof rv.setSinkId==='function'){
+      try{await rv.setSinkId(on?(spk?spk.deviceId:'default'):'default')} // асаахад чанга яригч руу шилжинэ (боломжтой бол), унтраахад системийн үндсэн гаралт (жишээ нь Bluetooth) руу буцна
+      catch(_){rv.volume=on?1:.55}
+    }else rv.volume=on?1:.55; // Safari/iOS: setSinkId дэмжихгүй тул дууны түвшингээр орлуулна
+  }
   CALL.spk=on;btn.classList.toggle('off',!on);
 }
 
@@ -1735,8 +1893,8 @@ document.addEventListener('click',async e=>{
     case 'snext':nextStory();break;
     case 'closeov':closeOv();break;
     case 'newpost':openSheet(composerFormHTML());break;
-    case 'call':startCall(S.thread.uid,S.thread.name);break;
-    case 'acall':startCall(S.thread.uid,S.thread.name,true);break;
+    case 'call':if(S.thread.group)startGroupCall(false);else startCall(S.thread.uid,S.thread.name);break;
+    case 'acall':if(S.thread.group)startGroupCall(true);else startCall(S.thread.uid,S.thread.name,true);break;
     case 'cacc':acceptCall();break;
     case 'cdec':declineCall();break;
     case 'cend':endCall(true);break;

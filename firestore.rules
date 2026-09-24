@@ -324,5 +324,44 @@ service cloud.firestore {
             (col == 'calleeCandidates' && get(/databases/$(database)/documents/calls/$(callId)).data.to == request.auth.uid));
       }
     }
+
+    // бүлгийн дуудлага (mesh): members = тухайн бүлгийн гишүүд, live = одоо дуудлагад байгаа хүмүүс
+    match /gcalls/{callId} {
+      function gchat() { return get(/databases/$(database)/documents/chats/$(request.resource.data.cid)).data; }
+      function gm() { return signedIn() && request.auth.uid in resource.data.members; }
+      allow read: if gm();
+      allow create: if mine(request.resource.data.from)
+        && request.resource.data.keys().hasOnly(['cid', 'from', 'fromName', 'name', 'members', 'live', 'status', 'audio', 'createdAt'])
+        && request.resource.data.cid is string
+        && gchat().group == true
+        && request.resource.data.members == gchat().members
+        && request.auth.uid in request.resource.data.members
+        && request.resource.data.live == []
+        && request.resource.data.status == 'active'
+        && (!('audio' in request.resource.data) || request.resource.data.audio is bool)
+        && isStr(request.resource.data.fromName, 40)
+        && isStr(request.resource.data.name, 40)
+        && stamped();
+      // зөвхөн өөрийгөө live-д нэмж/хасна, мөн дуудлагыг дуусгаж болно
+      allow update: if gm()
+        && changed().hasOnly(['live', 'status'])
+        && request.resource.data.live is list
+        && request.resource.data.live.toSet().difference(resource.data.live.toSet()).hasOnly([request.auth.uid])
+        && resource.data.live.toSet().difference(request.resource.data.live.toSet()).hasOnly([request.auth.uid])
+        && (request.resource.data.status == resource.data.status || request.resource.data.status == 'ended');
+      allow delete: if mine(resource.data.from);
+
+      match /sig/{sigId} {
+        function gmem(u) { return u in get(/databases/$(database)/documents/gcalls/$(callId)).data.members; }
+        allow read, delete: if signedIn() && (resource.data.t == request.auth.uid || resource.data.f == request.auth.uid);
+        allow create: if mine(request.resource.data.f)
+          && request.resource.data.keys().hasOnly(['f', 't', 's', 'k', 'd'])
+          && request.resource.data.t is string
+          && request.resource.data.k in ['o', 'a', 'c']
+          && isStr(request.resource.data.s, 20)
+          && isStr(request.resource.data.d, 30000)
+          && gmem(request.auth.uid) && gmem(request.resource.data.t);
+      }
+    }
   }
 }

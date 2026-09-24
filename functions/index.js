@@ -37,6 +37,20 @@ exports.onCall = onDocumentCreated({document: 'calls/{id}', region: REGION}, asy
   }, 60);
 });
 
+exports.onGroupCall = onDocumentCreated({document: 'gcalls/{id}', region: REGION}, async ev => {
+  const c = ev.data && ev.data.data();
+  if (!c || c.status !== 'active') return;
+  const ok = [];
+  for (const u of (c.members || []).filter(x => x !== c.from)) {
+    const b = await db.collection('blocks').doc(u + '_' + c.from).get();
+    if (!b.exists) ok.push(u);
+  }
+  await push(ok, {
+    type: 'call', title: (c.audio ? '📞 ' : '📹 ') + short(c.name, 40) + (c.audio ? ' бүлгийн дуут дуудлага' : ' бүлгийн видео дуудлага'),
+    body: short(c.fromName, 40) + ' дуудлага эхлүүллээ. Нэгдэхийн тулд дарна уу', tag: 'gcall-' + ev.params.id, url: './index.html',
+  }, 60);
+});
+
 exports.onMessage = onDocumentCreated({document: 'chats/{cid}/messages/{mid}', region: REGION}, async ev => {
   const m = ev.data && ev.data.data();
   if (!m) return;
