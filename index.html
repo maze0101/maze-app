@@ -242,7 +242,7 @@ html,body{touch-action:manipulation}
 .gn{position:absolute;left:8px;bottom:8px;font-size:12px;padding:3px 8px;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gg[data-f]:not([data-f=""]){grid-template-columns:1fr}
 .gg[data-f]:not([data-f=""]) .gt:not(.f){display:none}
-.gt.f video{object-fit:contain;background:#000}
+.gt.f video,.gt.sc video{object-fit:contain;background:#000}
 .gt video.scr{transform:none;object-fit:contain;background:#000}
 .mlink{position:absolute;top:calc(18px + env(safe-area-inset-top,0px));right:14px;z-index:3;display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:18px;background:rgba(255,255,255,.18);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;font-size:13px;font-weight:600}
 .mrow{display:flex;align-items:center;gap:4px}
@@ -812,9 +812,9 @@ function headerHTML(){
   return `<div class="title">${{friends:'Найзууд',chat:'Чат',profile:'Профайл'}[S.tab]}</div>`;
 }
 function navHTML(){
-  const items=[['feed','home','Мэдээ'],['friends','users','Найзууд'],['chat','chat','Чат'],['profile','user','Профайл']];
+  const items=[['feed','home','Мэдээ'],['friends','users','Найзууд'],['chat','chat','Чат'],['meet','video','Уулзалт'],['profile','user','Профайл']];
   const bd={friends:S.reqIn.length,chat:unreadChats()};
-  return items.map(([k,i,l])=>`<button data-a="tab" data-t="${k}" class="${S.tab===k?'on':''}" ${S.tab===k?'aria-current="page"':''}>${ic(i,24,S.tab===k)}<span>${l}</span>${bd[k]?`<span class="badge">${bd[k]}</span>`:''}</button>`).join('');
+  return items.map(([k,i,l])=>k==='meet'?`<button data-a="meet">${ic(i,24)}<span>${l}</span></button>`:`<button data-a="tab" data-t="${k}" class="${S.tab===k?'on':''}" ${S.tab===k?'aria-current="page"':''}>${ic(i,24,S.tab===k)}<span>${l}</span>${bd[k]?`<span class="badge">${bd[k]}</span>`:''}</button>`).join('');
 }
 function storyGroups(){
   const m=new Map();S.stories.filter(s=>!hid(s.uid)).forEach(s=>{if(!m.has(s.uid))m.set(s.uid,{uid:s.uid,name:s.name,list:[]});m.get(s.uid).list.push(s)});
@@ -894,7 +894,7 @@ function chatItems(){
   return (rq.length?`<div class="sec">Мессежийн хүсэлт (${rq.length})</div>`+rq.map(line).join('')+(rest.length?'<div class="sec">Чатууд</div>':''):'')+rest.map(line).join('');
 }
 function chatListHTML(){
-  return `<div class="chatbar"><input class="search" id="cq" placeholder="Чатаас хайх" aria-label="Чатаас хайх" value="${esc(S.cq)}" autocomplete="off"><button class="ib" data-a="meet" aria-label="Онлайн уулзалт">${ic('video',20)}</button><button class="ib" data-a="newgroup" aria-label="Бүлэг үүсгэх">${ic('users',20)}</button></div><div id="clist">${chatItems()}</div>`;
+  return `<div class="chatbar"><input class="search" id="cq" placeholder="Чатаас хайх" aria-label="Чатаас хайх" value="${esc(S.cq)}" autocomplete="off"><button class="ib" data-a="newgroup" aria-label="Бүлэг үүсгэх">${ic('users',20)}</button></div><div id="clist">${chatItems()}</div>`;
 }
 function msgsHTML(){
   const th=S.thread,c=S.chats.get(th.cid)||{},sn=c.seen||{},myClr=cpref(th.cid).clr;let vis=S.msgs.filter(m=>m.f===S.me.uid||!hid(m.f)),mq=(S.mq||'').trim().toLowerCase();
@@ -1472,7 +1472,7 @@ function endCall(tell){
 const GMAX=8; // mesh тул оролцогчийн тоог хязгаарлана
 function drawGCall(){
   const c=CALL;
-  ov.innerHTML=`<div class="call gc${c.audio?' audio':''}"><div class="gg" id="gg"></div><div class="cinfo"><b>${c.meet?'🎥 ':'👥 '}${esc(c.name)}</b><span>${c.meet?'Нэгдэж байна...':'Залгаж байна...'}</span></div>${c.meet?`<button class="mlink" data-a="mlink" aria-label="Холбоос хуваалцах">${ic('link',16)}${esc(c.id)}</button>`:''}<div class="cbar"><button class="cb" data-a="callmute" aria-label="Микрофон">${ic('mic',24)}</button><button class="cb${c.spk===false?' off':''}" data-a="callspk" aria-label="Чангаруулагч">${ic('speaker',24)}</button>${c.audio?'':`<button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button>`}${!c.audio&&navigator.mediaDevices&&navigator.mediaDevices.getDisplayMedia?`<button class="cb" data-a="gshare" aria-label="Дэлгэц хуваалцах">${ic('screen',24)}</button>`:''}<button class="cb end" data-a="cend" aria-label="Гарах">${ic('phone',24)}</button></div></div>`;
+  ov.innerHTML=`<div class="call gc${c.audio?' audio':''}"><div class="gg" id="gg"></div><div class="cinfo"><b>${c.meet?'🎥 ':'👥 '}${esc(c.name)}</b><span>${c.meet?'Нэгдэж байна...':'Залгаж байна...'}</span></div>${c.meet?`<button class="mlink" data-a="mlink" aria-label="Холбоос хуваалцах">${ic('link',16)}${esc(c.id)}</button>`:''}<div class="cbar"><button class="cb" data-a="callmute" aria-label="Микрофон">${ic('mic',24)}</button><button class="cb${c.spk===false?' off':''}" data-a="callspk" aria-label="Чангаруулагч">${ic('speaker',24)}</button>${c.audio?'':`<button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button>`}${c.audio?'':`<button class="cb" data-a="gshare" aria-label="Дэлгэц хуваалцах">${ic('screen',24)}</button>`}<button class="cb end" data-a="cend" aria-label="Гарах">${ic('phone',24)}</button></div></div>`;
   ov.className='open';gTiles();
 }
 function gTile(u,s,me){
@@ -1481,7 +1481,7 @@ function gTile(u,s,me){
   if(!t){t=document.createElement('div');t.className='gt';t.dataset.u=u;t.onclick=()=>{gg.dataset.f=gg.dataset.f===u?'':u;gTiles()}; // дарахад томруулна
     t.innerHTML=`<div class="gav">${av(u,nm,64)}</div><video autoplay playsinline${me?' muted class="me"':''}></video><span class="gn">${esc(nm)}</span>`;gg.appendChild(t)}
   const gn=t.querySelector('.gn');if(gn.textContent!==nm)gn.textContent=nm;
-  t.classList.toggle('f',gg.dataset.f===u);
+  t.classList.toggle('f',gg.dataset.f===u);t.classList.toggle('sc',!me&&!!(CALL&&CALL.peers.get(u)||{}).scr);
   const v=t.querySelector('video');if(v.srcObject!==s){v.srcObject=s;if(!me&&CALL&&CALL.spk===false)v.volume=.55}
   t.classList.toggle('nov',!s||!s.getVideoTracks().some(x=>x.readyState==='live'&&x.enabled!==false&&!x.muted));
   const p=v.play();if(p&&p.catch)p.catch(()=>playRemote());
@@ -1503,7 +1503,7 @@ function gPeer(u){
   c.peers.set(u,p);
   c.local.getTracks().forEach(t=>pc.addTrack(t,c.local));
   if(!c.local.getAudioTracks().length)pc.addTransceiver('audio',{direction:'recvonly'});
-  if(!c.local.getVideoTracks().length&&!c.audio)pc.addTransceiver('video',{direction:'recvonly'});
+  if(!c.local.getVideoTracks().length&&!c.audio)pc.addTransceiver('video',{direction:'sendrecv',streams:[c.local]}); // камергүй ч дараа нь дэлгэц хуваалцахад шинэ тохиролцоо хэрэггүй
   pc.ontrack=e=>{const s=e.streams&&e.streams[0];if(!s||CALL!==c||c.peers.get(u)!==p)return;p.s=s;gTiles();
     e.track.onunmute=e.track.onmute=e.track.onended=()=>{if(CALL===c)gTiles()}};
   pc.onicecandidate=e=>{if(!e.candidate||CALL!==c)return;if(p.ready)gSig(u,'c',e.candidate);else p.out.push(e.candidate)};
@@ -1513,7 +1513,7 @@ function gPeer(u){
     else if(s==='disconnected'){clearTimeout(p.dt);p.dt=setTimeout(()=>{if(CALL===c&&c.peers.get(u)===p&&pc.connectionState!=='connected')gDrop(u)},30000)}};
   return p;
 }
-function gReady(u,p){p.ready=true;p.out.splice(0).forEach(x=>gSig(u,'c',x))}
+function gReady(u,p){p.ready=true;p.out.splice(0).forEach(x=>gSig(u,'c',x));if(CALL.scr)gSig(u,'v',true)}
 function gRemote(u,p,s){ // алсын тайлбар тогтсоны дараа хүлээлгэсэн ICE кандидатуудыг нэмнэ
   p.rsid=s;p.rd=true;const k=u+'|'+s,q=CALL.pend[k]||[];delete CALL.pend[k];
   q.forEach(x=>p.pc.addIceCandidate(x).catch(()=>{}));
@@ -1530,6 +1530,8 @@ async function gOnSig(x){
     await gSig(f,'a',{type:a.type,sdp:a.sdp});gReady(f,p);
   }else if(k==='a'){
     const p=c.peers.get(f);if(!p||p.rd)return;await p.pc.setRemoteDescription(d);gRemote(f,p,s);
+  }else if(k==='v'){ // нөгөө тал дэлгэцээ хуваалцаж эхэлсэн/зогсоосон: бүтнээр нь томруулж харуулна
+    const p=c.peers.get(f);if(p)p.scr=!!d;const gg=$('#gg');if(gg){if(d)gg.dataset.f=f;else if(gg.dataset.f===f)gg.dataset.f=''}gTiles();
   }else if(k==='c'){
     const p=c.peers.get(f);
     if(p&&p.rd&&p.rsid===s)p.pc.addIceCandidate(d).catch(()=>{});
@@ -1646,21 +1648,24 @@ async function meetShare(code){
 }
 /* дэлгэц хуваалцах: камерын видеог бүх холболт дээр дэлгэцийн видеогоор сольж, дуусахад буцаана */
 function gSwap(from,to){
-  const c=CALL;c.local.removeTrack(from);c.local.addTrack(to);
-  c.peers.forEach(p=>p.pc.getSenders().forEach(x=>{if(x.track===from)x.replaceTrack(to).catch(()=>{})}));
+  const c=CALL;if(from)c.local.removeTrack(from);if(to)c.local.addTrack(to);
+  c.peers.forEach(p=>{const tr=p.pc.getTransceivers().find(x=>x.receiver.track&&x.receiver.track.kind==='video');if(tr)tr.sender.replaceTrack(to).catch(()=>{})});
   const v=$('#gg video.me');if(v){v.srcObject=null;v.srcObject=c.local;v.classList.toggle('scr',!!c.scr);v.play().catch(()=>{})}
-  const b=$('[data-a="gshare"]');if(b)b.classList.toggle('off',!!c.scr);gTiles();
+  const b=$('[data-a="gshare"]');if(b)b.classList.toggle('off',!!c.scr);
+  c.peers.forEach((p,u)=>gSig(u,'v',!!c.scr));gTiles();
 }
 async function gShare(){
   const c=CALL;if(!c||!c.group)return;
   if(c.scr){gUnshare();return}
-  const cam=c.local.getVideoTracks()[0];if(!cam){toast('Камергүй үед дэлгэц хуваалцах боломжгүй');return}
-  let st;try{st=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false})}catch(_){return}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia){toast('Энэ төхөөрөмж дэлгэц хуваалцахыг дэмжихгүй байна. Компьютерын Chrome, Edge эсвэл Safari ашиглана уу',5000);return}
+  const cam=c.local.getVideoTracks()[0]||null;
+  let st;try{st=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false})}catch(e){if(e&&e.name!=='NotAllowedError')toast('Дэлгэц хуваалцаж чадсангүй');return}
   const t=st.getVideoTracks()[0];if(CALL!==c||!t){st.getTracks().forEach(x=>x.stop());return}
+  try{t.contentHint='detail'}catch(_){} // текст тод харагдана
   c.scr=t;c.cam=cam;gSwap(cam,t);t.onended=()=>{if(CALL===c&&c.scr===t)gUnshare()};
   toast('Дэлгэцээ хуваалцаж байна');
 }
-function gUnshare(){const c=CALL,t=c&&c.scr;if(!t)return;c.scr=null;gSwap(t,c.cam);c.cam=null;t.stop()}
+function gUnshare(){const c=CALL,t=c&&c.scr;if(!t)return;c.scr=null;gSwap(t,c.cam||null);c.cam=null;t.stop()}
 window.addEventListener('pagehide',()=>{if(CALL)endCall(true)});
 function toggleTrack(kind,btn){
   if(!CALL)return;const ts=kind==='audio'?CALL.local.getAudioTracks():CALL.local.getVideoTracks();

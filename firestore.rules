@@ -357,7 +357,7 @@ service cloud.firestore {
         allow create: if mine(request.resource.data.f)
           && request.resource.data.keys().hasOnly(['f', 't', 's', 'k', 'd'])
           && request.resource.data.t is string
-          && request.resource.data.k in ['o', 'a', 'c']
+          && request.resource.data.k in ['o', 'a', 'c', 'v']
           && isStr(request.resource.data.s, 20)
           && isStr(request.resource.data.d, 30000)
           && gmem(request.auth.uid) && gmem(request.resource.data.t);
@@ -397,7 +397,7 @@ service cloud.firestore {
         allow create: if mine(request.resource.data.f)
           && request.resource.data.keys().hasOnly(['f', 't', 's', 'k', 'd'])
           && request.resource.data.t is string
-          && request.resource.data.k in ['o', 'a', 'c']
+          && request.resource.data.k in ['o', 'a', 'c', 'v']
           && isStr(request.resource.data.s, 20)
           && isStr(request.resource.data.d, 30000)
           && mlive(request.auth.uid) && mlive(request.resource.data.t);
