@@ -591,6 +591,12 @@ const chatId=(a,b)=>[a,b].sort().join('_');
 
 /* ---------- icons ---------- */
 const I={
+  // доод цэсний icon-ууд: идэвхтэй үед дүүрэн, бусад үед хүрээтэй (+ бүдэг дүүргэлт)
+  nhome:'<path d="M4 10.2 12 3.8l8 6.4V19a2 2 0 0 1-2 2h-3.4v-5.2a1 1 0 0 0-1-1h-3.2a1 1 0 0 0-1 1V21H6a2 2 0 0 1-2-2z"/>',
+  nfriends:'<circle cx="9" cy="8" r="3.4"/><path d="M2.8 19.4c0-3.4 2.8-5.8 6.2-5.8s6.2 2.4 6.2 5.8a1.2 1.2 0 0 1-1.2 1.2H4a1.2 1.2 0 0 1-1.2-1.2z"/><g fill="none"><path d="M15.6 4.9a3.3 3.3 0 0 1 0 6.3M17.6 14.1c2.2.6 3.6 2.6 3.6 4.9"/></g>',
+  nchat:'<path d="M12 3.6c4.8 0 8.6 3.3 8.6 7.5s-3.8 7.5-8.6 7.5c-.9 0-1.8-.1-2.6-.3L5.2 20.4a.6.6 0 0 1-.9-.6l.7-3.3C3.9 15.2 3.4 13.3 3.4 11.1c0-4.2 3.8-7.5 8.6-7.5z"/>',
+  nmeet:'<rect x="2.6" y="5.8" width="13" height="12.4" rx="3.2"/><path d="M15.6 10.3l4.4-2.7a1 1 0 0 1 1.5.9v7a1 1 0 0 1-1.5.9l-4.4-2.7z"/>',
+  nprofile:'<circle cx="12" cy="7.9" r="4.1"/><path d="M4.3 20.1c0-3.8 3.5-6.4 7.7-6.4s7.7 2.6 7.7 6.4a.9.9 0 0 1-.9.9H5.2a.9.9 0 0 1-.9-.9z"/>',
   bookmark:'<path d="M6 3h12v18l-6-4-6 4z"/>',
  home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
  users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c2.7 0 4.5 1.8 4.5 4.5"/>',
@@ -711,7 +717,7 @@ function notifNudge(){
   },1800);
 }
 /* дүрсүүд: нимгэн зураас + бүдэг дотор будалт (duotone). f=true бол бүрэн будагдана */
-const DUO=new Set(['home','users','chat','user','heart','bell','bookmark','image','video','smile','send','phone']);
+const DUO=new Set(['nhome','nfriends','nchat','nmeet','nprofile','home','users','chat','user','heart','bell','bookmark','image','video','smile','send','phone']);
 const ic=(n,s=22,f)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="${f?'currentColor':'none'}" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${DUO.has(n)&&!f?`<g fill="currentColor" fill-opacity=".14">${I[n]}</g>`:I[n]}</svg>`;
 
 /* ---------- helpers ---------- */
@@ -812,7 +818,7 @@ function headerHTML(){
   return `<div class="title">${{friends:'Найзууд',chat:'Чат',profile:'Профайл'}[S.tab]}</div>`;
 }
 function navHTML(){
-  const items=[['feed','home','Мэдээ'],['friends','users','Найзууд'],['chat','chat','Чат'],['meet','video','Уулзалт'],['profile','user','Профайл']];
+  const items=[['feed','nhome','Мэдээ'],['friends','nfriends','Найзууд'],['chat','nchat','Чат'],['meet','nmeet','Уулзалт'],['profile','nprofile','Профайл']];
   const bd={friends:S.reqIn.length,chat:unreadChats()};
   return items.map(([k,i,l])=>k==='meet'?`<button data-a="meet">${ic(i,24)}<span>${l}</span></button>`:`<button data-a="tab" data-t="${k}" class="${S.tab===k?'on':''}" ${S.tab===k?'aria-current="page"':''}>${ic(i,24,S.tab===k)}<span>${l}</span>${bd[k]?`<span class="badge">${bd[k]}</span>`:''}</button>`).join('');
 }
