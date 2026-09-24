@@ -240,6 +240,12 @@ html,body{touch-action:manipulation}
 .gt.nov video,.call.audio .gt video{opacity:0}
 .gav{position:absolute;inset:0;display:grid;place-items:center}
 .gn{position:absolute;left:8px;bottom:8px;font-size:12px;padding:3px 8px;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gg[data-f]:not([data-f=""]){grid-template-columns:1fr}
+.gg[data-f]:not([data-f=""]) .gt:not(.f){display:none}
+.gt.f video{object-fit:contain;background:#000}
+.gt video.scr{transform:none;object-fit:contain;background:#000}
+.mlink{position:absolute;top:calc(18px + env(safe-area-inset-top,0px));right:14px;z-index:3;display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:18px;background:rgba(255,255,255,.18);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;font-size:13px;font-weight:600}
+.mrow{display:flex;align-items:center;gap:4px}
 .gjoin{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:18px;background:var(--green);color:#fff;font-weight:600;font-size:13px}
 .crow{display:flex;gap:10px}.crow .btn{flex:1;padding:13px}
 .ph .del+.del{margin-left:0}
@@ -596,6 +602,8 @@ const I={
  back:'<path d="M15 5l-7 7 7 7"/>',
  close:'<path d="M6 6l12 12M18 6L6 18"/>',
  image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',
+ screen:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M9.5 10l2.5-2.5 2.5 2.5M12 7.5V13"/>',
+ link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
  video:'<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/>',
  mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
  phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>',
@@ -886,7 +894,7 @@ function chatItems(){
   return (rq.length?`<div class="sec">Мессежийн хүсэлт (${rq.length})</div>`+rq.map(line).join('')+(rest.length?'<div class="sec">Чатууд</div>':''):'')+rest.map(line).join('');
 }
 function chatListHTML(){
-  return `<div class="chatbar"><input class="search" id="cq" placeholder="Чатаас хайх" aria-label="Чатаас хайх" value="${esc(S.cq)}" autocomplete="off"><button class="ib" data-a="newgroup" aria-label="Бүлэг үүсгэх">${ic('users',20)}</button></div><div id="clist">${chatItems()}</div>`;
+  return `<div class="chatbar"><input class="search" id="cq" placeholder="Чатаас хайх" aria-label="Чатаас хайх" value="${esc(S.cq)}" autocomplete="off"><button class="ib" data-a="meet" aria-label="Онлайн уулзалт">${ic('video',20)}</button><button class="ib" data-a="newgroup" aria-label="Бүлэг үүсгэх">${ic('users',20)}</button></div><div id="clist">${chatItems()}</div>`;
 }
 function msgsHTML(){
   const th=S.thread,c=S.chats.get(th.cid)||{},sn=c.seen||{},myClr=cpref(th.cid).clr;let vis=S.msgs.filter(m=>m.f===S.me.uid||!hid(m.f)),mq=(S.mq||'').trim().toLowerCase();
@@ -1249,6 +1257,7 @@ function subscribe(){
     sn.docs.forEach(x=>{const d=x.data({serverTimestamps:'estimate'});if((d.live||[]).length&&Date.now()-tms(d.createdAt)<4*36e5)S.gcalls.set(d.cid,{id:x.id,d})});
     if(S.thread&&S.thread.group)setHd()});
   loadPeople('');
+  if(S.pendMeet){const m=S.pendMeet;S.pendMeet='';openSheet(`<h3>🎥 Уулзалтад нэгдэх</h3><p class="mute" style="margin:0">Уулзалтын код: <b>${esc(m)}</b></p><button class="btn" data-a="mjoin" data-id="${esc(m)}">Нэгдэх</button>`)}
 }
 function loadPeople(){refreshFriends()}
 /* ---------- overlay ---------- */
@@ -1463,14 +1472,16 @@ function endCall(tell){
 const GMAX=8; // mesh тул оролцогчийн тоог хязгаарлана
 function drawGCall(){
   const c=CALL;
-  ov.innerHTML=`<div class="call gc${c.audio?' audio':''}"><div class="gg" id="gg"></div><div class="cinfo"><b>👥 ${esc(c.name)}</b><span>Залгаж байна...</span></div><div class="cbar"><button class="cb" data-a="callmute" aria-label="Микрофон">${ic('mic',24)}</button><button class="cb${c.spk===false?' off':''}" data-a="callspk" aria-label="Чангаруулагч">${ic('speaker',24)}</button>${c.audio?'':`<button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button>`}<button class="cb end" data-a="cend" aria-label="Гарах">${ic('phone',24)}</button></div></div>`;
+  ov.innerHTML=`<div class="call gc${c.audio?' audio':''}"><div class="gg" id="gg"></div><div class="cinfo"><b>${c.meet?'🎥 ':'👥 '}${esc(c.name)}</b><span>${c.meet?'Нэгдэж байна...':'Залгаж байна...'}</span></div>${c.meet?`<button class="mlink" data-a="mlink" aria-label="Холбоос хуваалцах">${ic('link',16)}${esc(c.id)}</button>`:''}<div class="cbar"><button class="cb" data-a="callmute" aria-label="Микрофон">${ic('mic',24)}</button><button class="cb${c.spk===false?' off':''}" data-a="callspk" aria-label="Чангаруулагч">${ic('speaker',24)}</button>${c.audio?'':`<button class="cb" data-a="ccam" aria-label="Камер">${ic('video',24)}</button>`}${!c.audio&&navigator.mediaDevices&&navigator.mediaDevices.getDisplayMedia?`<button class="cb" data-a="gshare" aria-label="Дэлгэц хуваалцах">${ic('screen',24)}</button>`:''}<button class="cb end" data-a="cend" aria-label="Гарах">${ic('phone',24)}</button></div></div>`;
   ov.className='open';gTiles();
 }
 function gTile(u,s,me){
   const gg=$('#gg');if(!gg)return;let t=[...gg.children].find(x=>x.dataset.u===u);
-  const nm=me?'Та':((U.get(u)||{}).name||'Хэрэглэгч');
-  if(!t){t=document.createElement('div');t.className='gt';t.dataset.u=u;
+  const nm=me?'Та':((CALL&&CALL.names&&CALL.names[u])||(U.get(u)||{}).name||'Хэрэглэгч');
+  if(!t){t=document.createElement('div');t.className='gt';t.dataset.u=u;t.onclick=()=>{gg.dataset.f=gg.dataset.f===u?'':u;gTiles()}; // дарахад томруулна
     t.innerHTML=`<div class="gav">${av(u,nm,64)}</div><video autoplay playsinline${me?' muted class="me"':''}></video><span class="gn">${esc(nm)}</span>`;gg.appendChild(t)}
+  const gn=t.querySelector('.gn');if(gn.textContent!==nm)gn.textContent=nm;
+  t.classList.toggle('f',gg.dataset.f===u);
   const v=t.querySelector('video');if(v.srcObject!==s){v.srcObject=s;if(!me&&CALL&&CALL.spk===false)v.volume=.55}
   t.classList.toggle('nov',!s||!s.getVideoTracks().some(x=>x.readyState==='live'&&x.enabled!==false&&!x.muted));
   const p=v.play();if(p&&p.catch)p.catch(()=>playRemote());
@@ -1480,11 +1491,12 @@ function gTiles(){
   const live=[...c.peers].filter(([,p])=>p.s);
   [...gg.children].forEach(t=>{const u=t.dataset.u;if(u!==S.me.uid&&!live.some(([x])=>x===u))t.remove()});
   gTile(S.me.uid,c.local,true);live.forEach(([u,p])=>gTile(u,p.s,false));
+  if(gg.dataset.f&&![...gg.children].some(t=>t.dataset.u===gg.dataset.f)){gg.dataset.f='';gTiles();return}
   gg.dataset.n=Math.min(live.length+1,GMAX);
   const n=[...c.peers.values()].filter(p=>p.pc.connectionState==='connected').length;
-  callStatus(n?(n+1)+' хүн дуудлагад байна':c.anyConn?'Бусад нь гарлаа':'Хариу хүлээж байна...');
+  callStatus(n?(n+1)+(c.meet?' хүн уулзалтад байна':' хүн дуудлагад байна'):c.meet?'Бусдыг хүлээж байна… Холбоосоо хуваалцана уу':c.anyConn?'Бусад нь гарлаа':'Хариу хүлээж байна...');
 }
-function gSig(t,k,d){const c=CALL;return FS.addDoc(FS.collection(db,'gcalls',c.id,'sig'),{f:S.me.uid,t,s:c.sid,k,d:JSON.stringify(d)}).catch(()=>{})}
+function gSig(t,k,d){const c=CALL;return FS.addDoc(FS.collection(db,c.col,c.id,'sig'),{f:S.me.uid,t,s:c.sid,k,d:JSON.stringify(d)}).catch(()=>{})}
 function gPeer(u){
   const c=CALL,pc=new RTCPeerConnection(ICE),p={pc,rsid:null,rd:false,out:[],ready:false};
   const old=c.peers.get(u);if(old){clearTimeout(old.dt);try{old.pc.close()}catch(_){}}
@@ -1527,7 +1539,7 @@ async function gOnSig(x){
 function gDrop(u){
   const c=CALL;if(!c||!c.group)return;const p=c.peers.get(u);if(!p)return;
   clearTimeout(p.dt);try{p.pc.close()}catch(_){}c.peers.delete(u);gTiles();
-  if(c.anyConn&&!c.peers.size){toast('Дуудлага дууслаа');endCall(true)}
+  if(!c.meet&&c.anyConn&&!c.peers.size){toast('Дуудлага дууслаа');endCall(true)}
 }
 async function startGroupCall(audio){
   const th=S.thread,ch=th&&S.chats.get(th.cid);if(CALL||INC||!th||!th.group||!ch)return;
@@ -1540,14 +1552,14 @@ async function startGroupCall(audio){
 }
 async function joinGroupCall(id,d,pre){
   const starter=!!pre;if(CALL){if(pre)pre.getTracks().forEach(t=>t.stop());return false}
-  const {doc,collection,query,where,getDocs,deleteDoc,onSnapshot,runTransaction,arrayUnion}=FS,me=S.me.uid,ref=doc(db,'gcalls',id);let local;
+  const {doc,collection,query,where,getDocs,deleteDoc,onSnapshot,runTransaction,arrayUnion}=FS,me=S.me.uid,col=d.col||'gcalls',meet=col==='meets',ref=doc(db,col,id);let local;
   if(pre)local=pre;else try{local=await getMedia(d.audio)}catch(e){toast(mediaErr(e),4500);if($('.call.inc')){ov.className='';ov.innerHTML=''}return false}
   if(local.__none)toast('Камер/микрофон ашиглах боломжгүй тул зөвхөн харах/сонсох горимд орлоо',4500);
   if(CALL){local.getTracks().forEach(t=>t.stop());return false}
-  const c=CALL={group:true,id,cid:d.cid,name:d.name||'Бүлэг',local,peers:new Map(),pend:{},sid:Math.random().toString(36).slice(2,10),audio:!!d.audio,spk:true,unsubs:[],over:false,anyConn:false,seen:new Set(),chain:Promise.resolve()};
+  const c=CALL={group:true,col,meet,names:{},id,cid:d.cid,name:d.name||'Бүлэг',local,peers:new Map(),pend:{},sid:Math.random().toString(36).slice(2,10),audio:!!d.audio,spk:true,unsubs:[],over:false,anyConn:false,seen:new Set(),chain:Promise.resolve()};
   drawGCall();
   try{
-    const sig=collection(db,'gcalls',id,'sig');
+    const sig=collection(db,col,id,'sig');
     // өмнө нь орж гарсан бол надад үлдсэн хуучин сигналуудыг цэвэрлэнэ
     await Promise.all((await getDocs(query(sig,where('t','==',me)))).docs.map(x=>deleteDoc(x.ref).catch(()=>{})));
     if(CALL!==c)return false;
@@ -1558,33 +1570,34 @@ async function joinGroupCall(id,d,pre){
       const x=(await tx.get(ref)).data();
       if(!x||x.status!=='active')throw Object.assign(new Error('ended'),{code:'gc-ended'});
       const o=(x.live||[]).filter(u=>u!==me);if(o.length>=GMAX)throw Object.assign(new Error('full'),{code:'gc-full'});
-      tx.update(ref,{live:arrayUnion(me)});return o});
+      tx.update(ref,meet?{live:arrayUnion(me),['names.'+me]:S.me.name.slice(0,40)}:{live:arrayUnion(me)});return o});
     c.joined=true;if(CALL!==c){gLeave(c);return false} // нэгдэж байх хооронд тасалсан
     for(const u of others)c.chain=c.chain.then(()=>gOffer(u)).catch(e=>console.warn('gcall offer',e));
     c.unsubs.push(onSnapshot(ref,sn=>{const x=sn.data();if(CALL!==c)return;
-      if(!x){toast('Дуудлага дууслаа');endCall(false);return}
+      if(!x||(meet&&x.status==='ended')){toast(meet?'Уулзалт дууслаа':'Дуудлага дууслаа');endCall(false);return}
+      if(meet){c.names=x.names||{};c.host=x.host;gTiles()}
       const inn=x.live||[];inn.forEach(u=>c.seen.add(u));
       [...c.peers.keys()].forEach(u=>{if(c.seen.has(u)&&!inn.includes(u))gDrop(u)})},onErr));
-    c.timer=setTimeout(()=>{if(CALL===c&&!c.anyConn){c.kill=true;toast(starter?'Хэн ч хариулсангүй':'Холбогдож чадсангүй');endCall(true)}},60000);
+    if(!meet)c.timer=setTimeout(()=>{if(CALL===c&&!c.anyConn){c.kill=true;toast(starter?'Хэн ч хариулсангүй':'Холбогдож чадсангүй');endCall(true)}},60000);
     return true;
   }catch(e){
-    console.error(e);toast(e.code==='gc-ended'?'Дуудлага аль хэдийн дууссан байна':e.code==='gc-full'?'Дуудлагад хэт олон хүн байна':callErr(e),4500);
-    if(starter)FS.updateDoc(ref,{status:'ended'}).catch(()=>{});
+    console.error(e);toast(e.code==='gc-ended'?(meet?'Уулзалт дууссан байна':'Дуудлага аль хэдийн дууссан байна'):e.code==='gc-full'?(meet?'Уулзалтад хэт олон хүн байна (дээд тал нь '+GMAX+')':'Дуудлагад хэт олон хүн байна'):callErr(e),4500);
+    if(starter&&!meet)FS.updateDoc(ref,{status:'ended'}).catch(()=>{});
     endCall(false);return false;
   }
 }
 function endGroupCall(c){
   clearTimeout(c.timer);c.unsubs.forEach(u=>u());
-  c.peers.forEach(p=>{clearTimeout(p.dt);try{p.pc.close()}catch(_){}});c.local.getTracks().forEach(t=>t.stop());
+  c.peers.forEach(p=>{clearTimeout(p.dt);try{p.pc.close()}catch(_){}});c.local.getTracks().forEach(t=>t.stop());if(c.cam)c.cam.stop();
   ov.className='';ov.innerHTML='';gLeave(c);
 }
 function gLeave(c){
   const me=S.me&&S.me.uid;if(!c.joined||!db||!me)return;
-  const {doc,runTransaction,arrayRemove}=FS,ref=doc(db,'gcalls',c.id);
+  const {doc,runTransaction,arrayRemove}=FS,ref=doc(db,c.col,c.id);
   runTransaction(db,async tx=>{const x=(await tx.get(ref)).data();if(!x)return;
     const rest=(x.live||[]).filter(u=>u!==me),up={live:arrayRemove(me)};
     // сүүлчийн хүн гарах эсвэл 1 минутад хэнтэй ч холбогдоогүй (үлдсэн нь унтарсан төхөөрөмж) бол шинээр нэгдэхийг хаана
-    if(x.status==='active'&&(!rest.length||c.kill))up.status='ended';
+    if(!c.meet&&x.status==='active'&&(!rest.length||c.kill))up.status='ended';
     tx.update(ref,up)}).catch(e=>console.warn('gcall leave',e));
 }
 function showGroupIncoming(id,d){
@@ -1595,6 +1608,59 @@ function showGroupIncoming(id,d){
   ov.className='open';
   INC.t=setTimeout(()=>{if(INC&&INC.id===id)closeIncoming()},45000);
 }
+/* ---------- онлайн уулзалт (Google Meet шиг): кодтой холбоосоор хэн ч (нэвтэрсэн) нэгдэнэ, meets/{код} ---------- */
+const meetCode=()=>{const a='abcdefghijkmnopqrstuvwxyz',r=crypto.getRandomValues(new Uint8Array(10)),s=[...r].map(x=>a[x%a.length]).join('');return s.slice(0,3)+'-'+s.slice(3,7)+'-'+s.slice(7)};
+const meetParse=v=>{const m=String(v||'').match(/(?:meet=)?([a-z]{3})-?([a-z]{4})-?([a-z]{3})(?![a-z])/i);return m?(m[1]+'-'+m[2]+'-'+m[3]).toLowerCase():''};
+// апп (Capacitor) дотроос хуваалцахад вэб хаягийг ашиглана
+const meetUrl=code=>(/^https?:$/.test(location.protocol)?location.origin+location.pathname:'https://'+CFG.authDomain.replace('firebaseapp.com','web.app')+'/')+'?meet='+code;
+async function meetSheet(){
+  openSheet(`<h3>🎥 Онлайн уулзалт</h3><label>Уулзалтын нэр<input id="mtitle" maxlength="60" placeholder="${esc(S.me.name)}-ийн уулзалт"></label><div class="crow"><button class="btn" data-a="mnew">${ic('video',18)} Шинэ уулзалт</button><button class="btn line" data-a="mnew" data-au="1">${ic('phone',18)} Зөвхөн дуу</button></div>
+  <div class="sec" style="padding:14px 0 0">Кодоор нэгдэх</div><div class="crow"><input id="mcode" class="search" placeholder="abc-defg-hij эсвэл холбоос" autocomplete="off" autocapitalize="off"><button class="btn line" data-a="mjoin" style="flex:0 0 auto">Нэгдэх</button></div>
+  <div id="mmine"></div>`);
+  try{const {collection,query,where,getDocs}=FS;
+    const ls=(await getDocs(query(collection(db,'meets'),where('host','==',S.me.uid)))).docs.map(x=>({id:x.id,...x.data()})).filter(x=>x.status==='active').sort((a,b)=>tms(b.createdAt)-tms(a.createdAt)).slice(0,5);
+    const el=$('#mmine');if(el&&ls.length)el.innerHTML=`<div class="sec" style="padding:14px 0 4px">Миний уулзалтууд</div>`+ls.map(x=>`<div class="mrow"><button class="row" style="flex:1;margin:0" data-a="mjoin" data-id="${esc(x.id)}"><div class="rt"><b>${esc(x.title)}</b><span class="mute">${esc(x.id)}${(x.live||[]).length?' · '+x.live.length+' хүн байна':''}</span></div></button><button class="ib" data-a="mcopy" data-id="${esc(x.id)}" aria-label="Холбоос хуулах">${ic('link',18)}</button><button class="ib" data-a="mend" data-id="${esc(x.id)}" aria-label="Уулзалтыг хаах">${ic('close',18)}</button></div>`).join('');
+  }catch(e){console.warn('meets',e)}
+}
+async function meetNew(audio){
+  if(CALL||INC)return;const title=(($('#mtitle')||{}).value||'').trim().slice(0,60)||S.me.name.slice(0,40)+'-ийн уулзалт';
+  let local;try{local=await getMedia(audio)}catch(e){toast(mediaErr(e),4500);return}
+  const {doc,setDoc,serverTimestamp}=FS,code=meetCode();
+  const d={host:S.me.uid,hostName:S.me.name.slice(0,40),title,live:[],names:{},status:'active',...(audio?{audio:true}:{})};
+  try{await setDoc(doc(db,'meets',code),{...d,createdAt:serverTimestamp()})}catch(e){console.error(e);toast(callErr(e),5000);local.getTracks().forEach(t=>t.stop());return}
+  closeOv();
+  if(await joinGroupCall(code,{col:'meets',name:title,audio:!!audio},local))meetShare(code);
+}
+async function meetJoin(v){
+  const code=meetParse(v);if(!code){toast('Уулзалтын код буруу байна');return}
+  if(CALL||INC){toast('Та өөр дуудлагад байна');return}
+  let x;try{const sn=await FS.getDoc(FS.doc(db,'meets',code));x=sn.exists()?sn.data():null}catch(e){console.error(e);toast(callErr(e),4500);return}
+  if(!x){toast('Уулзалт олдсонгүй');return}
+  if(x.status!=='active'){toast('Уулзалт дууссан байна');return}
+  closeOv();joinGroupCall(code,{col:'meets',name:x.title,audio:!!x.audio});
+}
+async function meetShare(code){
+  const url=meetUrl(code),t=(CALL&&CALL.meet&&CALL.name)||'Онлайн уулзалт';
+  if(navigator.share)try{await navigator.share({title:t,text:t+' — нэгдэх холбоос',url});return}catch(e){if(e&&e.name==='AbortError')return}
+  try{await navigator.clipboard.writeText(url);toast('Холбоос хуулагдлаа: '+code,3500)}catch(_){toast('Уулзалтын код: '+code,5000)}
+}
+/* дэлгэц хуваалцах: камерын видеог бүх холболт дээр дэлгэцийн видеогоор сольж, дуусахад буцаана */
+function gSwap(from,to){
+  const c=CALL;c.local.removeTrack(from);c.local.addTrack(to);
+  c.peers.forEach(p=>p.pc.getSenders().forEach(x=>{if(x.track===from)x.replaceTrack(to).catch(()=>{})}));
+  const v=$('#gg video.me');if(v){v.srcObject=null;v.srcObject=c.local;v.classList.toggle('scr',!!c.scr);v.play().catch(()=>{})}
+  const b=$('[data-a="gshare"]');if(b)b.classList.toggle('off',!!c.scr);gTiles();
+}
+async function gShare(){
+  const c=CALL;if(!c||!c.group)return;
+  if(c.scr){gUnshare();return}
+  const cam=c.local.getVideoTracks()[0];if(!cam){toast('Камергүй үед дэлгэц хуваалцах боломжгүй');return}
+  let st;try{st=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false})}catch(_){return}
+  const t=st.getVideoTracks()[0];if(CALL!==c||!t){st.getTracks().forEach(x=>x.stop());return}
+  c.scr=t;c.cam=cam;gSwap(cam,t);t.onended=()=>{if(CALL===c&&c.scr===t)gUnshare()};
+  toast('Дэлгэцээ хуваалцаж байна');
+}
+function gUnshare(){const c=CALL,t=c&&c.scr;if(!t)return;c.scr=null;gSwap(t,c.cam);c.cam=null;t.stop()}
 window.addEventListener('pagehide',()=>{if(CALL)endCall(true)});
 function toggleTrack(kind,btn){
   if(!CALL)return;const ts=kind==='audio'?CALL.local.getAudioTracks():CALL.local.getVideoTracks();
@@ -1823,6 +1889,14 @@ document.addEventListener('click',async e=>{
     case 'reccancel':recStop(false);break;
     case 'mfemoji':S.mfEmoji=!S.mfEmoji;renderMf();break;
     case 'mfe':{const inp=$('#mi');if(inp){const e2=b.dataset.e,s=inp.selectionStart??inp.value.length,en=inp.selectionEnd??inp.value.length;inp.value=inp.value.slice(0,s)+e2+inp.value.slice(en);inp.focus();inp.selectionStart=inp.selectionEnd=s+e2.length;inp.dispatchEvent(new Event('input',{bubbles:true}))}break}
+    case 'meet':meetSheet();break;
+    case 'mnew':meetNew(!!b.dataset.au);break;
+    case 'mjoin':meetJoin(id||($('#mcode')||{}).value);break;
+    case 'mcopy':meetShare(id);break;
+    case 'mlink':if(CALL&&CALL.meet)meetShare(CALL.id);break;
+    case 'gshare':gShare();break;
+    case 'mend':{if(!confirm('Энэ уулзалтыг хаах уу? Холбоос ажиллахаа болино.'))break;
+      try{await FS.updateDoc(FS.doc(db,'meets',id),{status:'ended'});toast('Уулзалт хаагдлаа');meetSheet()}catch(e){toast(callErr(e))}break}
     case 'newgroup':{const fr=[...S.friends.entries()].filter(([u])=>!hid(u));
       if(!fr.length){toast('Эхлээд найз нэм');break}
       S.draftGroup=null;openSheet(`<h3>Бүлэг үүсгэх</h3><div class="phrow">${av('',n0(),56)}<label class="chip">${ic('image',18)}Бүлгийн зураг<input type="file" id="gfile" accept="image/*" class="vh"></label></div><label>Нэр<input id="gn" maxlength="40" placeholder="Бүлгийн нэр"></label><div class="pick">${fr.map(([u,n])=>`<label class="pk"><input type="checkbox" value="${esc(u)}">${av(u,nmOf(u),30)}<span>${esc(nmOf(u))}</span></label>`).join('')}</div><button class="btn" data-a="mkgroup">Үүсгэх</button>`);break}
@@ -2051,8 +2125,8 @@ async function main(){
   if(!configured&&!window.__FB_MOCK){setupRender();return}
   $('#main').innerHTML='<div style="min-height:70vh;display:grid;align-items:center">'+loader()+'</div>';
   // Дуудлагын push мэдэгдлээс (?call=) нээгдсэн бол эхлэлийн хиймэл хүлээлтийг алгасаж, дуудлагын дэлгэцийг аль болох хурдан харуулна
-  const fromCall=new URLSearchParams(location.search).has('call');
-  if(fromCall)try{history.replaceState(null,'',location.pathname+location.hash)}catch(_){}
+  const qs=new URLSearchParams(location.search),fromCall=qs.has('call');S.pendMeet=meetParse(qs.get('meet')||'');
+  if(fromCall||S.pendMeet)try{history.replaceState(null,'',location.pathname+location.hash)}catch(_){}
   const bootT0=Date.now(),MIN_BOOT=fromCall?0:2200;
   try{
     const fb=await loadFirebase();

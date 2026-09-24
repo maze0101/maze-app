@@ -363,5 +363,45 @@ service cloud.firestore {
           && gmem(request.auth.uid) && gmem(request.resource.data.t);
       }
     }
+
+    // онлайн уулзалт: баримтын id = санамсаргүй код (abc-defg-hij). Кодыг мэдэх нэвтэрсэн хэн ч нэгдэнэ,
+    // жагсаалтаар бусдын уулзалтыг харах боломжгүй (list зөвхөн өөрийн үүсгэснийг).
+    match /meets/{code} {
+      allow get: if signedIn();
+      allow list: if signedIn() && resource.data.host == request.auth.uid;
+      allow create: if mine(request.resource.data.host)
+        && code.matches('^[a-z]{3}-[a-z]{4}-[a-z]{3}$')
+        && request.resource.data.keys().hasOnly(['host', 'hostName', 'title', 'live', 'names', 'status', 'audio', 'createdAt'])
+        && request.resource.data.live == []
+        && request.resource.data.names == {}
+        && request.resource.data.status == 'active'
+        && (!('audio' in request.resource.data) || request.resource.data.audio is bool)
+        && isStr(request.resource.data.hostName, 40)
+        && isStr(request.resource.data.title, 60)
+        && stamped();
+      // зөвхөн өөрийгөө live/names-д нэмж хасна; уулзалтыг зөвхөн эзэн нь хаана
+      allow update: if signedIn()
+        && changed().hasOnly(['live', 'names', 'status'])
+        && request.resource.data.live is list
+        && request.resource.data.live.toSet().difference(resource.data.live.toSet()).hasOnly([request.auth.uid])
+        && resource.data.live.toSet().difference(request.resource.data.live.toSet()).hasOnly([request.auth.uid])
+        && request.resource.data.names.diff(resource.data.names).affectedKeys().hasOnly([request.auth.uid])
+        && (!(request.auth.uid in request.resource.data.names) || isStr(request.resource.data.names[request.auth.uid], 40))
+        && (request.resource.data.status == resource.data.status
+            || (request.resource.data.status == 'ended' && resource.data.host == request.auth.uid));
+      allow delete: if mine(resource.data.host);
+
+      match /sig/{sigId} {
+        function mlive(u) { return u in get(/databases/$(database)/documents/meets/$(code)).data.live; }
+        allow read, delete: if signedIn() && (resource.data.t == request.auth.uid || resource.data.f == request.auth.uid);
+        allow create: if mine(request.resource.data.f)
+          && request.resource.data.keys().hasOnly(['f', 't', 's', 'k', 'd'])
+          && request.resource.data.t is string
+          && request.resource.data.k in ['o', 'a', 'c']
+          && isStr(request.resource.data.s, 20)
+          && isStr(request.resource.data.d, 30000)
+          && mlive(request.auth.uid) && mlive(request.resource.data.t);
+      }
+    }
   }
 }
