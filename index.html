@@ -1249,13 +1249,13 @@ function subscribe(){
       showIncoming(ch.doc.id,d)}
     else if(ch.type==='removed'&&INC&&INC.id===ch.doc.id)closeIncoming()}));
   // бүлгийн дуудлага: шинээр эхэлсэн бол дуугарна, явагдаж буй дуудлагад чатын толгойгоос нэгдэж болно
-  on(query(collection(db,'gcalls'),where('members','array-contains',uid),where('status','==','active')),sn=>{
+  subs.push(FS.onSnapshot(query(collection(db,'gcalls'),where('members','array-contains',uid),where('status','==','active')),sn=>{
     sn.docChanges().forEach(ch=>{const d=ch.doc.data({serverTimestamps:'estimate'});
       if(ch.type==='added'&&d.from!==uid&&!(d.live||[]).includes(uid)&&Date.now()-tms(d.createdAt)<60000&&!CALL&&!INC&&!(S.blocked.has(d.from)||S.blockedBy.has(d.from)))showGroupIncoming(ch.doc.id,d);
       else if(ch.type==='removed'&&INC&&INC.id===ch.doc.id)closeIncoming()});
     S.gcalls=new Map();
     sn.docs.forEach(x=>{const d=x.data({serverTimestamps:'estimate'});if((d.live||[]).length&&Date.now()-tms(d.createdAt)<4*36e5)S.gcalls.set(d.cid,{id:x.id,d})});
-    if(S.thread&&S.thread.group)setHd()});
+    if(S.thread&&S.thread.group)setHd()},e=>console.warn('gcalls',e&&e.code))); // алдаа гарвал (rules deploy хийгээгүй г.м) аппыг бүхэлд нь саатуулахгүй
   loadPeople('');
   if(S.pendMeet){const m=S.pendMeet;S.pendMeet='';openSheet(`<h3>🎥 Уулзалтад нэгдэх</h3><p class="mute" style="margin:0">Уулзалтын код: <b>${esc(m)}</b></p><button class="btn" data-a="mjoin" data-id="${esc(m)}">Нэгдэх</button>`)}
 }
