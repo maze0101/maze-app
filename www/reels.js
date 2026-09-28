@@ -229,14 +229,15 @@ async function reelPublish(btn){
   if(R.up)return;R.up=true;btn.disabled=true;
   const cap=(($('#rcap')||{}).value||'').trim().slice(0,300);
   const bar=(l,p)=>{const e=$('#rlst');if(e)e.innerHTML=`<span>${l} ${Math.round(p*100)}% · Дуустал энэ цонхыг хаахгүй байна уу</span><div class="rlprog"><i style="width:${Math.round(p*100)}%"></i></div>`};
-  let ok=false;
+  let ok=false,stage=d.raw?'байршуулах':'шахах';
   try{
     const enc=d.raw?{blob:d.file,mime:d.file.type,dur:d.dur}:await reelEncode(d,p=>bar('Видеог шахаж байна…',p));
     if(enc.blob.size>RL_CH*RL_MAXCH)throw Object.assign(new Error('big'),{code:'big'});
+    stage='байршуулах';
     await reelUpload(d,enc,cap,p=>bar('Байршуулж байна…',p));
     ok=true;toast('Reel нийтлэгдлээ 🎬');
   }catch(e){console.error('reel publish',e);const c=e&&e.code;
-    toast(c==='norec'?'Энэ төхөөрөмж видео шахахыг дэмжихгүй байна. 8MB-аас бага, 60 секундээс богино mp4 видео сонгоно уу.':c==='big'?'Видео хэт том байна. Илүү богино видео сонгоно уу.':c==='permission-denied'?'Эрх хүрэхгүй байна. Firestore-ийн дүрмээ (rules) шинэчилнэ үү.':'Reel нийтэлж чадсангүй. Дахин оролдоно уу.',5000);
+    toast(c==='norec'?'Энэ төхөөрөмж видео шахахыг дэмжихгүй байна. 8MB-аас бага, 60 секундээс богино mp4 видео сонгоно уу.':c==='big'?'Видео хэт том байна. Илүү богино видео сонгоно уу.':c==='permission-denied'?'Эрх хүрэхгүй байна. Firestore-ийн дүрмээ (rules) шинэчилнэ үү.':'Reel нийтэлж чадсангүй ('+stage+': '+String(c||(e&&(e.name!=='Error'&&e.name||e.message))||'алдаа').slice(0,60)+'). Дахин оролдоно уу.',8000);
     const e2=$('#rlst');if(e2)e2.textContent=d.raw?'':'Видеог дахин сонгоно уу.';}
   finally{R.up=false;btn.disabled=false}
   // шахсан видеоны элемент дахин ашиглагдахгүй тул ноорогийг цэвэрлэнэ
