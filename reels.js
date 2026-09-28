@@ -58,26 +58,28 @@ function reelClose(){
   if(R.v){R.v.pause();R.v.removeAttribute('src');try{R.v.load()}catch(_){}R.v=null}
   const el=$('#rl');if(el)el.remove();
 }
+// R.gen: дахин ачаалах бүрд нэмэгдэнэ — өмнөх ачаалалтын хоцорсон хариу шинэ жагсаалтад орохгүй
 async function reelReload(startId){
-  Object.assign(R,{list:[],last:null,done:false,cur:-1});
+  const g=R.gen=(R.gen||0)+1;
+  Object.assign(R,{list:[],last:null,done:false,cur:-1,busy:false});
   if(R.io)R.io.disconnect();if(R.v){R.v.pause();R.v.remove()}
   const b=$('#rls');if(b){b.scrollTop=0;b.innerHTML=`<div class="rlempty">${loader()}</div>`}
-  if(startId)try{const sn=await FS.getDoc(FS.doc(db,'reels',startId)),r=sn.exists()?mapReel(sn):null;if(!R.on)return;
+  if(startId)try{const sn=await FS.getDoc(FS.doc(db,'reels',startId)),r=sn.exists()?mapReel(sn):null;if(!R.on||R.gen!==g)return;
     if(r&&r.n>0&&!hid(r.uid)){R.list.push(r);reelAppend(0)}else toast('Reel олдсонгүй (устгагдсан байж магадгүй)',3000)}catch(e){console.warn('reel open',e)}
-  reelMore();
+  if(R.gen===g)reelMore();
 }
 async function reelMore(){
   if(R.busy||R.done||!R.on)return;R.busy=true;
-  const {collection,query,orderBy,limit,startAfter,getDocs}=FS,N=8;let again=false;
+  const {collection,query,orderBy,limit,startAfter,getDocs}=FS,N=8,g=R.gen;let again=false;
   try{
     const q=R.last?query(collection(db,'reels'),orderBy('createdAt','desc'),startAfter(R.last),limit(N)):query(collection(db,'reels'),orderBy('createdAt','desc'),limit(N));
-    const sn=await getDocs(q);if(!R.on)return;
+    const sn=await getDocs(q);if(!R.on||R.gen!==g)return;
     if(sn.docs.length<N)R.done=true;if(sn.docs.length)R.last=sn.docs[sn.docs.length-1];
     const add=sn.docs.map(mapReel).filter(r=>r.n>0&&!hid(r.uid)&&!R.list.some(x=>x.id===r.id)),at=R.list.length;
     R.list.push(...add);reelAppend(at);
     again=!R.done&&R.list.length-R.cur<3;                          // бүгд шүүгдсэн бол дараагийн хэсгийг авна
-  }catch(e){onErr(e);const b=$('#rls');if(b&&!R.list.length)b.innerHTML='<div class="rlempty">Reels-ийг уншиж чадсангүй. Интернэтээ шалгана уу.</div>'}
-  finally{R.busy=false}
+  }catch(e){if(R.gen!==g)return;onErr(e);const b=$('#rls');if(b&&!R.list.length)b.innerHTML='<div class="rlempty">Reels-ийг уншиж чадсангүй. Интернэтээ шалгана уу.</div>'}
+  finally{if(R.gen===g)R.busy=false}
   if(again)reelMore();
 }
 function reelSide(r,i){const lk=r.likes.includes(S.me.uid);
@@ -138,7 +140,7 @@ function reelTap(i){
   if(now-rlTapAt<300){rlTapAt=0;reelHeart(i).catch(e=>{console.error(e);toast('Лайк дарж чадсангүй')});return}
   rlTapAt=now;
   rlTapT=setTimeout(()=>{const v=R.v,sl=rlSlide(i);if(!v||R.cur!==i||!v.src||!sl)return;
-    if(v.paused){sl.classList.remove('paused');reelPlay()}else{v.pause();sl.classList.add('paused')}},280);
+    if(v.paused){sl.classList.remove('paused');reelPlay()}else{v.pause();sl.classList.add('paused')}},300);  // давхар товшилтын хугацаатай ижил
 }
 async function reelHeart(i){const sl=rlSlide(i),r=R.list[i];if(!sl||!r)return;
   const h=document.createElement('div');h.className='rlhp';h.textContent='❤️';sl.appendChild(h);setTimeout(()=>h.remove(),900);

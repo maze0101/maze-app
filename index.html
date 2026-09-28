@@ -2756,8 +2756,10 @@ document.addEventListener('change',async e=>{
   if(e.target.id==='rfile'){
     const f=e.target.files[0];e.target.value='';if(!f||R.up)return;
     reelDraftClear();const st=$('#rlst'),pv=$('#rprev');if(pv)pv.innerHTML='';if(st)st.textContent='Видеог уншиж байна…';
-    try{R.draft=await reelLoad(f)}catch(er){console.warn('reel video',er);if(st)st.textContent='';toast('Энэ видеог уншиж чадсангүй. Өөр видео сонгоно уу.',3500);return}
-    const d=R.draft,pv2=$('#rprev'),st2=$('#rlst');
+    const pk=R.pick=(R.pick||0)+1;                                   // уншиж байх хооронд өөр видео сонговол хуучныг нь хаяна
+    let d;try{d=await reelLoad(f)}catch(er){if(pk!==R.pick)return;console.warn('reel video',er);if(st)st.textContent='';toast('Энэ видеог уншиж чадсангүй. Өөр видео сонгоно уу.',3500);return}
+    if(pk!==R.pick||R.up){try{d.v.removeAttribute('src');d.v.remove()}catch(_){}URL.revokeObjectURL(d.url);return}
+    R.draft=d;const pv2=$('#rprev'),st2=$('#rlst');
     if(!pv2){reelDraftClear();return}                                // цонхыг хаачихсан
     pv2.appendChild(d.v);
     if(st2)st2.textContent=(d.dur>RL_MAX?`${RL_MAX}+ сек · эхний ${RL_MAX} секунд нь орно`:fmtDur(d.dur));
