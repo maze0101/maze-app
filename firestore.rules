@@ -16,6 +16,10 @@ service cloud.firestore {
     function notBanned() { return !exists(/databases/$(database)/documents/bans/$(request.auth.uid)); }
     // хайлтын түлхүүр үгс (жижиг үсгээр, угтвар хэлбэрээр)
     function kwOk(d) { return !('kw' in d) || (d.kw is list && d.kw.size() <= 120); }
+    // @mention: дурдсан хэрэглэгчдийн uid (мэдэгдлийн төвд харуулахад)
+    function mnOk(d) { return !('mn' in d) || (d.mn is list && d.mn.size() <= 10); }
+    // сэтгэгдлийн тоо: нэмэхэд +1, сэтгэгдэл устгахад -1
+    function ccStep() { return changed().hasOnly(['cc']) && (request.resource.data.cc == resource.data.cc + 1 || (resource.data.cc > 0 && request.resource.data.cc == resource.data.cc - 1)); }
 
     match /admins/{aid} {
       allow get: if signedIn() && request.auth.uid == aid;
@@ -82,8 +86,8 @@ service cloud.firestore {
     match /posts/{postId} {
       allow read: if signedIn();
       allow create: if mine(request.resource.data.uid) && notBanned()
-        && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'img', 'imgs', 'createdAt', 'likes', 'cc', 'kw'])
-        && kwOk(request.resource.data)
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'img', 'imgs', 'createdAt', 'likes', 'cc', 'kw', 'mn'])
+        && kwOk(request.resource.data) && mnOk(request.resource.data)
         && (!('imgs' in request.resource.data) || (request.resource.data.imgs is list && request.resource.data.imgs.size() >= 2 && request.resource.data.imgs.size() <= 4))
         && isStr(request.resource.data.name, 40)
         && isStr(request.resource.data.text, 2000)
@@ -95,14 +99,14 @@ service cloud.firestore {
       allow update: if signedIn() && (
         // өөрийн нийтлэлийг засах
         (resource.data.uid == request.auth.uid
-          && changed().hasOnly(['text', 'edited', 'kw'])
-          && kwOk(request.resource.data)
+          && changed().hasOnly(['text', 'edited', 'kw', 'mn'])
+          && kwOk(request.resource.data) && mnOk(request.resource.data)
           && isStr(request.resource.data.text, 2000)
           && (request.resource.data.text.size() > 0 || 'img' in resource.data || 'imgs' in resource.data)) ||
         // лайк: зөвхөн өөрийн uid-г нэмэх/хасах
         (changed().hasOnly(['likes']) && onlyMeInSet(request.resource.data.likes, resource.data.likes)) ||
-        // сэтгэгдлийн тоо +1
-        (changed().hasOnly(['cc']) && request.resource.data.cc == resource.data.cc + 1) ||
+        // сэтгэгдлийн тоо ±1
+        ccStep() ||
         // реакц: зөвхөн өөрийн түлхүүр
         (changed().hasOnly(['rx']) && rxOk())
       );
@@ -111,7 +115,7 @@ service cloud.firestore {
       match /comments/{commentId} {
         allow read: if signedIn();
         allow create: if mine(request.resource.data.uid)
-          && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'createdAt'])
+          && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'mn', 'createdAt']) && mnOk(request.resource.data)
           && isStr(request.resource.data.name, 40)
           && request.resource.data.text is string
           && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 500
@@ -149,8 +153,8 @@ service cloud.firestore {
     match /reels/{reelId} {
       allow read: if signedIn();
       allow create: if mine(request.resource.data.uid) && notBanned()
-        && request.resource.data.keys().hasOnly(['uid', 'name', 'cap', 'n', 'mime', 'dur', 'w', 'h', 'poster', 'likes', 'cc', 'kw', 'createdAt'])
-        && kwOk(request.resource.data)
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'cap', 'n', 'mime', 'dur', 'w', 'h', 'poster', 'likes', 'cc', 'kw', 'mn', 'createdAt'])
+        && kwOk(request.resource.data) && mnOk(request.resource.data)
         && isStr(request.resource.data.name, 40)
         && isStr(request.resource.data.cap, 300)
         && request.resource.data.n is int && request.resource.data.n >= 1 && request.resource.data.n <= 12
@@ -165,7 +169,9 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/reels/$(reelId)/c/$(string(request.resource.data.n - 1)));
       allow update: if signedIn() && (
         (changed().hasOnly(['likes']) && onlyMeInSet(request.resource.data.likes, resource.data.likes)) ||
-        (changed().hasOnly(['cc']) && request.resource.data.cc == resource.data.cc + 1)
+        ccStep() ||
+        // үзсэн тоо +1
+        (changed().hasOnly(['vc']) && request.resource.data.vc == resource.data.get('vc', 0) + 1)
       );
       allow delete: if mine(resource.data.uid) || isAdmin();
 
@@ -184,7 +190,7 @@ service cloud.firestore {
       match /comments/{commentId} {
         allow read: if signedIn();
         allow create: if mine(request.resource.data.uid)
-          && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'createdAt'])
+          && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'mn', 'createdAt']) && mnOk(request.resource.data)
           && isStr(request.resource.data.name, 40)
           && request.resource.data.text is string
           && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 500

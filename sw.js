@@ -36,7 +36,8 @@ self.addEventListener('notificationclick',e=>{
   e.notification.close();
   const url=(e.notification.data&&e.notification.data.url)||'./index.html';
   e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(list=>{
-    for(const c of list){if('focus' in c)return c.focus()}
+    // нээлттэй апп руу: нийтлэл/reel-ийн холбоосыг дахин ачаалалгүйгээр нээлгэнэ
+    for(const c of list){if('focus' in c){if(/[?&](post|reel)=/.test(url))c.postMessage({open:url});return c.focus()}}
     return self.clients.openWindow(url);
   }));
 });

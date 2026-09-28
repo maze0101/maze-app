@@ -94,6 +94,15 @@ async function push(env, tok, uids, data, ttl) {
   }));
 }
 
+// ижил лайкийн мэдэгдлийг 10 минутад нэг л удаа (isolate-ийн санах ойд)
+const recentKeys = new Map();
+function seenRecently(k) {
+  const now = Date.now();
+  if (recentKeys.size > 5000) for (const [x, t] of recentKeys) if (now - t > 600e3) recentKeys.delete(x);
+  if (now - (recentKeys.get(k) || 0) < 600e3) return true;
+  recentKeys.set(k, now); return false;
+}
+
 async function handle(req, env) {
   const auth = req.headers.get('Authorization') || '';
   const uid = await verifyIdToken(auth.replace(/^Bearer /, ''), env.PROJECT_ID);
@@ -136,6 +145,62 @@ async function handle(req, env) {
       type: 'call', title: (c.audio ? '📞 ' : '📹 ') + short(c.name, 40) + (c.audio ? ' бүлгийн дуут дуудлага' : ' бүлгийн видео дуудлага'),
       body: short(c.fromName, 40) + ' дуудлага эхлүүллээ. Нэгдэхийн тулд дарна уу', tag: 'gcall-' + id, url: './index.html?call=' + encodeURIComponent(id),
     }, 60);
+    return 200;
+  }
+  // лайк / сэтгэгдэл / @mention: агуулгыг Firestore-оос уншиж, хүсэлт жинхэнэ эсэхийг шалгаад эзэнд нь мэдэгдэнэ
+  const ID = /^[\w-]{1,128}$/, recent = d => d && Date.now() - Date.parse(d.createdAt || 0) < 300e3;
+  const col = k => (k === 'r' || k === 'rc') ? 'reels' : 'posts';
+  const link = (k, id) => './index.html?' + (col(k) === 'reels' ? 'reel=' : 'post=') + encodeURIComponent(id);
+  if (b.kind === 'like') {
+    const id = String(b.id || ''); if (!ID.test(id)) return 400;
+    if (seenRecently(uid + ':like:' + id)) return 200;              // лайк/болих давтахад дахин мэдэгдэхгүй
+    const d = await fsGet(env, tok, col(b.k) + '/' + id);
+    if (!d || !(d.likes || []).includes(uid) || d.uid === uid) return 403;
+    if (await fsGet(env, tok, `blocks/${d.uid}_${uid}`)) return 200;
+    const me = await fsGet(env, tok, 'users/' + uid);
+    await push(env, tok, [d.uid], {type: 'like', title: '❤ ' + short(me && me.name, 40),
+      body: (col(b.k) === 'reels' ? 'Таны reel-д' : 'Таны нийтлэлд') + ' лайк дарлаа', tag: 'like-' + id, url: link(b.k, id)}, 86400);
+    return 200;
+  }
+  if (b.kind === 'cm') {
+    const id = String(b.id || ''), cid = String(b.cid || ''); if (!ID.test(id) || !ID.test(cid)) return 400;
+    const [d, c] = await Promise.all([fsGet(env, tok, col(b.k) + '/' + id), fsGet(env, tok, `${col(b.k)}/${id}/comments/${cid}`)]);
+    if (!d || !c || c.uid !== uid || !recent(c)) return 403;
+    if (d.uid === uid) return 200;
+    if (await fsGet(env, tok, `blocks/${d.uid}_${uid}`)) return 200;
+    await push(env, tok, [d.uid], {type: 'cm', title: '💬 ' + short(c.name, 40) + (col(b.k) === 'reels' ? ' таны reel-д' : ' таны нийтлэлд'),
+      body: short(c.text, 120), tag: 'cm-' + id, url: link(b.k, id)}, 86400);
+    return 200;
+  }
+  if (b.kind === 'mention') {
+    const k = String(b.k || ''), id = String(b.id || ''), cid = String(b.cid || ''), mid = String(b.mid || '');
+    const to = [...new Set((Array.isArray(b.to) ? b.to : []).map(String))].filter(u => ID.test(u) && u !== uid).slice(0, 10);
+    if (!to.length) return 400;
+    let d = null, text = '', where = '', url = './index.html', members = null, parentOwner = null;
+    if (k === 'p' || k === 'r') {
+      if (!ID.test(id)) return 400; d = await fsGet(env, tok, col(k) + '/' + id); if (!d || d.uid !== uid) return 403;
+      text = k === 'r' ? d.cap : d.text; where = k === 'r' ? 'reel-дээ' : 'нийтлэлдээ'; url = link(k, id);
+    } else if (k === 'pc' || k === 'rc') {
+      if (!ID.test(id) || !ID.test(cid)) return 400;
+      const [par, c] = await Promise.all([fsGet(env, tok, col(k) + '/' + id), fsGet(env, tok, `${col(k)}/${id}/comments/${cid}`)]);
+      d = c; if (!c || c.uid !== uid || !par) return 403; parentOwner = par.uid;
+      text = c.text; where = 'сэтгэгдэлдээ'; url = link(k, id);
+    } else if (k === 'm') {
+      if (!/^[\w-]{1,200}$/.test(cid) || !ID.test(mid)) return 400;
+      const [c, m] = await Promise.all([fsGet(env, tok, 'chats/' + cid), fsGet(env, tok, `chats/${cid}/messages/${mid}`)]);
+      d = m; if (!c || !c.group || !m || m.from !== uid) return 403;
+      members = c.members || []; text = m.text; where = '«' + short(c.name, 30) + '» бүлэгт';
+    } else return 400;
+    if (!recent(d)) return 403;
+    const me = await fsGet(env, tok, 'users/' + uid), myName = short(me && me.name, 40);
+    // зөвхөн текстэд үнэхээр @Нэр гэж бичигдсэн, (чатад) гишүүн, блоклоогүй хүмүүст
+    const users = await Promise.all(to.map(u => fsGet(env, tok, 'users/' + u)));
+    const ok = to.filter((u, i) => users[i] && users[i].name && String(text || '').includes('@' + users[i].name)
+      && (!members || members.includes(u)) && u !== parentOwner);
+    const blocked = await Promise.all(ok.map(u => fsGet(env, tok, `blocks/${u}_${uid}`)));
+    const rcpt = ok.filter((_, i) => !blocked[i]);
+    if (rcpt.length) await push(env, tok, rcpt, {type: 'mention', title: '🏷 ' + myName + ' таныг ' + where + ' дурдлаа',
+      body: short(text, 120), tag: 'mn-' + (mid || cid || id), url}, 86400);
     return 200;
   }
   if (b.kind === 'req') {

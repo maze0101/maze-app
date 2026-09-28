@@ -21,6 +21,7 @@
 .rlside button.on{color:var(--like)}
 .rlcap{position:absolute;left:0;right:64px;bottom:0;z-index:2;padding:40px 14px calc(20px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,0,.6));font-size:14px;pointer-events:none}
 .rlu{display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:6px;cursor:pointer;max-width:100%;pointer-events:auto;width:max-content}
+.rlvc{display:inline-flex;align-items:center;gap:3px}
 .rlu span.mute{color:rgba(255,255,255,.7);font-weight:400;font-size:12px}
 .rlcap p{margin:0;overflow-wrap:anywhere;max-height:4.4em;overflow:hidden}
 .rlpg{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.2);z-index:3}.rlpg i{display:block;height:100%;width:0;background:#fff}
@@ -83,7 +84,7 @@ function reelSide(r,i){const lk=r.likes.includes(S.me.uid);
   return `<button data-a="rllike" data-i="${i}" class="${lk?'on':''}" aria-label="Лайк" aria-pressed="${lk}">${ic('heart',32,lk)}<span>${r.likes.length||''}</span></button><button data-a="rlcm" data-i="${i}" aria-label="Сэтгэгдэл">${ic('chat',30)}<span>${r.cc||''}</span></button><button data-a="rlbm" data-i="${i}" class="${S.bm.has(r.id)?'on':''}" aria-label="Хадгалах">${ic('bookmark',28,S.bm.has(r.id))}</button><button data-a="rlshare" data-i="${i}" aria-label="Хуваалцах">${ic('share',28)}</button><button data-a="rlmenu" data-i="${i}" aria-label="Цэс">${ic('more',28)}</button>`}
 function reelHTML(r,i){
   const nm=(U.get(r.uid)||{}).name||r.name;
-  return `<section class="rli rlld" data-i="${i}">${r.poster?`<img class="rlp" src="${r.poster}" alt="">`:''}<div class="rlt" data-a="rltap" data-i="${i}"></div><div class="rlside">${reelSide(r,i)}</div><div class="rlcap"><div class="rlu" data-a="rluser" data-id="${esc(r.uid)}" data-n="${esc(nm)}" role="button">${av(r.uid,nm,34)}<span>${esc(nm)}</span><span class="mute">${ago(r.t)}</span></div>${r.cap?`<p>${hashLink(esc(r.cap))}</p>`:''}</div><div class="rlpg"><i></i></div></section>`;
+  return `<section class="rli rlld" data-i="${i}">${r.poster?`<img class="rlp" src="${r.poster}" alt="">`:''}<div class="rlt" data-a="rltap" data-i="${i}"></div><div class="rlside">${reelSide(r,i)}</div><div class="rlcap"><div class="rlu" data-a="rluser" data-id="${esc(r.uid)}" data-n="${esc(nm)}" role="button">${av(r.uid,nm,34)}<span>${esc(nm)}</span><span class="mute">${ago(r.t)}</span><span class="mute rlvc">${ic('eye',14)}${fmtN(r.vc)}</span></div>${r.cap?`<p>${hashLink(esc(r.cap))}</p>`:''}</div><div class="rlpg"><i></i></div></section>`;
 }
 function reelAppend(at){
   const box=$('#rls');if(!box||!R.io)return;
@@ -117,9 +118,16 @@ async function reelActivate(i){
   if(!R.on||R.cur!==i)return;
   if(v.src!==url)v.src=url;else v.currentTime=0;
   v.muted=R.mute;reelPlay();
+  clearTimeout(R.vT);R.vT=setTimeout(()=>{if(R.on&&R.cur===i)reelView(r,i)},2000);
   const nx=R.list[i+1];if(nx)reelSrc(nx).catch(()=>{});
 }
 // дуутай автоматаар тоглуулахыг хөтөч хориглосон бол дуугүй тоглуулна (дууны товчоор асаана)
+// 2 секунд үзсэн бол үзсэн тоог +1 (өөрийн reel-ийг тоолохгүй, нэг сессэд нэг удаа)
+function reelView(r,i){
+  if(r.uid===S.me.uid||R.seen.has(r.id))return;R.seen.add(r.id);r.vc=(r.vc||0)+1;
+  const e=rlSlide(i)&&rlSlide(i).querySelector('.rlvc');if(e)e.innerHTML=ic('eye',14)+fmtN(r.vc);
+  FS.updateDoc(FS.doc(db,'reels',r.id),{vc:FS.increment(1)}).catch(e=>console.warn('reel view',e&&e.code));
+}
 function reelPlay(){const v=R.v;if(!v||!v.src)return;const p=v.play();
   if(p&&p.catch)p.catch(e=>{if(e&&e.name==='NotAllowedError'&&!v.muted){R.mute=true;R.autoMuted=true;v.muted=true;rlMuteUpd();v.play().catch(()=>{})}})}
 function reelPause(){if(R.v&&!R.v.paused){R.v.pause();const s=R.v.parentElement;if(s)s.classList.add('paused')}}
@@ -139,7 +147,7 @@ async function reelHeart(i){const sl=rlSlide(i),r=R.list[i];if(!sl||!r)return;
 }
 async function reelLike(i){const r=R.list[i];if(!r)return;const me=S.me.uid,on=!r.likes.includes(me);
   r.likes=on?[...r.likes,me]:r.likes.filter(u=>u!==me);reelSideUpd(i);
-  try{await FS.updateDoc(FS.doc(db,'reels',r.id),{likes:on?FS.arrayUnion(me):FS.arrayRemove(me)})}
+  try{await FS.updateDoc(FS.doc(db,'reels',r.id),{likes:on?FS.arrayUnion(me):FS.arrayRemove(me)});if(on&&r.uid!==me)pushPing({kind:'like',k:'r',id:r.id})}
   catch(e){r.likes=on?r.likes.filter(u=>u!==me):[...r.likes,me];reelSideUpd(i);throw e}
 }
 function reelComments(i){
@@ -150,8 +158,8 @@ function reelComments(i){
 async function reelCmLoad(r){
   const {collection,query,orderBy,limit,getDocs}=FS;let h;
   try{const sn=await getDocs(query(collection(db,'reels',r.id,'comments'),orderBy('createdAt','asc'),limit(100)));
-    const cs=sn.docs.map(d=>{const x=d.data();return {uid:x.uid,name:x.name||'',text:x.text||''}}).filter(c=>!hid(c.uid));
-    h=cs.length?cs.map(c=>`<div class="cm">${av(c.uid,c.name,30)}<div class="bb"><b>${esc(c.name)}</b>${hashLink(esc(c.text))}</div></div>`).join(''):'<p class="mute" style="margin:0">Одоохондоо сэтгэгдэл алга. Анхных нь болоорой!</p>'}
+    const cs=sn.docs.map(d=>{const x=d.data();return {id:d.id,uid:x.uid,name:x.name||'',text:x.text||''}}).filter(c=>!hid(c.uid));
+    h=cs.length?cs.map(c=>`<div class="cm">${av(c.uid,c.name,30)}<div class="bb"><b>${esc(c.name)}</b>${hashLink(esc(c.text))}</div>${c.uid===S.me.uid||r.uid===S.me.uid||S.admin?`<button class="cmx" data-a="cmdel" data-k="r" data-p="${esc(r.id)}" data-id="${esc(c.id)}" aria-label="Сэтгэгдэл устгах">${ic('trash',15)}</button>`:''}</div>`).join(''):'<p class="mute" style="margin:0">Одоохондоо сэтгэгдэл алга. Анхных нь болоорой!</p>'}
   catch(e){console.warn('reel comments',e);h='<p class="mute" style="margin:0">Сэтгэгдлийг уншиж чадсангүй.</p>'}
   const e=$('#rlcms');if(e)e.innerHTML=h;
 }
@@ -237,9 +245,9 @@ async function reelUpload(d,enc,cap,onp){
   if(n>RL_MAXCH)throw Object.assign(new Error('big'),{code:'big'});
   try{
     for(let i=0;i<n;i++){await setDoc(doc(db,'reels',ref.id,'c',String(i)),{u:uid,d:Bytes.fromUint8Array(u8.subarray(i*RL_CH,(i+1)*RL_CH))});onp((i+1)/(n+1))}
-    const rd={uid,name:S.me.name,cap,n,mime:enc.mime.slice(0,80),dur:Math.max(.1,Math.round(Math.min(enc.dur,RL_MAX)*10)/10),w:d.w,h:d.h,likes:[],cc:0,kw:kwOf(cap,S.me.name),createdAt:serverTimestamp()};
+    const rd={uid,name:S.me.name,cap,n,mime:enc.mime.slice(0,80),dur:Math.max(.1,Math.round(Math.min(enc.dur,RL_MAX)*10)/10),w:d.w,h:d.h,likes:[],cc:0,kw:kwOf(cap,S.me.name),createdAt:serverTimestamp()};const mn=mnOf(cap);if(mn.length)rd.mn=mn;
     if(d.poster)rd.poster=d.poster;
-    await setDoc(ref,rd);onp(1);
+    await setDoc(ref,rd);onp(1);if(rd.mn)pushPing({kind:'mention',k:'r',id:ref.id,to:rd.mn});
   }catch(e){for(let i=0;i<n;i++)deleteDoc(doc(db,'reels',ref.id,'c',String(i))).catch(()=>{});throw e}
 }
 async function reelPublish(btn){
