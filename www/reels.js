@@ -161,7 +161,7 @@ function reelAddSheet(){
   reelPause();reelDraftClear();
   openSheet(`<h3>🎬 Reel нэмэх</h3><div id="rprev"></div><label class="chip" style="align-self:flex-start">${ic('video',18)}Видео сонгох<input type="file" id="rfile" accept="video/*" class="vh"></label><span class="mute" style="font-size:12px">Хамгийн ихдээ ${RL_MAX} секунд. Урт бол эхний ${RL_MAX} секунд нь орно.</span><label>Тайлбар<textarea id="rcap" maxlength="300" placeholder="Юу хуваалцах вэ? (#таг)"></textarea></label><div id="rlst" class="mute" style="font-size:13px;display:flex;flex-direction:column;gap:6px"></div><button class="btn" data-a="rpub">Нийтлэх</button>`);
 }
-function reelDraftClear(){const d=R.draft;if(!d||R.up)return;R.draft=null;try{d.v.pause();d.v.removeAttribute('src');d.v.remove()}catch(_){}URL.revokeObjectURL(d.url)}
+function reelDraftClear(){const d=R.draft;if(!d||R.up)return;R.draft=null;for(const v of [d.v,d.v2])try{if(v){v.pause();v.removeAttribute('src');v.remove()}}catch(_){}URL.revokeObjectURL(d.url)}
 // сонгосон видеог уншиж: хугацаа, хэмжээ, нүүр зураг (poster)
 async function reelLoad(file){
   if(!/^video\//.test(file.type)&&!/\.(mp4|mov|m4v|webm)$/i.test(file.name))throw new Error('type');
@@ -177,20 +177,28 @@ async function reelLoad(file){
     let poster='';try{x.drawImage(v,0,0,cv.width,cv.height);for(const q of [.72,.6,.48,.36]){poster=cv.toDataURL('image/jpeg',q);if(poster.length<55000)break}}catch(_){}
     if(poster.length>=60000)poster='';
     // жижиг mp4/webm-г шууд байршуулна, бусдыг (том, .mov г.м) шахна
-    const raw=file.size<=RL_RAW&&dur<=RL_MAX+.5&&/^video\/(mp4|webm)$/.test(file.type);
+    // iPhone-ийн .mov зэрэг жижиг видеог шахахгүйгээр (дуу, чанартай нь) шууд байршуулна
+    const raw=file.size<=RL_RAW&&dur<=RL_MAX+.5;
     return {file,url,v,dur,w:v.videoWidth,h:v.videoHeight,poster,raw};
   }catch(e){URL.revokeObjectURL(url);throw e}
 }
+async function reelFreshVideo(d){
+  const v=d.v2=document.createElement('video');v.muted=true;v.playsInline=true;v.setAttribute('playsinline','');v.preload='auto';v.src=d.url;
+  const p=$('#rprev');if(p){d.v.remove();p.appendChild(v)}                      // iOS нь DOM-оос гадуурх видеог тоглуулахгүй байж болно
+  await new Promise((ok,no)=>{const t=setTimeout(()=>no(Object.assign(new Error('stall'),{code:'stall'})),15000);v.onloadedmetadata=()=>{clearTimeout(t);ok()};v.onerror=()=>{clearTimeout(t);no(new Error('decode'))}});
+  return v;
+}
 // видеог canvas + MediaRecorder-оор ~1Mbps, 540p болгож шахна. Хөтчийн дуу тоглуулах зөвшөөрөл алдагдахгүйн тулд
 // play() хүртэлх бүх зүйл click дотроо синхрон ажиллана.
-function reelEncode(d,onp){
+// v0/noAudio: дуутай шахалт гацвал (iOS) шинэ, дуугүй video элементээр дахин шахна
+function reelEncode(d,onp,v0,noAudio){
   const types=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
   const mime=window.MediaRecorder&&MediaRecorder.isTypeSupported&&types.find(t=>MediaRecorder.isTypeSupported(t));
   if(!mime||!HTMLCanvasElement.prototype.captureStream)return Promise.reject(Object.assign(new Error('norec'),{code:'norec'}));
-  const v=d.v,k=Math.min(1,540/Math.min(d.w,d.h),960/Math.max(d.w,d.h)),w=Math.max(2,Math.round(d.w*k/2)*2),h=Math.max(2,Math.round(d.h*k/2)*2);
+  const v=v0||d.v,k=Math.min(1,540/Math.min(d.w,d.h),960/Math.max(d.w,d.h)),w=Math.max(2,Math.round(d.w*k/2)*2),h=Math.max(2,Math.round(d.h*k/2)*2);
   const cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,w,h);
   const st=cv.captureStream(30);let ac=null;
-  try{const AC=window.AudioContext||window.webkitAudioContext;ac=new AC();const dst=ac.createMediaStreamDestination();ac.createMediaElementSource(v).connect(dst);dst.stream.getAudioTracks().forEach(t=>st.addTrack(t));ac.resume().catch(()=>{})}
+  if(!noAudio)try{const AC=window.AudioContext||window.webkitAudioContext;ac=new AC();const dst=ac.createMediaStreamDestination();ac.createMediaElementSource(v).connect(dst);dst.stream.getAudioTracks().forEach(t=>st.addTrack(t));ac.resume().catch(()=>{})}
   catch(e){console.warn('reel audio',e);if(ac)ac.close().catch(()=>{});ac=null}
   const type=mime.split(';')[0],mr=new MediaRecorder(st,{mimeType:mime,videoBitsPerSecond:1e6,audioBitsPerSecond:96e3}),parts=[];
   mr.ondataavailable=e=>{if(e.data&&e.data.size)parts.push(e.data)};
@@ -208,7 +216,7 @@ function reelEncode(d,onp){
       if(v.currentTime>=lim-.05)return end();
       v.requestVideoFrameCallback?v.requestVideoFrameCallback(draw):requestAnimationFrame(draw)};
     v.onended=()=>end();
-    const iv=setInterval(()=>{if(v.currentTime!==lastT){lastT=v.currentTime;stall=Date.now()}else if(Date.now()-stall>10000)end(new Error('stall'))},1000);
+    const iv=setInterval(()=>{if(v.currentTime!==lastT){lastT=v.currentTime;stall=Date.now()}else if(Date.now()-stall>10000)end(Object.assign(new Error('stall'),{code:'stall'}))},1000);
     Promise.resolve(pp).then(draw,e=>{
       if(e&&e.name==='NotAllowedError'&&!v.muted){v.muted=true;toast('Дуугүй бичигдэж байна',2500);v.play().then(draw,end)}else end(e||new Error('play'))});
   });
@@ -231,7 +239,13 @@ async function reelPublish(btn){
   const bar=(l,p)=>{const e=$('#rlst');if(e)e.innerHTML=`<span>${l} ${Math.round(p*100)}% · Дуустал энэ цонхыг хаахгүй байна уу</span><div class="rlprog"><i style="width:${Math.round(p*100)}%"></i></div>`};
   let ok=false,stage=d.raw?'байршуулах':'шахах';
   try{
-    const enc=d.raw?{blob:d.file,mime:d.file.type,dur:d.dur}:await reelEncode(d,p=>bar('Видеог шахаж байна…',p));
+    let enc;
+    if(d.raw)enc={blob:d.file,mime:d.file.type||'video/mp4',dur:d.dur};
+    else try{enc=await reelEncode(d,p=>bar('Видеог шахаж байна…',p))}
+    catch(e){if(!e||e.code==='norec')throw e;console.warn('reel encode, retry muted',e);
+      // iOS Safari: дуутай тоглуулалт гацдаг тул дуугүй тоглуулж дахин шахна (дуугүй тоглуулахад зөвшөөрөл хэрэггүй)
+      const lbl='Дуугүйгээр дахин шахаж байна…';bar(lbl,0);
+      enc=await reelEncode(d,p=>bar(lbl,p),await reelFreshVideo(d),true);toast('Дуугүй хувилбараар нийтэлж байна',3000)}
     if(enc.blob.size>RL_CH*RL_MAXCH)throw Object.assign(new Error('big'),{code:'big'});
     stage='байршуулах';
     await reelUpload(d,enc,cap,p=>bar('Байршуулж байна…',p));

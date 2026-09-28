@@ -1978,7 +1978,7 @@ async function recStart(){
 function recStop(send){if(rec){rec.send=send;try{rec.mr.stop()}catch(_){rec=null}}}
 
 /* ---------- Reels: видеог Firestore-д ~900KB-ийн bytes хэсгүүдэд (reels/{id}/c/{i}) хадгална ---------- */
-const RL_MAX=60,RL_CH=900000,RL_MAXCH=12,RL_RAW=8e6;
+const RL_MAX=60,RL_CH=900000,RL_MAXCH=12,RL_RAW=RL_CH*RL_MAXCH;  // RL_RAW: үүнээс бага видеог шахахгүйгээр шууд байршуулна
 const R={on:false,list:[],last:null,done:false,busy:false,cur:-1,mute:false,cache:new Map(),v:null,io:null,draft:null,up:false};
 const safeVid=s=>typeof s==='string'&&/^video\/(mp4|webm)(;[\w=.,\- ]{0,80})?$/.test(s)?s.split(';')[0]:'video/mp4';
 const mapReel=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,uid:x.uid,name:x.name||'',cap:x.cap||'',n:Math.min(RL_MAXCH,Math.max(0,x.n|0)),mime:safeVid(x.mime),dur:+x.dur||0,poster:safeImg(x.poster),likes:Array.isArray(x.likes)?x.likes:[],cc:x.cc|0,t:tms(x.createdAt)}};
