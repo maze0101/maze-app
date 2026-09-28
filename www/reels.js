@@ -194,37 +194,41 @@ async function reelFreshVideo(d){
   await new Promise((ok,no)=>{const t=setTimeout(()=>no(Object.assign(new Error('stall'),{code:'stall'})),15000);v.onloadedmetadata=()=>{clearTimeout(t);ok()};v.onerror=()=>{clearTimeout(t);no(new Error('decode'))}});
   return v;
 }
-// видеог canvas + MediaRecorder-оор ~1Mbps, 540p болгож шахна. Хөтчийн дуу тоглуулах зөвшөөрөл алдагдахгүйн тулд
-// play() хүртэлх бүх зүйл click дотроо синхрон ажиллана.
-// v0/noAudio: дуутай шахалт гацвал (iOS) шинэ, дуугүй video элементээр дахин шахна
-function reelEncode(d,onp,v0,noAudio){
+// видеог canvas + MediaRecorder-оор ~1Mbps, 540p болгож шахна.
+// Дууг видеоны элементээс биш, файлаас нь задалж (decodeAudioData) AudioBuffer-ээр нэмнэ: iOS Safari дээр
+// видеоны дууг AudioContext руу чиглүүлбэл тоглуулалт гацдаг эсвэл дуу нь чимээгүй бичигддэг.
+// Видео өөрөө үргэлж дуугүй тоглоно (зөвшөөрөл хэрэггүй). ac: товшилтын дотор үүсгэсэн AudioContext (iOS-д заавал), null бол дуугүй.
+const RL_ADEC=250e6;                                                    // үүнээс том файлын дууг (санах ой хэтрэхээс сэргийлж) задлахгүй
+async function reelEncode(d,onp,v0,ac){
   const types=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
   const mime=window.MediaRecorder&&MediaRecorder.isTypeSupported&&types.find(t=>MediaRecorder.isTypeSupported(t));
-  if(!mime||!HTMLCanvasElement.prototype.captureStream)return Promise.reject(Object.assign(new Error('norec'),{code:'norec'}));
+  if(!mime||!HTMLCanvasElement.prototype.captureStream)throw Object.assign(new Error('norec'),{code:'norec'});
+  let abuf=null;
+  if(ac&&d.file.size<=RL_ADEC)try{abuf=await ac.decodeAudioData(await d.file.arrayBuffer())}catch(e){console.warn('reel audio decode',e)} // дуугүй видео бол энд алдаа гарна
   const v=v0||d.v,k=Math.min(1,540/Math.min(d.w,d.h),960/Math.max(d.w,d.h)),w=Math.max(2,Math.round(d.w*k/2)*2),h=Math.max(2,Math.round(d.h*k/2)*2);
   const cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,w,h);
-  const st=cv.captureStream(30);let ac=null;
-  if(!noAudio)try{const AC=window.AudioContext||window.webkitAudioContext;ac=new AC();const dst=ac.createMediaStreamDestination();ac.createMediaElementSource(v).connect(dst);dst.stream.getAudioTracks().forEach(t=>st.addTrack(t));ac.resume().catch(()=>{})}
-  catch(e){console.warn('reel audio',e);if(ac)ac.close().catch(()=>{});ac=null}
+  const st=cv.captureStream(30);let src=null;
+  if(abuf)try{if(ac.state!=='running')await ac.resume();const dst=ac.createMediaStreamDestination();src=ac.createBufferSource();src.buffer=abuf;src.connect(dst);dst.stream.getAudioTracks().forEach(t=>st.addTrack(t))}
+  catch(e){console.warn('reel audio',e);src=null}
   const type=mime.split(';')[0],mr=new MediaRecorder(st,{mimeType:mime,videoBitsPerSecond:1e6,audioBitsPerSecond:96e3}),parts=[];
   mr.ondataavailable=e=>{if(e.data&&e.data.size)parts.push(e.data)};
   const lim=Math.min(d.dur,RL_MAX);
-  v.loop=false;v.pause();v.currentTime=0;v.muted=!ac;
-  const pp=v.play();mr.start(1000);
+  v.loop=false;v.muted=true;v.pause();v.currentTime=0;
+  mr.start(1000);
   return new Promise((ok,no)=>{
-    let fin=false,lastT=-1,stall=Date.now();
-    const end=err=>{if(fin)return;fin=true;clearInterval(iv);v.pause();const at=v.currentTime;
-      mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());if(ac)ac.close().catch(()=>{});
+    let fin=false,lastT=-1,stall=Date.now(),aOn=false;
+    const end=err=>{if(fin)return;fin=true;clearInterval(iv);v.pause();const at=v.currentTime;try{if(src&&aOn)src.stop()}catch(_){}
+      mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());
         if(err)return no(err);const blob=new Blob(parts,{type});
-        blob.size?ok({blob,mime:type,dur:Math.min(lim,at||lim)}):no(new Error('empty'))};
+        blob.size?ok({blob,mime:type,dur:Math.min(lim,at||lim),audio:!!src}):no(new Error('empty'))};
       try{mr.stop()}catch(e){no(e)}};
     const draw=()=>{if(fin)return;try{x.drawImage(v,0,0,w,h)}catch(_){}onp(Math.min(1,v.currentTime/lim));
       if(v.currentTime>=lim-.05)return end();
       v.requestVideoFrameCallback?v.requestVideoFrameCallback(draw):requestAnimationFrame(draw)};
     v.onended=()=>end();
     const iv=setInterval(()=>{if(v.currentTime!==lastT){lastT=v.currentTime;stall=Date.now()}else if(Date.now()-stall>10000)end(Object.assign(new Error('stall'),{code:'stall'}))},1000);
-    Promise.resolve(pp).then(draw,e=>{
-      if(e&&e.name==='NotAllowedError'&&!v.muted){v.muted=true;toast('Дуугүй бичигдэж байна',2500);v.play().then(draw,end)}else end(e||new Error('play'))});
+    // видео тоглож эхэлсэн мөчөөс дууг тэр байрлалаас нь эхлүүлнэ (синк)
+    v.play().then(()=>{if(src&&!fin){try{src.start(0,Math.min(v.currentTime,abuf.duration));aOn=true}catch(e){console.warn('reel audio start',e)}}draw()},e=>end(e||new Error('play')));
   });
 }
 async function reelUpload(d,enc,cap,onp){
@@ -243,15 +247,20 @@ async function reelPublish(btn){
   if(R.up)return;R.up=true;btn.disabled=true;
   const cap=(($('#rcap')||{}).value||'').trim().slice(0,300);
   const bar=(l,p)=>{const e=$('#rlst');if(e)e.innerHTML=`<span>${l} ${Math.round(p*100)}% · Дуустал энэ цонхыг хаахгүй байна уу</span><div class="rlprog"><i style="width:${Math.round(p*100)}%"></i></div>`};
-  let ok=false,stage=d.raw?'байршуулах':'шахах';
+  let ok=false,stage=d.raw?'байршуулах':'шахах',ac=null;
+  // AudioContext-ийг товшилтын дотор (await-аас өмнө) үүсгэнэ — iOS үүнээс хойш үүсгэсэн context-ийг дуугүй барьдаг
+  if(!d.raw)try{const AC=window.AudioContext||window.webkitAudioContext;ac=new AC();ac.resume().catch(()=>{})}catch(e){console.warn('reel audio ctx',e);ac=null}
   try{
     let enc;
     if(d.raw)enc={blob:d.file,mime:d.file.type||'video/mp4',dur:d.dur};
-    else try{enc=await reelEncode(d,p=>bar('Видеог шахаж байна…',p))}
-    catch(e){if(!e||e.code==='norec')throw e;console.warn('reel encode, retry muted',e);
-      // iOS Safari: дуутай тоглуулалт гацдаг тул дуугүй тоглуулж дахин шахна (дуугүй тоглуулахад зөвшөөрөл хэрэггүй)
-      const lbl='Дуугүйгээр дахин шахаж байна…';bar(lbl,0);
-      enc=await reelEncode(d,p=>bar(lbl,p),await reelFreshVideo(d),true);toast('Дуугүй хувилбараар нийтэлж байна',3000)}
+    else{
+      try{enc=await reelEncode(d,p=>bar('Видеог шахаж байна…',p),null,ac)}
+      catch(e){if(!e||e.code==='norec')throw e;console.warn('reel encode, retry',e);
+        // тоглуулалт гацвал шинэ video элементээр нэг удаа дахин оролдоно
+        const lbl='Дахин шахаж байна…';bar(lbl,0);
+        enc=await reelEncode(d,p=>bar(lbl,p),await reelFreshVideo(d),ac)}
+      if(!enc.audio)toast('Энэ видеоны дууг уншиж чадсангүй тул дуугүй нийтлэгдэнэ',3500);
+    }
     if(enc.blob.size>RL_CH*RL_MAXCH)throw Object.assign(new Error('big'),{code:'big'});
     stage='байршуулах';
     await reelUpload(d,enc,cap,p=>bar('Байршуулж байна…',p));
@@ -259,7 +268,7 @@ async function reelPublish(btn){
   }catch(e){console.error('reel publish',e);const c=e&&e.code;
     toast(c==='norec'?'Энэ төхөөрөмж видео шахахыг дэмжихгүй байна. 8MB-аас бага, 60 секундээс богино mp4 видео сонгоно уу.':c==='big'?'Видео хэт том байна. Илүү богино видео сонгоно уу.':c==='permission-denied'?'Эрх хүрэхгүй байна. Firestore-ийн дүрмээ (rules) шинэчилнэ үү.':'Reel нийтэлж чадсангүй ('+stage+': '+String(c||(e&&(e.name!=='Error'&&e.name||e.message))||'алдаа').slice(0,60)+'). Дахин оролдоно уу.',8000);
     const e2=$('#rlst');if(e2)e2.textContent=d.raw?'':'Видеог дахин сонгоно уу.';}
-  finally{R.up=false;btn.disabled=false}
+  finally{R.up=false;btn.disabled=false;if(ac)ac.close().catch(()=>{})}
   // шахсан видеоны элемент дахин ашиглагдахгүй тул ноорогийг цэвэрлэнэ
   if(ok||!d.raw){reelDraftClear();const p=$('#rprev');if(p)p.innerHTML=''}
   if(ok){if($('#rprev'))closeOv();if(R.on)reelReload()}
