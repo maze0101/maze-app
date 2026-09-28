@@ -853,25 +853,24 @@ const EMOJI_TYPE=['😀','😂','🥰','😍','😘','😎','🤔','😢','😭'
 function rxSum(rx){const m={};Object.entries(rx||{}).forEach(([u,e])=>{(m[e]=m[e]||[]).push(u)});
   return Object.entries(m).map(([e,us])=>`<span class="rxb ${us.includes(S.me.uid)?'mine':''}">${e}${us.length>1?' '+us.length:''}</span>`).join('')}
 const rxPick=(k,id)=>`<div class="rxp">${EMO.map(e=>`<button data-a="rx" data-k="${k}" data-id="${esc(id)}" data-e="${e}">${e}</button>`).join('')}</div>`;
-/* профайл зураг: бүтнээр нь багтаана (тайрахгүй), хоосон зайг бүдэг хуулбараар дүүргэнэ */
-async function fitSq(file,n){
-  const im=await loadImg(file),cv=document.createElement('canvas');cv.width=cv.height=n;const x=cv.getContext('2d');
-  x.fillStyle='#111';x.fillRect(0,0,n,n);
-  const k=Math.max(n/im.width,n/im.height);x.filter='blur(14px) brightness(.7)';x.drawImage(im,(n-im.width*k)/2,(n-im.height*k)/2,im.width*k,im.height*k);x.filter='none';
-  const f=Math.min(n/im.width,n/im.height),w=im.width*f,h=im.height*f;x.drawImage(im,(n-w)/2,(n-h)/2,w,h);
+/* профайл/ковер зураг: Facebook шиг голоос нь тайрч дүүргэнэ (өндөр зураг бол дээд талаас арай илүү — нүүр ихэвчлэн дээд хэсэгт).
+   Өмнө нь хоосон зайг бүдгэрүүлсэн хуулбараар дүүргэдэг байсан ч iOS Safari canvas-ийн filter-ийг дэмждэггүй тул хуулбар тод давхардаж харагддаг байв. */
+async function cropFill(file,w,h){
+  const im=await loadImg(file),r=w/h;
+  let sw=im.width,sh=im.height,sx=0,sy=0;
+  if(sw/sh>r){sw=sh*r;sx=(im.width-sw)/2}else{sh=sw/r;sy=(im.height-sh)*.4}
+  let d='';
+  for(let k=1;k>.4;k*=.85){                                            // Firestore-ийн 60000 тэмдэгтийн хязгаараас хэтрүүлэхгүй
+    const cv=document.createElement('canvas');cv.width=Math.round(w*k);cv.height=Math.round(h*k);const x=cv.getContext('2d');
+    x.fillStyle='#111';x.fillRect(0,0,cv.width,cv.height);x.drawImage(im,sx,sy,sw,sh,0,0,cv.width,cv.height);
+    for(const q of [.8,.7,.6,.5,.42]){d=cv.toDataURL('image/jpeg',q);if(d.length<55000)break}
+    if(d.length<55000)break;
+  }
   if(im.close)im.close();
-  let d='';for(const q of [.78,.65,.5,.4]){d=cv.toDataURL('image/jpeg',q);if(d.length<55000)break}  // Firestore-ийн 60000 тэмдэгтийн хязгаараас хэтрүүлэхгүй
   return d;
 }
-async function fitWide(file,w,h){
-  const im=await loadImg(file),cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');
-  x.fillStyle='#111';x.fillRect(0,0,w,h);
-  const k=Math.max(w/im.width,h/im.height);x.filter='blur(14px) brightness(.7)';x.drawImage(im,(w-im.width*k)/2,(h-im.height*k)/2,im.width*k,im.height*k);x.filter='none';
-  const f=Math.min(w/im.width,h/im.height),iw=im.width*f,ih=im.height*f;x.drawImage(im,(w-iw)/2,(h-ih)/2,iw,ih);
-  if(im.close)im.close();
-  let d='';for(const q of [.78,.65,.5,.4]){d=cv.toDataURL('image/jpeg',q);if(d.length<55000)break}
-  return d;
-}
+const fitSq=(file,n)=>cropFill(file,n,n);
+const fitWide=(file,w,h)=>cropFill(file,w,h);
 async function cropSq(file,n){
   const im=await loadImg(file),k=Math.min(im.width,im.height);
   return drawTo(im,n,n,(im.width-k)/2,(im.height-k)/2,k,k).toDataURL('image/jpeg',.72);
@@ -2559,7 +2558,7 @@ document.addEventListener('change',async e=>{
   }
   if(e.target.id==='pcoverfile'){
     const f=e.target.files[0];if(!f)return;
-    try{S.draftCover=await fitWide(f,800,300);const pc=$('#pcover');if(pc)pc.innerHTML=`<img src="${S.draftCover}" alt="">`;toast('Ковер зураг сонгогдлоо. Хадгалах дарна уу.')}catch(er){console.warn('cover photo',er);toast('Зургийг уншиж чадсангүй. Өөр зураг сонгоно уу.',3500)}
+    try{S.draftCover=await fitWide(f,800,440);const pc=$('#pcover');if(pc)pc.innerHTML=`<img src="${S.draftCover}" alt="">`;toast('Ковер зураг сонгогдлоо. Хадгалах дарна уу.')}catch(er){console.warn('cover photo',er);toast('Зургийг уншиж чадсангүй. Өөр зураг сонгоно уу.',3500)}
   }
 });
 
