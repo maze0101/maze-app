@@ -2109,7 +2109,8 @@ document.addEventListener('click',async e=>{
   if(a==='ucall'){startCall(id,b.dataset.n,!!b.dataset.au);return}
   const {doc,updateDoc,deleteDoc,setDoc,addDoc,collection,writeBatch,serverTimestamp,arrayUnion,arrayRemove,increment,query,orderBy,limit,onSnapshot,deleteField,getDocs}=FS;
   const nmOf=u=>(U.get(u)||{}).name||S.friends.get(u)||'Хэрэглэгч';
-  if(/^(reels$|rl|rpub$)/.test(a))try{await loadReels()}catch(e){console.warn(e);toast('Reels-ийг ачаалж чадсангүй. Интернэтээ шалгана уу.',3500);return}
+  // аль хэдийн ачаалагдсан бол await хийхгүй: iOS Safari-д товч дарсан агшнаас хойш await орвол видео/дуу тоглуулах зөвшөөрөл алдагдаж, reel шахалт гацдаг
+  if(/^(reels$|rl|rpub$)/.test(a)&&typeof reelPublish!=='function')try{await loadReels()}catch(e){console.warn(e);toast('Reels-ийг ачаалж чадсангүй. Интернэтээ шалгана уу.',3500);return}
   try{
   switch(a){
     case 'tab':clearView();recStop(false);S.tab=b.dataset.t;S.thread=null;render();$('#main').scrollTop=0;break;
