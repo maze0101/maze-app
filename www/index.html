@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://firestore.googleapis.com">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@400;500;600&subset=cyrillic&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Aurora: маргад/бинос ягаан + наранцэцэг улбар шар (цайвар) */
@@ -32,8 +32,8 @@
   --glass:rgba(255,255,255,.75); --glow:0 10px 30px rgba(108,76,255,.20);
   --grad:linear-gradient(135deg,#6C4CFF 0%,#FF4EA0 55%,#FF9A3C 100%);
   --r:24px;
-  --display:'Unbounded',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
-  --body:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --display:'Montserrat',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --body:'Montserrat',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   box-sizing:border-box;
   /* Апп өөрөө өнгийг бүрэн удирддаг тул хөтчийн/төхөөрөмжийн "force dark" авто-хөрвүүлэлтийг унтраана — эс тэгвээс android дээр зарим элемент (жишээ нь мессеж/найзын мөр) бүрэн хараар дарагдаж, агуулга үл үзэгдэх алдаа гардаг */
   color-scheme:light dark;
@@ -485,7 +485,7 @@ body{letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
 :root[data-style="card"] .chip,:root[data-style="card"] .tabs2 button{border-color:transparent;background:var(--surface);box-shadow:var(--shadow)}
 :root[data-style="card"] .tabs2 button.on{background:var(--grad)}
 
-:root[data-style="discord"]{--bg:#FFFFFF;--surface:#F2F3F5;--ink:#060607;--mute:#5C5E66;--line:#E3E5E8;--sky:#5865F2;--green:#248046;--like:#DA373C;--dune:#F0B232;--bubble-me:#5865F2;--bubble-them:#F2F3F5;--glass:rgba(255,255,255,.9);--grad:linear-gradient(135deg,#5865F2,#7A70FF);--ring:conic-gradient(#5865F2,#7A70FF,#5865F2,#7A70FF);--on:#FFFFFF;--r:8px;--shadow:0 1px 2px rgba(0,0,0,.08);--glow:0 6px 16px -8px rgba(88,101,242,.5);--display:'gg sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;--body:'gg sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+:root[data-style="discord"]{--bg:#FFFFFF;--surface:#F2F3F5;--ink:#060607;--mute:#5C5E66;--line:#E3E5E8;--sky:#5865F2;--green:#248046;--like:#DA373C;--dune:#F0B232;--bubble-me:#5865F2;--bubble-them:#F2F3F5;--glass:rgba(255,255,255,.9);--grad:linear-gradient(135deg,#5865F2,#7A70FF);--ring:conic-gradient(#5865F2,#7A70FF,#5865F2,#7A70FF);--on:#FFFFFF;--r:8px;--shadow:0 1px 2px rgba(0,0,0,.08);--glow:0 6px 16px -8px rgba(88,101,242,.5);--display:'Montserrat',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--body:'gg sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
 @media (prefers-color-scheme:dark){:root[data-style="discord"]:not([data-theme="light"]){--bg:#313338;--surface:#2B2D31;--ink:#F2F3F5;--mute:#949BA4;--line:#3F4147;--sky:#5865F2;--green:#23A55A;--like:#F23F42;--dune:#FEE75C;--bubble-me:#5865F2;--bubble-them:#2B2D31;--glass:rgba(49,51,56,.92);--grad:linear-gradient(135deg,#5865F2,#404EED);--ring:conic-gradient(#5865F2,#404EED,#5865F2,#404EED);--on:#FFFFFF;--shadow:0 1px 2px rgba(0,0,0,.3);--glow:0 6px 20px -8px rgba(88,101,242,.6)}}
 :root[data-style="discord"][data-theme="dark"]{--bg:#313338;--surface:#2B2D31;--ink:#F2F3F5;--mute:#949BA4;--line:#3F4147;--sky:#5865F2;--green:#23A55A;--like:#F23F42;--dune:#FEE75C;--bubble-me:#5865F2;--bubble-them:#2B2D31;--glass:rgba(49,51,56,.92);--grad:linear-gradient(135deg,#5865F2,#404EED);--ring:conic-gradient(#5865F2,#404EED,#5865F2,#404EED);--on:#FFFFFF;--shadow:0 1px 2px rgba(0,0,0,.3);--glow:0 6px 20px -8px rgba(88,101,242,.6)}
 :root[data-style="discord"] #app::before{display:none}
