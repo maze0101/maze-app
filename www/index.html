@@ -1179,7 +1179,7 @@ function settingsHTML(){
 }
 function profileHTML(){
   const me=S.me;
-  return `<div class="cover">${me.cover?`<img src="${me.cover}" alt="">`:cover()}</div><div class="pinfo"><span class="av">${pav(me.uid,me.name,96)}</span><h2>${esc(me.name)}</h2>${me.bio?`<p>${esc(me.bio)}</p>`:'<p class="mute">Танилцуулга нэмээгүй байна.</p>'}<div class="stats"><div><b>${S.mine.length}</b><span>Нийтлэл</span></div><div><b>${S.friends.size}</b><span>Найз</span></div></div><div class="pbtns"><button class="btn" data-a="editprofile">Профайл засах</button><button class="btn line" data-a="settings">⚙ Тохиргоо</button></div></div><div class="sec">Миний нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
+  return `<div class="cover">${me.cover?`<img src="${me.cover}" alt="">`:cover()}</div><div class="pinfo"><span class="av">${pav(me.uid,me.name,96)}</span><h2>${esc(me.name)}</h2>${me.bio?`<p>${esc(me.bio)}</p>`:'<p class="mute">Танилцуулга нэмээгүй байна.</p>'}<div class="stats"><div><b>${S.mine.length}</b><span>Нийтлэл</span></div><div><b>${S.friends.size}</b><span>Найз</span></div></div><div class="pbtns"><button class="btn" data-a="editprofile">Профайл засах</button><button class="btn line" data-a="settings">⚙ Тохиргоо</button></div></div><div class="sec">Миний нийтлэлүүд</div><section class="card composer-bar" data-a="newpost" role="button" tabindex="0">${av(S.me.uid,S.me.name,38)}<span style="flex:1;color:var(--mute);font-size:14px">Юу бодож байна?</span>${ic('image',20)}</section><div id="posts">${postsHTML()}</div>`;
 }
 /* профайл хуудасны том зураг: бүтэн харагдана, дарвал томорно */
 function pav(uid,name,s){
