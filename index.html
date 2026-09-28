@@ -2154,7 +2154,7 @@ function adminSheet(){if(!S.admin)return;openSheet('<div id="adm"></div>');drawA
 function drawAdmin(){
   const e=$('#adm');if(!e)return;const nm=u=>esc((U.get(u)||{}).name||String(u).slice(0,8));
   e.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><h3 style="margin:0">🛡 Гомдол (${S.reps.length})</h3><button class="ib" data-a="closeov" aria-label="Хаах">${ic('close',20)}</button></div><button class="btn line" data-a="adbans">🚫 Хаагдсан хэрэглэгчид</button>`+
-    (S.reps.length?S.reps.map(r=>`<div class="rep"><div><b>${REP_KIND[r.kind]||esc(r.kind)}</b> · ${esc(r.reason)} · <span class="mute">${ago(r.t)}</span></div><div class="mute" style="font-size:13px">${nm(r.by)} → <b class="ht" data-a="user" data-id="${esc(r.target)}" data-n="${nm(r.target)}" role="button">${nm(r.target)}</b></div>${r.snip?`<blockquote>${esc(r.snip)}</blockquote>`:''}<div class="acts">${r.pid&&(r.kind==='post'||r.kind==='reel')?`<button class="btn sm line" data-a="adview" data-id="${esc(r.id)}">Үзэх</button><button class="btn sm line" data-a="addel" data-id="${esc(r.id)}" style="color:var(--like)">Агуулга устгах</button>`:''}<button class="btn sm line" data-a="adban" data-id="${esc(r.id)}" style="color:var(--like)">Хэрэглэгч хаах</button><button class="btn sm" data-a="addis" data-id="${esc(r.id)}">Хэрэгсэхгүй</button></div></div>`).join('')
+    (S.reps.length?S.reps.map(r=>`<div class="rep"><div><b>${REP_KIND[r.kind]||esc(r.kind)}</b> · ${esc(r.reason)} · <span class="mute">${ago(r.t)}</span></div><div class="mute" style="font-size:13px">${nm(r.by)} → <b class="ht" data-a="user" data-id="${esc(r.target)}" data-n="${nm(r.target)}" role="button">${nm(r.target)}</b></div>${r.snip?`<blockquote>${esc(r.snip)}</blockquote>`:''}<div class="acts">${r.pid&&(r.kind==='post'||r.kind==='reel')?`<button class="btn sm line" data-a="adview" data-id="${esc(r.id)}">Үзэх</button><button class="btn sm line" data-a="addel" data-id="${esc(r.id)}" style="color:var(--like)">Агуулга устгах</button>`:''}<button class="btn sm line" data-a="adban" data-id="${esc(r.id)}" style="color:var(--like)">Хэрэглэгч хаах</button><button class="btn sm line" data-a="addeluser" data-id="${esc(r.target)}" data-n="${nm(r.target)}" style="color:var(--like)">Хэрэглэгч устгах</button><button class="btn sm" data-a="addis" data-id="${esc(r.id)}">Хэрэгсэхгүй</button></div></div>`).join('')
     :'<p class="mute" style="margin:0">Шийдвэрлэх гомдол алга 🎉</p>');
 }
 // гомдол гарсан нийтлэл/reel-ийг (сэтгэгдэл, видеоны хэсгүүдийн хамт) устгана
@@ -2178,6 +2178,27 @@ async function adminBans(){
     h=sn.docs.length?sn.docs.map(d=>{const n=esc((U.get(d.id)||{}).name||d.id.slice(0,8)),x=d.data();return `<div class="row" style="margin:0 0 8px;width:100%">${av(d.id,n,40)}<div class="rt"><b>${n}</b><span class="mute">${esc(x.reason||'')}</span></div><button class="btn sm line" data-a="adunban" data-id="${esc(d.id)}">Нээх</button></div>`}).join(''):'<p class="mute" style="margin:0">Хаагдсан хэрэглэгч алга.</p>'}
   catch(e){console.warn('bans',e);h='<p class="mute" style="margin:0">Уншиж чадсангүй.</p>'}
   openSheet(`<h3>🚫 Хаагдсан хэрэглэгчид</h3>${h}<button class="btn line" data-a="admin">← Гомдол руу буцах</button>`);
+}
+// хэрэглэгчийг бүрмөсөн устгах: push-worker (/admin) нэвтрэх акаунт болон нийтийн агуулгыг нь устгана. Их өгөгдөлтэй бол хэд хэдэн удаа дуудна
+async function adminDeleteUser(uid,name){
+  if(!S.admin||!uid||uid===S.me.uid)return;
+  if(!confirm(name+'-г бүрмөсөн устгах уу?\n\nНэвтрэх акаунт, профайл, нийтлэл, reel, story, сэтгэгдэл, найзууд нь устана. Илгээсэн мессежүүд нь харилцагчдад үлдэнэ. Буцаах боломжгүй.'))return;
+  if(!confirm('Үнэхээр итгэлтэй байна уу? '+name+' устгагдана.'))return;
+  toast('Устгаж байна…',120000);
+  try{
+    const t=await auth.currentUser.getIdToken();
+    for(let i=0;i<40;i++){
+      const r=await fetch(PUSH_URL+'/admin',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+t},body:JSON.stringify({op:'deluser',uid})});
+      const j=await r.json().catch(()=>({}));
+      if(r.status===409){toast('Админ эрхтэй хэрэглэгчийг устгах боломжгүй',3500);return}
+      if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+      if(!j.more)break;
+    }
+    const same=S.reps.filter(x=>x.target===uid);
+    if(same.length){const bt=FS.writeBatch(db);same.forEach(x=>bt.delete(FS.doc(db,'reports',x.id)));await bt.commit()}
+    U.delete(uid);closeOv();if(S.view&&S.view.uid===uid){clearView();render()}
+    toast(name+' устгагдлаа',3500);
+  }catch(e){console.error('delete user',e);toast('Устгаж чадсангүй: '+String(e&&e.message||e).slice(0,80),5000)}
 }
 // хаагдсан хэрэглэгч аппыг ашиглах боломжгүй (rules нь шинэ агуулга үүсгэхийг мөн хориглоно)
 function banScreen(){
@@ -2383,7 +2404,7 @@ document.addEventListener('click',async e=>{
     case 'cropok':{if(!CR)break;const d=crResult(),k=CR.kind;CR=null;if(k==='cover')S.draftCover=d;else S.draftPhoto=d;editProfileSheet();break}
     case 'ptab':{S.ptab=b.dataset.v;const y=$('#main').scrollTop;render();$('#main').scrollTop=y;break}
     case 'umenu':{const u=id,n=b.dataset.n,bl=S.blocked.has(u);
-      openSheet(`<h3>${esc(n)}</h3>${bl?'':`<button class="btn line" data-a="ucall" data-id="${esc(u)}" data-n="${esc(n)}" data-au="1">${ic('phone',18)} Дуут дуудлага</button><button class="btn line" data-a="ucall" data-id="${esc(u)}" data-n="${esc(n)}">${ic('video',18)} Видео дуудлага</button>`}${S.friends.has(u)&&!bl?`<button class="btn line" data-a="unfriend" data-id="${esc(u)}">Найзаас хасах</button>`:''}<button class="btn line" data-a="report" data-id="${esc(u)}" data-n="${esc(n)}">Гомдол өгөх</button><button class="btn line" data-a="${bl?'unblock':'block'}" data-id="${esc(u)}" style="color:var(--like)">${bl?'Блокоос гаргах':'Блоклох'}</button>`);break}
+      openSheet(`<h3>${esc(n)}</h3>${bl?'':`<button class="btn line" data-a="ucall" data-id="${esc(u)}" data-n="${esc(n)}" data-au="1">${ic('phone',18)} Дуут дуудлага</button><button class="btn line" data-a="ucall" data-id="${esc(u)}" data-n="${esc(n)}">${ic('video',18)} Видео дуудлага</button>`}${S.friends.has(u)&&!bl?`<button class="btn line" data-a="unfriend" data-id="${esc(u)}">Найзаас хасах</button>`:''}${S.admin?`<button class="btn line" data-a="addeluser" data-id="${esc(u)}" data-n="${esc(n)}" style="color:var(--like)">Хэрэглэгч устгах</button>`:''}<button class="btn line" data-a="report" data-id="${esc(u)}" data-n="${esc(n)}">Гомдол өгөх</button><button class="btn line" data-a="${bl?'unblock':'block'}" data-id="${esc(u)}" style="color:var(--like)">${bl?'Блокоос гаргах':'Блоклох'}</button>`);break}
     case 'sback':S.tab='feed';render();$('#main').scrollTop=0;break;
     case 'openreel':closeOv();await openReels(id);break;
     case 'shopen':openLink(b.dataset.k,id);break;
@@ -2403,6 +2424,7 @@ document.addEventListener('click',async e=>{
       await setDoc(doc(db,'bans',r.target),{by:S.me.uid,reason:r.reason.slice(0,60),createdAt:serverTimestamp()});toast(n+' хаагдлаа');break}
     case 'addis':{if(!S.admin)break;await deleteDoc(doc(db,'reports',id));toast('Гомдлыг хаалаа');break}
     case 'adbans':await adminBans();break;
+    case 'addeluser':await adminDeleteUser(id,b.dataset.n||nmOf(id));break;
     case 'adunban':{if(!confirm('Энэ хэрэглэгчийн хаалтыг цуцлах уу?'))break;await deleteDoc(doc(db,'bans',id));toast('Хаалт цуцлагдлаа');await adminBans();break}
     case 'uback':clearView();render();break;
     case 'rxo':S.rxOpen=S.rxOpen===id?null:id;refreshPosts();break;

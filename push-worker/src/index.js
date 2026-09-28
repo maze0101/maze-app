@@ -94,6 +94,85 @@ async function push(env, tok, uids, data, ttl) {
   }));
 }
 
+/* ---------- админ: хэрэглэгч устгах ----------
+   Firebase Auth акаунт + нийтийн агуулгыг (нийтлэл, reel, story, сэтгэгдэл, найзлалт, хүсэлт, блок, профайл) устгана.
+   Хувийн мессежүүд харилцагчид нь үлдэнэ (Facebook шиг). Cloudflare-ийн үнэгүй багц нэг хүсэлтэд 50 дэд хүсэлт
+   зөвшөөрдөг тул ажлыг хэсэгчилж, дуусаагүй бол {more:true} буцаана — апп дуустал дахин дуудна. */
+const ROOT = env => `projects/${env.PROJECT_ID}/databases/(default)/documents`;
+async function fsQuery(env, tok, parent, coll, field, op, value, limit, group) {
+  const r = await fetch(`https://firestore.googleapis.com/v1/${parent || ROOT(env)}:runQuery`, {
+    method: 'POST', headers: {Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json'},
+    body: JSON.stringify({structuredQuery: {from: [{collectionId: coll, allDescendants: !!group}], limit,
+      ...(field ? {where: {fieldFilter: {field: {fieldPath: field}, op, value: {stringValue: value}}}} : {})}}),
+  });
+  if (!r.ok) throw new Error('query ' + coll + ' ' + r.status);
+  return (await r.json()).filter(x => x.document).map(x => {
+    const o = {name: x.document.name}; for (const k in x.document.fields || {}) o[k] = val(x.document.fields[k]); return o;
+  });
+}
+async function fsDelete(env, tok, names) {
+  for (let i = 0; i < names.length; i += 500) {
+    const r = await fetch(`https://firestore.googleapis.com/v1/${ROOT(env)}:commit`, {
+      method: 'POST', headers: {Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json'},
+      body: JSON.stringify({writes: names.slice(i, i + 500).map(n => ({delete: n}))}),
+    });
+    if (!r.ok) throw new Error('commit ' + r.status);
+  }
+}
+async function deleteUserStep(env, tok, target) {
+  let budget = 40;                                                 // энэ дуудлагад үлдсэн дэд хүсэлт
+  const spend = n => (budget -= n) > 0;
+  const root = ROOT(env), del = [];
+  // 1) нийтлэл + доорх сэтгэгдлүүд
+  const posts = await fsQuery(env, tok, null, 'posts', 'uid', 'EQUAL', target, 15); spend(1);
+  for (const p of posts) {
+    if (!spend(1)) return {more: true};
+    const cs = await fsQuery(env, tok, p.name, 'comments', null, null, null, 400);
+    del.push(...cs.map(c => c.name), p.name);
+  }
+  // 2) reel + видеоны хэсгүүд + сэтгэгдэл
+  const reels = await fsQuery(env, tok, null, 'reels', 'uid', 'EQUAL', target, 10); spend(1);
+  for (const r of reels) {
+    if (!spend(1)) break;
+    const cs = await fsQuery(env, tok, r.name, 'comments', null, null, null, 400);
+    const n = Math.min(12, parseInt(r.n || 0, 10) || 0);
+    del.push(...cs.map(c => c.name), ...Array.from({length: n}, (_, i) => `${r.name}/c/${i}`), r.name);
+  }
+  if (del.length) { await fsDelete(env, tok, del); spend(Math.ceil(del.length / 500)); }
+  if (posts.length === 15 || reels.length === 10 || budget <= 0) return {more: true};
+  // 3) бусад: бусдын нийтлэл дээрх сэтгэгдэл, story, хүсэлт, найзлалт, блок, push токен, хадгалсан
+  const qs = [
+    [null, 'comments', 'uid', 'EQUAL', true], [null, 'stories', 'uid', 'EQUAL'],
+    [null, 'requests', 'from', 'EQUAL'], [null, 'requests', 'to', 'EQUAL'],
+    [null, 'friendships', 'members', 'ARRAY_CONTAINS'], [null, 'blocks', 'by', 'EQUAL'], [null, 'blocks', 'target', 'EQUAL'],
+    [`${root}/users/${target}`, 'fcm'], [`${root}/users/${target}`, 'saved'],
+  ];
+  const res = await Promise.all(qs.map(([par, c, f, op, g]) => fsQuery(env, tok, par, c, f, op, target, 400, g)));
+  spend(qs.length);
+  const rest = res.flat().map(d => d.name);
+  if (rest.length) await fsDelete(env, tok, rest);
+  if (res.some(x => x.length === 400)) return {more: true};
+  // 4) профайл, дараа нь нэвтрэх акаунт
+  await fsDelete(env, tok, [`${root}/users/${target}`]);
+  const a = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${env.PROJECT_ID}/accounts:delete`, {
+    method: 'POST', headers: {Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json'}, body: JSON.stringify({localId: target}),
+  });
+  if (!a.ok) { const j = await a.json().catch(() => ({})); if (!/USER_NOT_FOUND/.test(JSON.stringify(j))) throw new Error('auth delete ' + a.status); }
+  return {more: false};
+}
+async function handleAdmin(req, env) {
+  const caller = await verifyIdToken((req.headers.get('Authorization') || '').replace(/^Bearer /, ''), env.PROJECT_ID);
+  const b = await req.json(), tok = await accessToken(JSON.parse(env.SERVICE_ACCOUNT));
+  if (!(await fsGet(env, tok, 'admins/' + caller))) return {status: 403};
+  if (b.op === 'deluser') {
+    const t = String(b.uid || '');
+    if (!/^[\w-]{1,128}$/.test(t) || t === caller) return {status: 400};
+    if (await fsGet(env, tok, 'admins/' + t)) return {status: 409, body: {error: 'admin'}};   // админыг устгахгүй
+    return {status: 200, body: await deleteUserStep(env, tok, t)};
+  }
+  return {status: 400};
+}
+
 // ижил лайкийн мэдэгдлийг 10 минутад нэг л удаа (isolate-ийн санах ойд)
 const recentKeys = new Map();
 function seenRecently(k) {
@@ -244,6 +323,11 @@ export default {
       });
       if (!r.ok) return json({error: 'turn ' + r.status}, 502);
       return json(await r.json());
+    }
+    if (new URL(req.url).pathname === '/admin') {
+      let o;
+      try { o = await handleAdmin(req, env); } catch (e) { console.log('admin', e.message); o = {status: /token|alg|kid/.test(e.message) ? 401 : 500, body: {error: String(e.message).slice(0, 120)}}; }
+      return new Response(JSON.stringify(o.body || {}), {status: o.status, headers: {...cors, 'Content-Type': 'application/json'}});
     }
     let status = 500;
     try { status = await handle(req, env); } catch (e) { status = /token|alg|kid/.test(e.message) ? 401 : 500; }
