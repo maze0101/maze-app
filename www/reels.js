@@ -28,17 +28,22 @@
 .rlempty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;color:rgba(255,255,255,.8)}
 .rlempty .btn{margin-top:14px}
 #rprev video{width:100%;max-height:260px;border-radius:16px;background:#000;display:block}
+.rlsnd{position:absolute;left:50%;top:calc(74px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:4;display:none;align-items:center;gap:6px;padding:9px 16px;border-radius:999px;background:rgba(0,0,0,.6);color:#fff;font-weight:600;font-size:14px;white-space:nowrap}
+#rl.amute .rlsnd{display:flex}
 .rlprog{height:6px;border-radius:3px;background:var(--line);overflow:hidden}.rlprog i{display:block;height:100%;width:0;background:var(--grad);transition:width .3s}
 `;document.head.appendChild(st)})();
 
 const fmtDur=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
 const rlSlide=i=>document.querySelector(`#rls .rli[data-i="${i}"]`);
-const rlMuteUpd=()=>{const b=$('#rlmute');if(b)b.innerHTML=ic(R.mute?'mute':'speaker',22)};
+// R.autoMuted: хөтөч дуутай автоматаар тоглуулахыг хориглосон тул дуугүй болсон (iOS). Дараагийн товшилт дууг асаана
+const rlMuteUpd=()=>{const b=$('#rlmute');if(b)b.innerHTML=ic(R.mute?'mute':'speaker',22);const el=$('#rl');if(el)el.classList.toggle('amute',!!(R.mute&&R.autoMuted))};
+// товшилтын дотор (синхрон) дуу асаана — iOS нь товшилтоос гадуур дуу асаахыг зөвшөөрдөггүй
+function reelUnmute(){R.autoMuted=false;R.mute=false;const v=R.v;if(v){v.muted=false;if(v.src){const s=v.parentElement;if(s)s.classList.remove('paused');v.play().catch(()=>{})}}rlMuteUpd()}
 // startId: тухайн reel-ээс эхэлнэ (хуваалцсан холбоос, хайлт, мэдэгдэл)
 function reelOpen(startId){
   if(R.on){if(startId)reelReload(startId);return}R.on=true;
   const el=document.createElement('div');el.id='rl';el.setAttribute('role','dialog');el.setAttribute('aria-label','Reels');
-  el.innerHTML=`<div class="rlbar"><button class="ib" data-a="rlclose" aria-label="Буцах">${ic('back',24)}</button><b>Reels</b><button class="ib" data-a="rlmute" id="rlmute" aria-label="Дуу асаах/унтраах">${ic(R.mute?'mute':'speaker',22)}</button><button class="ib" data-a="rladd" aria-label="Reel нэмэх">${ic('plus',22)}</button></div><div class="rls" id="rls"></div>`;
+  el.innerHTML=`<div class="rlbar"><button class="ib" data-a="rlclose" aria-label="Буцах">${ic('back',24)}</button><b>Reels</b><button class="ib" data-a="rlmute" id="rlmute" aria-label="Дуу асаах/унтраах">${ic(R.mute?'mute':'speaker',22)}</button><button class="ib" data-a="rladd" aria-label="Reel нэмэх">${ic('plus',22)}</button></div><button class="rlsnd" data-a="rlunmute">🔇 Дуу асаахын тулд дарна уу</button><div class="rls" id="rls"></div>`;
   $('#app').appendChild(el);
   const v=R.v=document.createElement('video');v.className='rlv';v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.preload='auto';
   v.addEventListener('playing',()=>{const s=v.parentElement;v.classList.add('on');if(s)s.classList.remove('rlld','paused')});
@@ -116,10 +121,11 @@ async function reelActivate(i){
 }
 // дуутай автоматаар тоглуулахыг хөтөч хориглосон бол дуугүй тоглуулна (дууны товчоор асаана)
 function reelPlay(){const v=R.v;if(!v||!v.src)return;const p=v.play();
-  if(p&&p.catch)p.catch(e=>{if(e&&e.name==='NotAllowedError'&&!v.muted){R.mute=true;v.muted=true;rlMuteUpd();v.play().catch(()=>{})}})}
+  if(p&&p.catch)p.catch(e=>{if(e&&e.name==='NotAllowedError'&&!v.muted){R.mute=true;R.autoMuted=true;v.muted=true;rlMuteUpd();v.play().catch(()=>{})}})}
 function reelPause(){if(R.v&&!R.v.paused){R.v.pause();const s=R.v.parentElement;if(s)s.classList.add('paused')}}
 let rlTapT=0,rlTapAt=0;
 function reelTap(i){
+  if(R.autoMuted){reelUnmute();return}
   const now=Date.now();clearTimeout(rlTapT);
   if(now-rlTapAt<300){rlTapAt=0;reelHeart(i).catch(e=>{console.error(e);toast('Лайк дарж чадсангүй')});return}
   rlTapAt=now;

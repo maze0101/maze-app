@@ -2300,7 +2300,8 @@ document.addEventListener('click',async e=>{
     case 'closeov':closeOv();break;
     case 'reels':reelOpen();break;
     case 'rlclose':reelClose();break;
-    case 'rlmute':R.mute=!R.mute;if(R.v){R.v.muted=R.mute;if(!R.mute&&R.v.paused&&R.v.src)reelPlay()}rlMuteUpd();break;
+    case 'rlunmute':reelUnmute();break;
+    case 'rlmute':R.autoMuted=false;R.mute=!R.mute;if(R.v){R.v.muted=R.mute;if(!R.mute&&R.v.paused&&R.v.src)reelPlay()}rlMuteUpd();break;
     case 'rladd':if(R.up){toast('Өмнөх reel байршиж байна…');break}reelAddSheet();break;
     case 'rltap':reelTap(+b.dataset.i);break;
     case 'rllike':await reelLike(+b.dataset.i);break;
