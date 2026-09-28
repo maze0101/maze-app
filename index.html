@@ -528,6 +528,31 @@ body{letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
 :root[data-style="discord"] .b.them{background:var(--bubble-them);color:var(--ink);border-bottom-left-radius:8px;border:1px solid var(--line)}
 :root[data-style="discord"] .mf{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none;border-top:1px solid var(--line)}
 :root[data-style="discord"] .mf input{border-radius:8px;background:var(--bg)}
+/* ---------- профайл (Facebook маягийн) ---------- */
+.fbp{background:var(--surface);border-bottom:1px solid var(--line);padding-bottom:14px;margin:-8px 0 10px}
+.fbc{position:relative;height:210px;background:var(--line);overflow:hidden}
+.fbc>img,.fbc>svg{width:100%;height:100%;object-fit:cover;display:block}
+.fbcam{position:absolute;right:12px;bottom:12px;width:38px;height:38px;border-radius:50%;background:var(--surface);border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.25);font-size:17px;display:grid;place-items:center}
+.fbcam.sm{right:4px;bottom:8px;width:36px;height:36px}
+.fba{position:relative;width:max-content;margin:-80px 0 0 16px}
+.fba .pav,.fba>.hx{border:5px solid var(--surface);box-sizing:content-box}
+.fbn{padding:8px 16px 0}
+.fbn h2{font-family:var(--display);font-weight:700;font-size:26px;margin:0;letter-spacing:-.02em;overflow-wrap:anywhere}
+.fbm{color:var(--mute);font-size:15px;margin-top:4px}.fbm b{color:var(--ink);font-weight:700}
+.fbn p{margin:8px 0 0;font-size:15px;overflow-wrap:anywhere}
+.fbb{display:flex;gap:8px;padding:14px 16px 0}
+.fbb .btn{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.fbb .fbmore{flex:0 0 46px;padding:0}
+.fbd{display:flex;flex-direction:column;gap:8px;padding:14px 16px 0;font-size:15px}
+.fbs{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 16px;margin-bottom:10px}
+.fbsh{display:flex;align-items:center;justify-content:space-between}.fbsh b{font-size:19px;font-weight:700}
+.fbfr{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.fbfr button{display:flex;flex-direction:column;gap:5px;text-align:left;font-size:13px;font-weight:600;min-width:0}
+.fbfr img,.fbni{width:100%;aspect-ratio:1;border-radius:12px;object-fit:cover;display:grid;place-items:center;background:var(--bg)}
+.fbfr span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fbt{padding:2px 16px 12px}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:0 0 10px}
+.pgrid img{width:100%;aspect-ratio:1;object-fit:cover;display:block;cursor:zoom-in}
 /* ---------- хайлт, хуваалцах, хадгалсан reels, админ ---------- */
 .hsrch{margin-left:auto}.hsrch+.hbell{margin-left:0}
 .sbtn{display:flex;align-items:center;gap:8px;color:var(--mute);text-align:left;font-size:14px}
@@ -1177,9 +1202,42 @@ function settingsHTML(){
   sec('Харагдац')+`<button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><div class="tabs2" style="padding:8px 0 0;flex-wrap:wrap;border:0">${[['glass','Aurora'],['discord','Discord'],['pop','Поп'],['minimal','Минимал'],['card','Карт']].map(([v,n])=>`<button data-a="dstyle" data-v="${v}" class="${(document.documentElement.dataset.style||'glass')===v?'on':''}">${n}</button>`).join('')}</div>`+
   (S.admin?sec('Админ')+`<button class="btn line" data-a="admin">🛡 Гомдол шийдвэрлэх (${S.reps.length})</button>`:'')+sec('Аюулгүй байдал')+secInfo()+`<button class="btn line" data-a="logout">Гарах</button><button class="btn line" data-a="delaccask" style="color:var(--like)">Акаунт устгах</button>`;
 }
+/* ---------- профайл (Facebook маягийн): cover, том зураг, нэр, товчнууд, табууд, дэлгэрэнгүй, найзууд ---------- */
+const joinedTxt=ms=>{if(!ms)return '';const d=new Date(ms);return d.getFullYear()+' оны '+(d.getMonth()+1)+' сараас хойш нэгдсэн'};
+function profPhotos(list){
+  const ps=[];list.forEach(p=>{(p.imgs.length?p.imgs:[p.img]).forEach((s,i)=>{if(safeImg(s))ps.push({id:p.id,i,s})})});
+  return ps.length?`<div class="pgrid">${ps.map(x=>`<img src="${x.s}" alt="" data-a="pzoom" data-id="${esc(x.id)}" data-i="${x.i}">`).join('')}</div>`:'<div class="empty">Зураг алга.</div>';
+}
+function profReels(list){
+  const rs=list.filter(r=>r.n>0).sort((a,b)=>b.t-a.t);
+  return rs.length?`<div class="rgrid" style="padding-top:4px">${rs.map(reelTile).join('')}</div>`:'<div class="empty">Reel алга.</div>';
+}
+function profTabs(){
+  const t=S.ptab||'posts';
+  return `<div class="tabs2 fbt" role="tablist">${[['posts','Нийтлэл'],['photos','Зураг'],['reels','Reels']].map(([k,l])=>`<button data-a="ptab" data-v="${k}" class="${t===k?'on':''}">${l}</button>`).join('')}</div>`;
+}
+function profHead(o){
+  // o: {uid,name,bio,cover,mine,meta,btns,details}
+  const cv=o.cover?`<img src="${o.cover}" alt="">`:cover();
+  return `<section class="fbp"><div class="fbc">${cv}${o.mine?`<button class="fbcam" data-a="editprofile" aria-label="Ковер зураг солих">📷</button>`:''}</div>
+  <div class="fba">${pav(o.uid,o.name,150)}${o.mine?`<button class="fbcam sm" data-a="editprofile" aria-label="Профайл зураг солих">📷</button>`:''}</div>
+  <div class="fbn"><h2>${esc(o.name)}</h2><div class="fbm">${o.meta}</div>${o.bio?`<p>${esc(o.bio)}</p>`:o.mine?'<p class="mute">Танилцуулга нэмээгүй байна.</p>':''}</div>
+  <div class="fbb">${o.btns}</div>
+  ${o.details?`<div class="fbd">${o.details}</div>`:''}</section>`;
+}
+function profFriends(){
+  const fr=[...S.friends.entries()].filter(([u])=>!hid(u));if(!fr.length)return '';
+  return `<section class="fbs"><div class="fbsh"><b>Найзууд</b><button class="link" data-a="tab" data-t="friends">Бүгдийг харах</button></div><div class="mute" style="font-size:14px;margin:-4px 0 10px">${fr.length} найз</div><div class="fbfr">${fr.slice(0,6).map(([u,n])=>{const nm=(U.get(u)||{}).name||n,ph=safeImg((U.get(u)||{}).photo);
+    return `<button data-a="user" data-id="${esc(u)}" data-n="${esc(nm)}">${ph?`<img src="${ph}" alt="">`:`<span class="fbni">${av(u,nm,64)}</span>`}<span>${esc(nm)}</span></button>`}).join('')}</div></section>`;
+}
 function profileHTML(){
-  const me=S.me;
-  return `<div class="cover">${me.cover?`<img src="${me.cover}" alt="">`:cover()}</div><div class="pinfo"><span class="av">${pav(me.uid,me.name,96)}</span><h2>${esc(me.name)}</h2>${me.bio?`<p>${esc(me.bio)}</p>`:'<p class="mute">Танилцуулга нэмээгүй байна.</p>'}<div class="stats"><div><b>${S.mine.length}</b><span>Нийтлэл</span></div><div><b>${S.friends.size}</b><span>Найз</span></div></div><div class="pbtns"><button class="btn" data-a="editprofile">Профайл засах</button><button class="btn line" data-a="settings">⚙ Тохиргоо</button></div></div><div class="sec">Миний нийтлэлүүд</div><section class="card composer-bar" data-a="newpost" role="button" tabindex="0">${av(S.me.uid,S.me.name,38)}<span style="flex:1;color:var(--mute);font-size:14px">Юу бодож байна?</span>${ic('image',20)}</section><div id="posts">${postsHTML()}</div>`;
+  const me=S.me,t=S.ptab||'posts';
+  const meta=`<b>${S.friends.size}</b> найз · <b>${S.mine.length}</b> нийтлэл`;
+  const btns=`<button class="btn" data-a="addstory">${ic('plus',18)} Story нэмэх</button><button class="btn line" data-a="editprofile">✎ Профайл засах</button><button class="btn line fbmore" data-a="settings" aria-label="Тохиргоо">${ic('more',20)}</button>`;
+  const details=[me.joined?`<div>📅 ${joinedTxt(me.joined)}</div>`:'',`<div>💬 ${me.dm==='friends'?'Зөвхөн найзууд надад бичиж болно':'Хүн бүр надад бичиж болно'}</div>`].join('');
+  const body=t==='photos'?profPhotos(S.mine):t==='reels'?profReels(S.myReels)
+    :`<section class="card composer-bar" data-a="newpost" role="button" tabindex="0">${av(me.uid,me.name,38)}<span style="flex:1;color:var(--mute);font-size:14px">Юу бодож байна?</span>${ic('image',20)}</section><div id="posts">${postsHTML()}</div>`;
+  return profHead({uid:me.uid,name:me.name,bio:me.bio,cover:me.cover,mine:true,meta,btns,details})+profFriends()+profTabs()+body;
 }
 /* профайл хуудасны том зураг: бүтэн харагдана, дарвал томорно */
 function pav(uid,name,s){
@@ -1187,8 +1245,14 @@ function pav(uid,name,s){
   return `<span class="pav" style="--s:${s}px" data-a="avzoom" data-id="${esc(uid)}" role="button" aria-label="Зургийг томруулах"><img src="${ph}" alt=""></span>`;
 }
 function userHTML(){
-  const v=S.view,u=U.get(v.uid)||{name:v.name,bio:''},bl=S.blocked.has(v.uid);
-  return `<div class="cover">${u.cover?`<img src="${u.cover}" alt="">`:cover()}</div><div class="pinfo"><span class="av">${pav(v.uid,u.name,96)}</span><h2>${esc(u.name)}</h2>${u.bio?`<p>${esc(u.bio)}</p>`:''}<div class="stats"><div><b>${S.vposts.length}</b><span>Нийтлэл</span></div></div><div class="pbtns">${bl?'':personAction(v.uid,u.name)+`<button class="btn sm line" data-a="ucall" data-id="${esc(v.uid)}" data-n="${esc(u.name)}" data-au="1" aria-label="Дуут дуудлага">${ic('phone',18)}</button><button class="btn sm line" data-a="ucall" data-id="${esc(v.uid)}" data-n="${esc(u.name)}" aria-label="Видео дуудлага">${ic('video',20)}</button>`}${S.friends.has(v.uid)&&!bl?`<button class="btn line" data-a="unfriend" data-id="${esc(v.uid)}">Найзаас хасах</button>`:''}<button class="btn line" data-a="${bl?'unblock':'block'}" data-id="${esc(v.uid)}">${bl?'Блокоос гаргах':'Блоклох'}</button><button class="btn line" data-a="report" data-id="${esc(v.uid)}" data-n="${esc(u.name)}">Гомдол</button></div></div><div class="sec">Нийтлэлүүд</div><div id="posts">${postsHTML()}</div>`;
+  const v=S.view,u=U.get(v.uid)||{name:v.name,bio:''},bl=S.blocked.has(v.uid),t=S.ptab||'posts';
+  const fr=S.friends.has(v.uid);
+  const meta=`${fr?'<b>✓ Найз</b> · ':''}<b>${S.vposts.length}</b> нийтлэл`;
+  const btns=(bl?'':fr?`<button class="btn" data-a="thread" data-id="${esc(v.uid)}" data-n="${esc(u.name)}">${ic('chat',18)} Чат</button><button class="btn line" data-a="ucall" data-id="${esc(v.uid)}" data-n="${esc(u.name)}" data-au="1">${ic('phone',18)} Залгах</button>`:personAction(v.uid,u.name))+`<button class="btn line fbmore" data-a="umenu" data-id="${esc(v.uid)}" data-n="${esc(u.name)}" aria-label="Бусад">${ic('more',20)}</button>`;
+  const details=[`<div>${presence(v.uid)||'<span class="pres">Идэвх тодорхойгүй</span>'}</div>`,u.ca?`<div>📅 ${joinedTxt(u.ca)}</div>`:''].join('');
+  const vis=S.vposts;
+  const body=t==='photos'?profPhotos(vis):t==='reels'?(S.vreels?profReels(S.vreels.filter(r=>!hid(r.uid))):loader(true)):`<div id="posts">${postsHTML()}</div>`;
+  return profHead({uid:v.uid,name:u.name,bio:u.bio,cover:u.cover,mine:false,meta,btns,details})+profTabs()+body;
 }
 function render(){
   if(!S.me){authRender();return}
@@ -1209,7 +1273,7 @@ function refreshPosts(){
   document.querySelectorAll('[data-cin]').forEach(i=>{if(vals[i.dataset.cin])i.value=vals[i.dataset.cin]});
   if(fid){const i=document.querySelector(`[data-cin="${CSS.escape(fid)}"]`);if(i){i.focus();try{i.setSelectionRange(ss,ss)}catch(_){}}}
 }
-function refreshProfile(){if((S.tab==='profile'||S.view)&&!S.thread&&$('.pinfo')){const y=$('#main').scrollTop;render();$('#main').scrollTop=y}}
+function refreshProfile(){if((S.tab==='profile'||S.view)&&!S.thread&&$('.fbp')){const y=$('#main').scrollTop;render();$('#main').scrollTop=y}}
 const refreshNav=()=>{if(S.me&&!S.thread){$('#nav').innerHTML=navHTML();if(S.tab==='feed'&&!S.view)setHd()}};
 const refreshStories=()=>{const e=$('#stories');if(e)e.outerHTML=storiesHTML()};
 const refreshFriends=()=>{const e=$('#flist');if(e)e.innerHTML=friendLists();if(S.view)refreshProfile()};
@@ -1312,7 +1376,8 @@ async function doAuth(f){
 function clearView(){if(vSub){try{vSub()}catch(_){}vSub=null}S.view=null;S.vposts=[]}
 function openUser(uid,name){
   if(uid===S.me.uid){clearView();S.tab='profile';S.thread=null;render();return}
-  clearView();S.view={uid,name};S.thread=null;
+  clearView();S.view={uid,name};S.thread=null;S.ptab='posts';S.vreels=null;
+  FS.getDocs(FS.query(FS.collection(db,'reels'),FS.where('uid','==',uid),FS.limit(30))).then(sn=>{if(S.view&&S.view.uid===uid){S.vreels=sn.docs.map(mapReel);if(S.ptab==='reels')refreshProfile()}}).catch(e=>{console.warn('user reels',e&&e.code);if(S.view&&S.view.uid===uid)S.vreels=[]});
   const {collection,query,where,limit,onSnapshot}=FS;
   vSub=onSnapshot(query(collection(db,'posts'),where('uid','==',uid),limit(60)),sn=>{
     S.vposts=sn.docs.map(mapPost).sort((a,b)=>b.t-a.t);if(S.view&&S.view.uid===uid)refreshProfile()},onErr);
@@ -1349,7 +1414,7 @@ async function startSession(u){
     if(sn.exists())p=sn.data();
     else{const nm=(u.displayName||(u.email||'Хэрэглэгч').split('@')[0]).slice(0,40);p={name:nm,bio:''};await FS.setDoc(ref,{name:nm,nameLower:nm.toLowerCase(),bio:'',createdAt:FS.serverTimestamp()})}
     unsubAll();U.clear();seenSent.clear();bmTried.clear();
-    Object.assign(S,{me:{uid:u.uid,name:p.name,bio:p.bio||'',dm:p.dm||'all',cover:safeImg(p.cover)},tab:'feed',thread:null,posts:[],mine:[],stories:[],friends:new Map(),reqIn:[],reqOut:new Set(),chats:new Map(),msgs:[],cm:new Map(),open:new Set(),people:[],q:'',draftImg:null,errShown:false,view:null,vposts:[],pq:'',cq:'',rxOpen:null,blocked:new Set(),blockedBy:new Set(),draftPhoto:null,draftCover:null,stick:false,
+    Object.assign(S,{me:{uid:u.uid,name:p.name,bio:p.bio||'',dm:p.dm||'all',cover:safeImg(p.cover),joined:tv(p.createdAt)},tab:'feed',thread:null,posts:[],mine:[],stories:[],friends:new Map(),reqIn:[],reqOut:new Set(),chats:new Map(),msgs:[],cm:new Map(),open:new Set(),people:[],q:'',draftImg:null,errShown:false,view:null,vposts:[],pq:'',cq:'',rxOpen:null,blocked:new Set(),blockedBy:new Set(),draftPhoto:null,draftCover:null,stick:false,
       readMap:lsGet('nutag-read-'+u.uid,{}),seenMap:lsGet('nutag-seen-'+u.uid,{}),
       reply:null,fwd:null,feedTab:'all',draftImgs:[],draftStory:null,prefs:lsGet('maze-cp-'+u.uid,{}),act:lsGet('maze-act-'+u.uid,null),plim:20,pend:false,pmore:false,bm:new Map(),bmPosts:new Map(),bmReels:new Map(),pv:null,admin:false,reps:[],myReels:[],reqAcc:[],sq:'',sres:null});
     if(!S.act){S.act={t0:Date.now(),p:{}};lsSet('maze-act-'+u.uid,S.act)}
@@ -1402,7 +1467,7 @@ function subscribe(){
     refreshChats();refreshNav();if(S.thread){refreshMsgs();setTyping();renderReq();markRead(S.thread.cid)}});
   on(query(collection(db,'users'),limit(300)),sn=>{let vis=false;
     sn.docChanges().forEach(ch=>{if(ch.type==='removed'){U.delete(ch.doc.id);vis=true}else{
-      const x=ch.doc.data(),o=U.get(ch.doc.id),n={name:x.name||'Хэрэглэгч',bio:x.bio||'',photo:safeImg(x.photo),cover:safeImg(x.cover),dm:x.dm||'all',ls:tv(x.lastSeen)};
+      const x=ch.doc.data(),o=U.get(ch.doc.id),n={name:x.name||'Хэрэглэгч',bio:x.bio||'',photo:safeImg(x.photo),cover:safeImg(x.cover),dm:x.dm||'all',ls:tv(x.lastSeen),ca:tv(x.createdAt)};
       U.set(ch.doc.id,n);if(!o||o.name!==n.name||o.bio!==n.bio||o.photo!==n.photo||o.dm!==n.dm)vis=true}});
     if(vis){clearTimeout(uT);uT=setTimeout(refreshAll,120)}else if(S.thread&&!S.thread.group)setHd()});
   on(query(collection(db,'blocks'),where('by','==',uid)),sn=>{S.blocked=new Set(sn.docs.map(d=>d.data().target));refreshAll()});
@@ -2110,17 +2175,20 @@ document.addEventListener('click',async e=>{
   if(a==='vout'){vfStop();await AU.signOut(auth);return}
   if(!S.me)return;
   if(a==='wdis'){lsSet('maze-welcome-'+S.me.uid,true);render();return}
-  if(a==='ucall'){startCall(id,b.dataset.n,!!b.dataset.au);return}
+  if(a==='ucall'){if(b.closest('#ov'))closeOv();startCall(id,b.dataset.n,!!b.dataset.au);return}
   const {doc,updateDoc,deleteDoc,setDoc,addDoc,collection,writeBatch,serverTimestamp,arrayUnion,arrayRemove,increment,query,orderBy,limit,onSnapshot,deleteField,getDocs}=FS;
   const nmOf=u=>(U.get(u)||{}).name||S.friends.get(u)||'Хэрэглэгч';
   // аль хэдийн ачаалагдсан бол await хийхгүй: iOS Safari-д товч дарсан агшнаас хойш await орвол видео/дуу тоглуулах зөвшөөрөл алдагдаж, reel шахалт гацдаг
   if(/^(reels$|rl|rpub$)/.test(a)&&typeof reelPublish!=='function')try{await loadReels()}catch(e){console.warn(e);toast('Reels-ийг ачаалж чадсангүй. Интернэтээ шалгана уу.',3500);return}
   try{
   switch(a){
-    case 'tab':clearView();recStop(false);S.tab=b.dataset.t;S.thread=null;render();$('#main').scrollTop=0;break;
+    case 'tab':clearView();recStop(false);S.tab=b.dataset.t;if(S.tab==='profile')S.ptab='posts';S.thread=null;render();$('#main').scrollTop=0;break;
     case 'back':closeThread();break;
     case 'user':if(b.closest('#ov'))closeOv();openUser(id,b.dataset.n);break;
     case 'search':openSearch();break;
+    case 'ptab':{S.ptab=b.dataset.v;const y=$('#main').scrollTop;render();$('#main').scrollTop=y;break}
+    case 'umenu':{const u=id,n=b.dataset.n,bl=S.blocked.has(u);
+      openSheet(`<h3>${esc(n)}</h3>${bl?'':`<button class="btn line" data-a="ucall" data-id="${esc(u)}" data-n="${esc(n)}" data-au="1">${ic('phone',18)} Дуут дуудлага</button><button class="btn line" data-a="ucall" data-id="${esc(u)}" data-n="${esc(n)}">${ic('video',18)} Видео дуудлага</button>`}${S.friends.has(u)&&!bl?`<button class="btn line" data-a="unfriend" data-id="${esc(u)}">Найзаас хасах</button>`:''}<button class="btn line" data-a="report" data-id="${esc(u)}" data-n="${esc(n)}">Гомдол өгөх</button><button class="btn line" data-a="${bl?'unblock':'block'}" data-id="${esc(u)}" style="color:var(--like)">${bl?'Блокоос гаргах':'Блоклох'}</button>`);break}
     case 'sback':S.tab='feed';render();$('#main').scrollTop=0;break;
     case 'openreel':closeOv();await openReels(id);break;
     case 'shopen':openLink(b.dataset.k,id);break;
