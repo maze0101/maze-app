@@ -133,6 +133,13 @@ html,body{touch-action:manipulation}
 .lvf input::placeholder{color:rgba(255,255,255,.7)}
 .lvh{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;display:grid;place-items:center;border:0;flex:none;font-size:20px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .lvh.off{background:rgba(228,30,63,.85)}
+.lvc[data-a]{cursor:pointer}
+.lvfly{position:absolute;bottom:calc(70px + env(safe-area-inset-bottom,0px));font-style:normal;font-size:30px;z-index:3;pointer-events:none;animation:lvfly 2.5s ease-out forwards}
+@keyframes lvfly{0%{transform:translate(0,0) scale(.6);opacity:0}12%{opacity:1;transform:translate(0,-30px) scale(1.1)}100%{transform:translate(var(--dx,0),-320px) scale(.9);opacity:0}}
+@media (prefers-reduced-motion:reduce){.lvfly{animation-duration:1.2s}}
+.lvmenu{position:absolute;left:12px;right:12px;bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:4;background:rgba(20,22,30,.96);border-radius:16px;padding:6px;display:flex;flex-direction:column}
+.lvmenu button{background:none;border:0;color:#fff;font-size:15px;font-weight:600;padding:13px;text-align:left;border-radius:10px}
+.lvmenu button:active{background:rgba(255,255,255,.08)}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:var(--bg);font-size:14px;color:var(--sky);cursor:pointer;border:1px solid var(--line)}
 .btn{padding:10px 20px;border-radius:999px;background:var(--grad);color:#fff;font-weight:600;font-size:14px;box-shadow:var(--glow);transition:transform .15s}
 .btn:active{transform:scale(.96)}
@@ -604,7 +611,7 @@ body{letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
 .rtile{position:relative;aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#000;color:#fff;text-align:left}
 .rtile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .rtile span{position:absolute;left:0;right:0;bottom:0;padding:18px 7px 6px;font-size:11.5px;font-weight:600;line-height:1.3;background:linear-gradient(transparent,rgba(0,0,0,.7));overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.shc{display:flex;flex-direction:column;gap:2px;text-align:left;padding:8px 10px;margin:2px 0 4px;border-radius:12px;background:rgba(127,127,127,.16);color:inherit;max-width:260px;font-size:13px}
+.poll{display:flex;flex-direction:column;gap:6px;min-width:220px;max-width:280px;padding:2px 0 4px}.poll>b{font-size:15px;margin-bottom:2px}.pop{position:relative;display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;background:rgba(127,127,127,.16);color:inherit;overflow:hidden;text-align:left;font-size:14px;border:1.5px solid transparent}.pop.on{border-color:currentColor;font-weight:700}.pop i{position:absolute;left:0;top:0;bottom:0;background:rgba(127,127,127,.28);transition:width .3s}.pop span{position:relative;flex:1}.pop em{position:relative;font-style:normal;font-weight:700;font-size:13px}.pn{font-size:12px;opacity:.75}.pollf{display:flex;flex-direction:column;gap:10px}#pops{display:flex;flex-direction:column;gap:8px}.pop-in{width:100%}.shc{display:flex;flex-direction:column;gap:2px;text-align:left;padding:8px 10px;margin:2px 0 4px;border-radius:12px;background:rgba(127,127,127,.16);color:inherit;max-width:260px;font-size:13px}
 .shc span{opacity:.85;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
 .tk{font-style:normal;margin-left:4px;letter-spacing:-2px;opacity:.75}.tk.sn{opacity:1;font-weight:800}
 mark{background:#FFD54A;color:#15141F;border-radius:3px;padding:0 1px}
@@ -890,7 +897,7 @@ async function downscale(file,max=900,lim=700000){
 const mapPost=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,uid:x.uid,name:x.name||'',text:x.text||'',img:x.img||'',imgs:Array.isArray(x.imgs)?x.imgs:[],likes:Array.isArray(x.likes)?x.likes:[],cc:x.cc||0,rx:x.rx||{},ed:!!x.edited,t:tms(x.createdAt)}};
 const mapStory=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,uid:x.uid,name:x.name||'',text:x.text||'',g:x.g|0,img:x.img||'',views:Array.isArray(x.views)?x.views:[],t:tms(x.createdAt)}};
 const mapMsg=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,f:x.from,t:x.text||'',img:x.img||'',aud:x.aud||'',fn:x.fn||'',re:x.re&&typeof x.re==='object'?x.re:null,fw:!!x.fw,rx:x.rx||{},ed:!!x.edited,del:!!x.deleted,ms:tms(x.createdAt),
-  sh:x.sh&&(x.sh.k==='p'||x.sh.k==='r')&&LINK_ID.test(x.sh.id)?{k:x.sh.k,id:x.sh.id,t:String(x.sh.t||'').slice(0,120)}:null,pw:!!(d.metadata&&d.metadata.hasPendingWrites)}};
+  sh:x.sh&&(x.sh.k==='p'||x.sh.k==='r')&&LINK_ID.test(x.sh.id)?{k:x.sh.k,id:x.sh.id,t:String(x.sh.t||'').slice(0,120)}:null,poll:x.poll&&typeof x.poll.q==='string'&&Array.isArray(x.poll.o)?{q:x.poll.q.slice(0,200),o:x.poll.o.slice(0,6).map(o=>String(o).slice(0,60))}:null,pv:x.pv&&typeof x.pv==='object'?x.pv:{},pw:!!(d.metadata&&d.metadata.hasPendingWrites)}};
 const hid=u=>S.blocked.has(u)||S.blockedBy.has(u);
 const safeAud=s=>typeof s==='string'&&/^data:audio\/[^,;]{1,60}(;[^,]{1,60})?;base64,[A-Za-z0-9+\/=]+$/.test(s)?s:'';
 const EMO=['👍','❤️','😂','😮','😢','🔥'];
@@ -1033,6 +1040,9 @@ function welcomeHTML(){
 function feedHTML(){
   return verifyHTML()+welcomeHTML()+`<section class="card composer-bar" data-a="newpost" role="button" tabindex="0">${av(S.me.uid,S.me.name,38)}<span style="flex:1;color:var(--mute);font-size:14px">Юу бодож байна?</span><button class="ib" data-a="settings" aria-label="Тохиргоо">${ic('settings',20)}</button></section><section class="card lvrow"><button class="lvbtn" data-a="golive">${ic('video',22)}Live</button></section>${livesHTML()}<div class="tabs2" role="tablist"><button data-a="ftab" data-v="all" class="${S.feedTab==='all'?'on':''}">Бүгд</button><button data-a="ftab" data-v="friends" class="${S.feedTab==='friends'?'on':''}">Найзууд</button><button data-a="ftab" data-v="saved" class="${S.feedTab==='saved'?'on':''}">Хадгалсан</button></div>`+storiesHTML()+`<button class="search sbtn" data-a="search">${ic('search',18)}<span>Хүн, нийтлэл, reels, #таг хайх</span></button><div id="posts">${postsHTML()}</div>`;
 }
+// харагдах горим: 'light' | 'dark' | 'time' (19:00–07:00 харанхуй) | байхгүй = системийнх
+function themePref(){let t=null;try{t=localStorage.getItem('nutag-theme')}catch(_){}return t==='light'||t==='dark'||t==='time'?t:'sys'}
+function applyTheme(){const r=document.documentElement,t=themePref();if(t==='time'){const h=new Date().getHours(),t2=(h>=19||h<7)?'dark':'light';if(r.dataset.theme!==t2)r.dataset.theme=t2}else if(t==='sys')delete r.dataset.theme;else r.dataset.theme=t}
 function composerFormHTML(){return `<h3>Шинэ нийтлэл</h3><form data-f="post"><div class="top">${av(S.me.uid,S.me.name,42)}<textarea id="cmp" rows="2" maxlength="2000" placeholder="Юу бодож байна?" aria-label="Шинэ нийтлэл"></textarea></div><div id="prev">${prevHTML()}</div><div class="bar"><label class="chip">${ic('image',18)}Зураг<input type="file" id="file" accept="image/*" multiple class="vh"></label><button class="btn" type="submit">Нийтлэх</button></div></form>`}
 function verifyHTML(){const u=auth&&auth.currentUser;return u&&!u.emailVerified?`<section class="card composer" style="display:flex;gap:10px;align-items:center"><span style="flex:1;font-size:14px">📧 Имэйлээ баталгаажуулна уу. Баталгаажуулах холбоос имэйл рүү чинь илгээгдсэн.</span><button class="btn sm line" data-a="verify">Дахин илгээх</button></section>`:''}
 function personAction(uid,name){
@@ -1123,6 +1133,12 @@ function openSearch(q){
 }
 // чат доторх хайлтад таарсан хэсгийг тодруулна (escape хийсэн текст дээр)
 const hlq=(h,q)=>h.replace(new RegExp(esc(q.trim()).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),'<mark>$&</mark>');
+function pollCard(m){
+  const o=m.poll.o,vs=Object.entries(m.pv).filter(([u,i])=>Number.isInteger(i)&&i>=0&&i<o.length&&!hid(u)),n=vs.length,mine=m.pv[S.me.uid];
+  return `<div class="poll"><b>📊 ${esc(m.poll.q)}</b>${o.map((t,i)=>{const c=vs.filter(([,x])=>x===i).length,pc=n?Math.round(c*100/n):0;
+    return `<button class="pop${mine===i?' on':''}" data-a="pvote" data-id="${esc(m.id)}" data-i="${i}"><i style="width:${pc}%"></i><span>${esc(t)}</span><em>${c}</em></button>`}).join('')}<span class="pn">${n} хүн санал өгсөн${mine!=null?' · дахин дарж болиулна':''}</span></div>`;
+}
+function pollSheet(){openSheet(`<h3>📊 Санал асуулга</h3><form data-f="poll" class="pollf"><label>Асуулт<input id="pq" maxlength="200" required placeholder="Юу асуух вэ?" autocomplete="off"></label><div id="pops">${[0,1].map(i=>`<input class="pop-in" maxlength="60" placeholder="Сонголт ${i+1}" autocomplete="off">`).join('')}</div><button type="button" class="btn line" data-a="popadd">+ Сонголт нэмэх</button><button class="btn" type="submit">Илгээх</button></form>`);setTimeout(()=>{const i=$('#pq');if(i)i.focus()},50)}
 const shCard=x=>`<button class="shc" data-a="shopen" data-k="${x.k}" data-id="${esc(x.id)}"><b>${x.k==='p'?'📎 Нийтлэл':'🎬 Reel'}</b><span>${esc(x.t)}</span></button>`;
 function msgsHTML(){
   const th=S.thread,c=S.chats.get(th.cid)||{},sn=c.seen||{},myClr=cpref(th.cid).clr;let vis=S.msgs.filter(m=>m.f===S.me.uid||!hid(m.f)),mq=(S.mq||'').trim().toLowerCase();
@@ -1131,7 +1147,7 @@ function msgsHTML(){
   let lm=-1;vis.forEach((m,i)=>{if(m.f===S.me.uid)lm=i});
   return vis.map((m,i)=>{
     const me=m.f===S.me.uid,dl=m.del,im=dl?'':safeImg(m.img),au=dl?'':safeAud(m.aud);
-    const body=(dl?'':(m.fw?'<span class="fwl">↪ Дамжуулсан</span>':'')+(m.re?`<div class="qt"><b>${esc(m.re.n||'')}</b>${esc(m.re.t||'')}</div>`:''))+(im?`<img class="mimg" src="${im}" data-a="zoom" data-id="${esc(m.id)}" alt="Зураг">`:'')+(au?`<audio controls preload="none" src="${au}"></audio>`:'')+(m.sh&&!dl?shCard(m.sh):'')+(m.t&&!dl?`<span>${mq?hlq(esc(m.t),mq):hashLink(esc(m.t))}</span>`:'')+(dl?'<span class="mdel">🚫 Мессеж устгагдсан</span>':'');
+    const body=(dl?'':(m.fw?'<span class="fwl">↪ Дамжуулсан</span>':'')+(m.re?`<div class="qt"><b>${esc(m.re.n||'')}</b>${esc(m.re.t||'')}</div>`:''))+(im?`<img class="mimg" src="${im}" data-a="zoom" data-id="${esc(m.id)}" alt="Зураг">`:'')+(au?`<audio controls preload="none" src="${au}"></audio>`:'')+(m.sh&&!dl?shCard(m.sh):'')+(m.poll&&!dl?pollCard(m):'')+(m.t&&!dl?`<span>${mq?hlq(esc(m.t),mq):hashLink(esc(m.t))}</span>`:'')+(dl?'<span class="mdel">🚫 Мессеж устгагдсан</span>':'');
     let seen='';
     if(i===lm&&th.group){const os=(th.group?(c.members||[]):[th.uid]).filter(u=>u!==S.me.uid),n=os.filter(u=>(sn[u]||0)>=m.ms).length;if(n)seen=`<span class="seenl">${th.group?'Үзсэн '+n:'Үзсэн ✓'}</span>`}
     const rb=dl?'':rxSum(m.rx),who=th.group&&!me?`<span class="mn">${esc((U.get(m.f)||{}).name||m.fn||'')}</span>`:'';
@@ -1141,7 +1157,7 @@ function msgsHTML(){
 const mfLike=()=>S.thread?cpref(S.thread.cid).emo||'👍':'👍';
 function mfInner(){
   if(rec)return `<button type="button" class="ib" data-a="reccancel" aria-label="Болих">${ic('close',20)}</button><div class="recbar"><i></i><span id="rt">0:00</span>&nbsp;бичиж байна</div><button type="button" data-a="recsend" aria-label="Илгээх">${ic('send',20)}</button>`;
-  return (S.mfEmoji?`<div class="rxp" id="mfemo" style="position:absolute;bottom:100%;left:14px;right:14px;margin-bottom:6px;flex-wrap:wrap;max-width:none;width:auto;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.25);max-height:160px;overflow:auto">${EMOJI_TYPE.map(e=>`<button type="button" data-a="mfe" data-e="${e}">${e}</button>`).join('')}</div>`:'')+`<label class="ib" aria-label="Зураг илгээх">${ic('image',20)}<input type="file" id="mfile" accept="image/*" class="vh"></label><button type="button" class="ib" id="mfemobtn" data-a="mfemoji" aria-label="Emoji">${ic('smile',20)}</button><input id="mi" placeholder="Мессеж бичих" aria-label="Мессеж бичих" autocomplete="off" maxlength="2000"><button type="button" class="ib" data-a="rec" aria-label="Дуут мессеж">${ic('mic',20)}</button><button type="submit" id="sendbtn" class="like" aria-label="Илгээх">${mfLike()}</button>`;
+  return (S.mfEmoji?`<div class="rxp" id="mfemo" style="position:absolute;bottom:100%;left:14px;right:14px;margin-bottom:6px;flex-wrap:wrap;max-width:none;width:auto;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.25);max-height:160px;overflow:auto">${EMOJI_TYPE.map(e=>`<button type="button" data-a="mfe" data-e="${e}">${e}</button>`).join('')}</div>`:'')+`<label class="ib" aria-label="Зураг илгээх">${ic('image',20)}<input type="file" id="mfile" accept="image/*" class="vh"></label>${S.thread&&S.thread.group?'<button type="button" class="ib" data-a="pollnew" aria-label="Санал асуулга">📊</button>':''}<button type="button" class="ib" id="mfemobtn" data-a="mfemoji" aria-label="Emoji">${ic('smile',20)}</button><input id="mi" placeholder="Мессеж бичих" aria-label="Мессеж бичих" autocomplete="off" maxlength="2000"><button type="button" class="ib" data-a="rec" aria-label="Дуут мессеж">${ic('mic',20)}</button><button type="submit" id="sendbtn" class="like" aria-label="Илгээх">${mfLike()}</button>`;
 }
 function reqBarHTML(){
   const th=S.thread;if(!th||th.group)return '';const c=S.chats.get(th.cid);if(!isReq(c))return '';
@@ -1254,7 +1270,7 @@ function settingsHTML(){
   sec('Аккаунт')+`<button class="btn line" data-a="editprofile">Профайл засах</button>`+
   sec('Хувийн байдал')+`<p class="mute" style="margin:0;font-size:13px">Хэн танд чатаар шууд бичиж болох вэ?</p><div style="display:flex;gap:8px"><button class="btn ${dm==='all'?'':'line'}" style="flex:1" data-a="dmset" data-v="all">Бүгд${dm==='all'?' ✓':''}</button><button class="btn ${dm==='friends'?'':'line'}" style="flex:1" data-a="dmset" data-v="friends">Зөвхөн найзууд${dm==='friends'?' ✓':''}</button></div><button class="btn line" data-a="blocklist">Блоклосон хэрэглэгчид (${S.blocked.size})</button>`+
   sec('Дуудлага ба мэдэгдэл')+`<button class="btn line" data-a="ringset">Дуудлагын дуу</button>`+(np?`<button class="btn line" data-a="${np==='granted'?'pushcheck':'notif'}">${np==='granted'?'🔔 Мэдэгдэл асаалттай — дахин шалгах':np==='denied'?'🔕 Мэдэгдэл хаалттай (браузерийн тохиргооноос нээнэ)':'🔔 Мэдэгдэл асаах'}</button>`:'')+
-  sec('Харагдац')+`<button class="btn line" data-a="theme">Харанхуй / гэрэлтэй</button><div class="tabs2" style="padding:8px 0 0;flex-wrap:wrap;border:0">${[['glass','Aurora'],['discord','Discord'],['pop','Поп'],['minimal','Минимал'],['card','Карт']].map(([v,n])=>`<button data-a="dstyle" data-v="${v}" class="${(document.documentElement.dataset.style||'glass')===v?'on':''}">${n}</button>`).join('')}</div>`+
+  sec('Харагдац')+`<div class="tabs2" style="padding:0;flex-wrap:wrap;border:0">${[['sys','Систем'],['light','☀️ Гэрэлтэй'],['dark','🌙 Харанхуй'],['time','🕖 Цагаар']].map(([v,n])=>`<button data-a="theme" data-v="${v}" class="${themePref()===v?'on':''}">${n}</button>`).join('')}</div><p class="mute" style="margin:4px 0 0;font-size:12px">«Цагаар»: 19:00–07:00 харанхуй, бусад үед гэрэлтэй.</p><div class="tabs2" style="padding:8px 0 0;flex-wrap:wrap;border:0">${[['glass','Aurora'],['discord','Discord'],['pop','Поп'],['minimal','Минимал'],['card','Карт']].map(([v,n])=>`<button data-a="dstyle" data-v="${v}" class="${(document.documentElement.dataset.style||'glass')===v?'on':''}">${n}</button>`).join('')}</div>`+
   (S.admin?sec('Админ')+`<button class="btn line" data-a="admin">🛡 Гомдол шийдвэрлэх (${S.reps.length})</button>`:'')+sec('Аюулгүй байдал')+secInfo()+`<button class="btn line" data-a="terms">Үйлчилгээний нөхцөл</button>`+`<button class="btn line" data-a="logout">Гарах</button><button class="btn line" data-a="delaccask" style="color:var(--like)">Акаунт устгах</button>`;
 }
 /* ---------- профайл (Facebook маягийн): cover, том зураг, нэр, товчнууд, табууд, дэлгэрэнгүй, найзууд ---------- */
@@ -1981,11 +1997,22 @@ function livePlay(v){const p=v.play();if(p&&p.catch)p.catch(()=>{const c=$('.cal
 function liveStatus(t){if(LIVE)LIVE.st=t;const e=$('#lvst');if(e){e.textContent=t;e.hidden=!t}}
 function liveCount(){const e=$('#lvn');if(e&&LIVE)e.textContent='👁 '+(LIVE.n||0)}
 function liveCms(){const L=LIVE,el=$('#lvcms');if(!L||!el)return;
-  el.innerHTML=L.cms.slice(-30).map(c=>`<div class="lvc">${av(c.uid,c.name,26)}<span><b>${esc(c.name)}</b> ${esc(c.text)}</span></div>`).join('');el.scrollTop=el.scrollHeight}
+  el.innerHTML=L.cms.filter(c=>c.text!=='❤️').slice(-30).map(c=>{const mod=L.host&&c.uid!==S.me.uid;
+    return `<div class="lvc"${mod?` data-a="lvcmx" data-id="${esc(c.id)}" data-u="${esc(c.uid)}" data-n="${esc(c.name)}"`:''}>${av(c.uid,c.name,26)}<span><b>${esc(c.name)}</b> ${esc(c.text)}</span></div>`}).join('');el.scrollTop=el.scrollHeight}
+function liveFloat(){const c=$('.call.lv');if(!c)return;const h=document.createElement('i');h.className='lvfly';h.textContent='❤️';
+  h.style.right=(16+Math.random()*40)+'px';h.style.setProperty('--dx',(Math.random()*60-30)+'px');c.appendChild(h);setTimeout(()=>h.remove(),2600)}
+// эзэн: сэтгэгдэл дээр дарахад устгах / тэр хүнийг live-аас гаргах
+function liveMenu(b){const c=$('.call.lv');if(!c||!LIVE||!LIVE.host)return;const o=$('#lvmenu');if(o)o.remove();
+  const m=document.createElement('div');m.id='lvmenu';m.className='lvmenu';
+  m.innerHTML=`<button data-a="lvcmdel" data-id="${esc(b.dataset.id)}">Сэтгэгдэл устгах</button><button data-a="lvkick" data-u="${esc(b.dataset.u)}" data-n="${esc(b.dataset.n)}" style="color:#ff6b81">${esc(b.dataset.n)}-г live-аас гаргах</button><button data-a="lvmclose">Болих</button>`;c.appendChild(m)}
+async function liveKick(u,n){const L=LIVE;if(!L||!L.host||!u)return;
+  try{await FS.updateDoc(FS.doc(db,'lives',L.id),{k:FS.arrayUnion(u),v:FS.arrayRemove(u)});const p=L.peers.get(u);if(p){try{p.pc.close()}catch(_){}L.peers.delete(u)}toast(n+' live-аас гарлаа')}
+  catch(e){console.warn('live kick',e);toast('Гаргаж чадсангүй')}}
 function liveSig(L,t,s,k,d){return FS.addDoc(FS.collection(db,'lives',L.id,'sig'),{f:S.me.uid,t,s,k,d:JSON.stringify(d)}).catch(()=>{})}
 function liveSubCms(L){const {collection,query,orderBy,limitToLast,onSnapshot}=FS;
   L.unsubs.push(onSnapshot(query(collection(db,'lives',L.id,'cm'),orderBy('createdAt','asc'),limitToLast(40)),sn=>{if(LIVE!==L)return;
-    L.cms=sn.docs.map(d=>{const x=d.data();return {uid:x.uid,name:x.name||'',text:x.text||''}}).filter(c=>!hid(c.uid));liveCms()},e=>console.warn('live cm',e&&e.code)))}
+    if(L.cmReady)sn.docChanges().forEach(ch=>{if(ch.type==='added'){const x=ch.doc.data();if(x.text==='❤️'&&x.uid!==S.me.uid)liveFloat()}});L.cmReady=true;
+    L.cms=sn.docs.map(d=>{const x=d.data();return {id:d.id,uid:x.uid,name:x.name||'',text:x.text||''}}).filter(c=>!hid(c.uid));liveCms()},e=>console.warn('live cm',e&&e.code)))}
 async function liveSend(t){const L=LIVE;t=String(t||'').trim().slice(0,200);if(!L||!t)return;
   try{await FS.addDoc(FS.collection(db,'lives',L.id,'cm'),{uid:S.me.uid,name:S.me.name.slice(0,40),text:t,createdAt:FS.serverTimestamp()})}catch(e){console.warn('live send',e);toast('Илгээж чадсангүй')}}
 // эзэн: камер асааж шууд live эхэлнэ
@@ -2001,7 +2028,7 @@ async function liveStart(){
   await iceReady();
   try{await setDoc(ref,{host:S.me.uid,hostName:S.me.name.slice(0,40),v:[],status:'active',hb:serverTimestamp(),createdAt:serverTimestamp()})}
   catch(e){console.error(e);if(LIVE===L){toast('Live эхлүүлж чадсангүй'+(e&&e.code?' ('+e.code+')':''),5000);liveEnd()}return}
-  L.started=true;if(LIVE!==L){updateDoc(ref,{status:'ended'}).catch(()=>{});return}
+  L.started=true;L.t0=Date.now();if(LIVE!==L){updateDoc(ref,{status:'ended'}).catch(()=>{});return}
   liveStatus('');pushPing({kind:'live',id:L.id});
   L.unsubs.push(onSnapshot(query(collection(db,'lives',L.id,'sig'),where('t','==',S.me.uid)),sn=>sn.docChanges().forEach(ch=>{
     if(ch.type!=='added')return;const x=ch.doc.data();deleteDoc(ch.doc.ref).catch(()=>{});
@@ -2040,6 +2067,7 @@ async function liveWatch(id){
   let x;try{const sn=await FS.getDoc(FS.doc(db,'lives',id));x=sn.exists()?sn.data():null}catch(e){console.error(e);toast('Live нээж чадсангүй',4000);return}
   if(!liveOk(x)){toast('Live дууссан байна');return}
   if(x.host===S.me.uid||LIVE||CALL)return;
+  if((x.k||[]).includes(S.me.uid)){toast('Та энэ live-г үзэх боломжгүй');return}
   reelPause();
   const L=LIVE={id,host:false,hostUid:x.host,name:(U.get(x.host)||{}).name||x.hostName||'Хэрэглэгч',unsubs:[],cms:[],n:(x.v||[]).length,over:false,tries:0};
   drawLive();liveStatus('Холбогдож байна…');
@@ -2054,6 +2082,7 @@ async function liveWatch(id){
       if(ch.type!=='added')return;const y=ch.doc.data();deleteDoc(ch.doc.ref).catch(()=>{});liveViewSig(L,y)}),onErr));
     L.unsubs.push(onSnapshot(ref,sn=>{const d=sn.data();if(LIVE!==L)return;
       if(!d||d.status!=='active'){liveEnd('Live дууслаа');return}
+      if((d.k||[]).includes(me)){liveEnd('Таныг энэ live-аас гаргалаа');return}
       L.n=(d.v||[]).length;liveCount()},onErr));
     liveSubCms(L);
     await liveOffer(L);
@@ -2088,7 +2117,10 @@ function liveEnd(msg){
   if(L.pc)try{L.pc.close()}catch(_){}
   if(L.peers)L.peers.forEach(p=>{try{p.pc.close()}catch(_){}});
   if(L.local)L.local.getTracks().forEach(t=>t.stop());
-  if(L.host&&L.started&&db)FS.updateDoc(FS.doc(db,'lives',L.id),{status:'ended'}).catch(()=>{});
+  if(L.host&&L.started&&db){FS.updateDoc(FS.doc(db,'lives',L.id),{status:'ended'}).catch(()=>{});
+    const sec=(Date.now()-L.t0)/1000;
+    if(sec>=30&&S.me){const mn=Math.max(1,Math.round(sec/60)),n=L.seen.size,t='🔴 Live хийлээ · '+mn+' минут'+(n?' · '+n+' хүн үзсэн':'');
+      FS.addDoc(FS.collection(db,'posts'),{uid:S.me.uid,name:S.me.name,text:t,createdAt:FS.serverTimestamp(),likes:[],cc:0,kw:kwOf(t,S.me.name)}).then(()=>toast('Live дууслаа · нийтлэл болгон хуваалцлаа',3000)).catch(e=>console.warn('live post',e))}}
   if(!L.host)liveLeave(L);
   if(ov.querySelector('.call.lv')){ov.className='';ov.innerHTML=''}
   if(msg)toast(msg,3500);
@@ -2231,12 +2263,12 @@ function typingPing(){
 }
 async function sendTo(th,p){
   const {doc,collection,writeBatch,serverTimestamp}=FS,me=S.me,cid=th.cid,b=writeBatch(db),ex=S.chats.get(cid);
-  const pv=p.text?p.text.slice(0,200):p.img?'📷 Зураг':p.sh?(p.sh.k==='p'?'📎 Нийтлэл':'🎬 Reel'):'🎤 Дуут мессеж',cd={last:pv,lastAt:serverTimestamp(),lastFrom:me.uid};
+  const pv=p.poll?'📊 '+p.poll.q.slice(0,190):p.text?p.text.slice(0,200):p.img?'📷 Зураг':p.sh?(p.sh.k==='p'?'📎 Нийтлэл':'🎬 Reel'):'🎤 Дуут мессеж',cd={last:pv,lastAt:serverTimestamp(),lastFrom:me.uid};
   if(!th.group){cd.members=[me.uid,th.uid].sort();cd.names={[me.uid]:me.name,[th.uid]:th.name};
     if(!ex)cd.by=me.uid;                                             // шинэ чат: хэн эхлүүлсэн
     else if(isReq(ex))cd.ok=true}                                    // хүсэлтэд хариулбал зөвшөөрсөнд тооцно
   b.set(doc(db,'chats',cid),cd,{merge:true});
-  const md={from:me.uid,fn:me.name,text:p.text||'',createdAt:serverTimestamp()};if(p.img)md.img=p.img;if(p.aud)md.aud=p.aud;if(p.re)md.re={n:String(p.re.n||'').slice(0,40),t:String(p.re.t||'').slice(0,100)};if(p.fw)md.fw=true;if(p.sh)md.sh={k:p.sh.k,id:p.sh.id,t:String(p.sh.t||'').slice(0,120)};
+  const md={from:me.uid,fn:me.name,text:p.text||'',createdAt:serverTimestamp()};if(p.img)md.img=p.img;if(p.aud)md.aud=p.aud;if(p.re)md.re={n:String(p.re.n||'').slice(0,40),t:String(p.re.t||'').slice(0,100)};if(p.fw)md.fw=true;if(p.sh)md.sh={k:p.sh.k,id:p.sh.id,t:String(p.sh.t||'').slice(0,120)};if(p.poll)md.poll={q:p.poll.q,o:p.poll.o};
   const mref=doc(collection(db,'chats',cid,'messages'));b.set(mref,md);
   await b.commit();
   if(th.group&&p.text){const mem=(ex&&ex.members)||[],to=mnOf(p.text).filter(u=>mem.includes(u));if(to.length)pushPing({kind:'mention',k:'m',cid,mid:mref.id,to})}
@@ -2614,6 +2646,12 @@ document.addEventListener('click',async e=>{
     case 'uback':clearView();render();break;
     case 'rxo':S.rxOpen=S.rxOpen===id?null:id;refreshPosts();break;
     case 'mrx':S.rxOpen=S.rxOpen===id?null:id;refreshMsgs();break;
+    case 'pollnew':pollSheet();break;
+    case 'popadd':{const w=$('#pops');if(!w)break;const n=w.children.length;if(n>=6){toast('Дээд тал нь 6 сонголт');break}
+      w.insertAdjacentHTML('beforeend',`<input class="pop-in" maxlength="60" placeholder="Сонголт ${n+1}" autocomplete="off">`);w.lastElementChild.focus();if(n+1>=6)b.hidden=true;break}
+    case 'pvote':{const m=S.msgs.find(x=>x.id===id);if(!m||!m.poll||!S.thread)break;const i=+b.dataset.i,me=S.me.uid,cur=m.pv[me];
+      m.pv=Object.assign({},m.pv);if(cur===i)delete m.pv[me];else m.pv[me]=i;refreshMsgs();
+      updateDoc(doc(db,'chats',S.thread.cid,'messages',id),{['pv.'+me]:cur===i?deleteField():i}).catch(e=>{console.warn('poll vote',e);toast('Санал өгч чадсангүй')});break}
     case 'rx':{const k=b.dataset.k,e2=b.dataset.e,me=S.me.uid;S.rxOpen=null;
       if(k==='p'){const p=allPosts().find(x=>x.id===id),cur=p&&p.rx[me];refreshPosts();
         await updateDoc(doc(db,'posts',id),{['rx.'+me]:cur===e2?deleteField():e2})}
@@ -2679,7 +2717,7 @@ document.addEventListener('click',async e=>{
     case 'mdel':{const m=S.msgs.find(x=>x.id===id);if(!m||!S.thread)break;
       if(!confirm('Энэ мессежийг хоёр талаас устгах уу?'))break;
       const cid=S.thread.cid,isLast=S.msgs[S.msgs.length-1].id===id;
-      await updateDoc(doc(db,'chats',cid,'messages',id),{text:'',img:deleteField(),aud:deleteField(),sh:deleteField(),deleted:true});
+      await updateDoc(doc(db,'chats',cid,'messages',id),{text:'',img:deleteField(),aud:deleteField(),sh:deleteField(),poll:deleteField(),deleted:true});
       if(isLast)await updateDoc(doc(db,'chats',cid),{last:'Мессеж устгагдсан'}).catch(()=>{});
       closeOv();toast('Устгагдлаа');break}
     case 'zoom':{const m=S.msgs.find(x=>x.id===id),im=m&&safeImg(m.img);if(im){ov.innerHTML=`<div class="scrim" data-a="closeov"></div><img class="zoom" src="${im}" alt="">`;ov.className='open'}break}
@@ -2793,7 +2831,11 @@ document.addEventListener('click',async e=>{
     case 'golive':liveStart();break;
     case 'lvwatch':liveWatch(id);break;
     case 'lvend':if(LIVE&&LIVE.host&&!confirm('Live-г дуусгах уу?'))break;liveEnd();break;
-    case 'lvheart':liveSend('❤️');break;
+    case 'lvheart':liveFloat();liveSend('❤️');break;
+    case 'lvcmx':liveMenu(b);break;
+    case 'lvmclose':{const m=$('#lvmenu');if(m)m.remove();break}
+    case 'lvcmdel':{const m=$('#lvmenu');if(m)m.remove();if(LIVE)FS.deleteDoc(FS.doc(db,'lives',LIVE.id,'cm',id)).catch(()=>toast('Устгаж чадсангүй'));break}
+    case 'lvkick':{const m=$('#lvmenu');if(m)m.remove();if(confirm(b.dataset.n+'-г энэ live-аас гаргах уу?'))liveKick(b.dataset.u,b.dataset.n);break}
     case 'lvmic':liveMic(b);break;
     case 'lvflip':liveFlip();break;
     case 'call':if(S.thread.group)startGroupCall(false);else startCall(S.thread.uid,S.thread.name);break;
@@ -2852,7 +2894,7 @@ document.addEventListener('click',async e=>{
       S.me.name=n;S.me.bio=bio;S.draftName=null;S.draftBio=null;closeOv();render();toast('Хадгалагдлаа');break}
     case 'dstyle':{const v=b.dataset.v;document.documentElement.dataset.style=v;try{localStorage.setItem('maze-style',v)}catch(_){}document.querySelectorAll('[data-a=dstyle]').forEach(x=>x.classList.toggle('on',x.dataset.v===v));break}
     case 'theme':{const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
-      r.dataset.theme=dark?'light':'dark';try{localStorage.setItem('nutag-theme',r.dataset.theme)}catch(_){}break}
+      try{if(b.dataset.v==='sys')localStorage.removeItem('nutag-theme');else localStorage.setItem('nutag-theme',b.dataset.v)}catch(_){}applyTheme();b.parentElement.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));break}
     case 'notif':await askNotify();break;
     case 'verify':await AU.sendEmailVerification(auth.currentUser);toast('Баталгаажуулах имэйл илгээлээ');break;
     case 'delaccask':openSheet(`<h3 style="color:var(--like)">Акаунт устгах</h3><p class="mute" style="margin:0;font-size:14px">Таны профайл, нийтлэл, story, найзууд, илгээсэн мессежүүд болон сэтгэгдлүүд <b>бүрмөсөн устна</b>. Үүнийг буцаах боломжгүй.</p><label>Баталгаажуулахын тулд нууц үгээ оруулна уу<input id="dp" type="password" autocomplete="current-password"></label><button class="btn" style="background:var(--like)" data-a="delacc">Бүрмөсөн устгах</button>`);break;
@@ -2873,6 +2915,9 @@ document.addEventListener('submit',async e=>{
   if(!S.me)return;
   const {doc,addDoc,collection,writeBatch,serverTimestamp,increment}=FS;
   try{
+    if(k==='poll'){const q=$('#pq').value.trim(),o=[...document.querySelectorAll('.pop-in')].map(i=>i.value.trim()).filter(Boolean);
+      if(!q){toast('Асуултаа бичнэ үү');return}if(o.length<2){toast('Дор хаяж 2 сонголт бичнэ үү');return}if(new Set(o).size!==o.length){toast('Сонголтууд давхардсан байна');return}
+      closeOv();await sendMsg({poll:{q:q.slice(0,200),o:o.slice(0,6).map(x=>x.slice(0,60))}});return}
     if(k==='lvcm'){const i=$('#lvin');const t=i.value;i.value='';await liveSend(t);return}
     if(k==='post'){
       const t=$('#cmp').value.trim();if(!t&&!S.draftImgs.length){toast('Текст эсвэл зураг нэм');return}
@@ -2975,7 +3020,7 @@ document.addEventListener('change',async e=>{
 /* ---------- эхлүүлэлт ---------- */
 async function main(){
   try{const st=localStorage.getItem('maze-style');if(st){if(['glass','discord','pop','minimal','card'].includes(st))document.documentElement.dataset.style=st;else localStorage.removeItem('maze-style')}}catch(_){}
-  try{const t=localStorage.getItem('nutag-theme');if(t)document.documentElement.dataset.theme=t}catch(_){}
+  applyTheme();setInterval(applyTheme,60000);
   if(!configured&&!window.__FB_MOCK){setupRender();return}
   $('#main').innerHTML='<div style="min-height:70vh;display:grid;align-items:center">'+loader()+'</div>';
   // Дуудлагын push мэдэгдлээс (?call=) нээгдсэн бол эхлэлийн хиймэл хүлээлтийг алгасаж, дуудлагын дэлгэцийг аль болох хурдан харуулна
