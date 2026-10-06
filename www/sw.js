@@ -37,7 +37,7 @@ self.addEventListener('notificationclick',e=>{
   const url=(e.notification.data&&e.notification.data.url)||'./index.html';
   e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(list=>{
     // нээлттэй апп руу: нийтлэл/reel-ийн холбоосыг дахин ачаалалгүйгээр нээлгэнэ
-    for(const c of list){if('focus' in c){if(/[?&](post|reel)=/.test(url))c.postMessage({open:url});return c.focus()}}
+    for(const c of list){if('focus' in c){if(/[?&](post|reel|live)=/.test(url))c.postMessage({open:url});return c.focus()}}
     return self.clients.openWindow(url);
   }));
 });

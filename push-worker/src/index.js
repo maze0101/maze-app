@@ -226,6 +226,20 @@ async function handle(req, env) {
     }, 60);
     return 200;
   }
+  if (b.kind === 'live') {
+    const id = String(b.id || ''); if (!/^[\w-]{1,128}$/.test(id)) return 400;
+    const l = await fsGet(env, tok, 'lives/' + id);
+    if (!l || l.host !== uid || l.status !== 'active') return 403;
+    if (Date.now() - Date.parse(l.createdAt || 0) > 120e3) return 403;
+    const fr = await fsQuery(env, tok, null, 'friendships', 'members', 'ARRAY_CONTAINS', uid, 400);
+    const to = [...new Set(fr.flatMap(f => f.members || []))].filter(u => u !== uid);
+    const blocked = await Promise.all(to.map(u => fsGet(env, tok, `blocks/${u}_${uid}`)));
+    await push(env, tok, to.filter((_, i) => !blocked[i]), {
+      type: 'live', title: '🔴 ' + short(l.hostName, 40) + ' live хийж байна', body: 'Үзэхийн тулд дарна уу',
+      tag: 'live-' + id, url: './index.html?live=' + encodeURIComponent(id),
+    }, 600);
+    return 200;
+  }
   // лайк / сэтгэгдэл / @mention: агуулгыг Firestore-оос уншиж, хүсэлт жинхэнэ эсэхийг шалгаад эзэнд нь мэдэгдэнэ
   const ID = /^[\w-]{1,128}$/, recent = d => d && Date.now() - Date.parse(d.createdAt || 0) < 300e3;
   const col = k => (k === 'r' || k === 'rc') ? 'reels' : 'posts';

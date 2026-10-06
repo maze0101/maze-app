@@ -498,5 +498,52 @@ service cloud.firestore {
           && mlive(request.auth.uid) && mlive(request.resource.data.t);
       }
     }
+
+    // Live: эзэн нь дамжуулж, нэвтэрсэн хэн ч үзнэ. v = одоо үзэж буй хүмүүс (хүн бүр зөвхөн өөрийгөө нэмж хасна),
+    // hb = эзний 20 секунд тутмын "амьд" тэмдэг (апп нь гэнэт хаагдвал live жагсаалтаас алга болно)
+    match /lives/{lid} {
+      function ld() { return get(/databases/$(database)/documents/lives/$(lid)).data; }
+      allow read: if signedIn();
+      allow create: if mine(request.resource.data.host) && notBanned()
+        && request.resource.data.keys().hasOnly(['host', 'hostName', 'v', 'status', 'hb', 'createdAt'])
+        && request.resource.data.v == []
+        && request.resource.data.status == 'active'
+        && isStr(request.resource.data.hostName, 40)
+        && request.resource.data.hb == request.time
+        && stamped();
+      allow update: if signedIn() && (
+        (resource.data.host == request.auth.uid
+          && changed().hasOnly(['hb', 'status'])
+          && (request.resource.data.status == resource.data.status || request.resource.data.status == 'ended')
+          && (!('hb' in changed()) || request.resource.data.hb == request.time))
+        || (changed().hasOnly(['v'])
+          && request.resource.data.v is list && request.resource.data.v.size() <= 500
+          && request.resource.data.v.toSet().difference(resource.data.v.toSet()).hasOnly([request.auth.uid])
+          && resource.data.v.toSet().difference(request.resource.data.v.toSet()).hasOnly([request.auth.uid])));
+      allow delete: if mine(resource.data.host) || isAdmin();
+
+      // WebRTC сигнал: зөвхөн эзэн ↔ үзэгчийн хооронд
+      match /sig/{sigId} {
+        allow read, delete: if signedIn() && (resource.data.t == request.auth.uid || resource.data.f == request.auth.uid);
+        allow create: if mine(request.resource.data.f)
+          && request.resource.data.keys().hasOnly(['f', 't', 's', 'k', 'd'])
+          && request.resource.data.t is string
+          && request.resource.data.k in ['o', 'a', 'c', 'x']
+          && isStr(request.resource.data.s, 20)
+          && isStr(request.resource.data.d, 30000)
+          && (request.resource.data.t == ld().host || ld().host == request.auth.uid);
+      }
+      match /cm/{cid} {
+        allow read: if signedIn();
+        allow create: if mine(request.resource.data.uid) && notBanned()
+          && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'createdAt'])
+          && isStr(request.resource.data.name, 40)
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 200
+          && stamped()
+          && ld().status == 'active';
+        allow delete: if signedIn() && (resource.data.uid == request.auth.uid || ld().host == request.auth.uid || isAdmin());
+      }
+    }
   }
 }
