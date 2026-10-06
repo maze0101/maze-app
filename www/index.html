@@ -107,7 +107,35 @@ html,body{touch-action:manipulation}
 .composer .bar{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
 .composer-bar{display:flex;align-items:center;gap:10px;padding:7px 8px 7px 12px;border-radius:999px;cursor:pointer}
 .composer-bar:active{transform:scale(.98)}
-.lvrow{padding:6px}
+.lvrow{padding:6px;display:flex;gap:6px}
+.lvbtn.sm{width:auto;flex:0 0 52px;font-size:19px;padding:7px 0}
+.ntask{display:flex;flex-direction:column;gap:8px;padding:16px}
+.nthd{padding:10px 18px 0;font-size:15px}
+.ktree{padding:14px 12px}
+.krow{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;padding:6px 0;position:relative}
+.krow+.krow{border-top:1px dashed var(--line)}
+.kp{display:flex;flex-direction:column;align-items:center;gap:3px;width:74px;background:none;border:0;color:var(--ink);font-size:12px;cursor:pointer}
+.kp span{max-width:74px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.kp em{font-style:normal;font-size:11px;color:var(--mute)}
+.kp.me{cursor:default}.kp.me>span:first-child{outline:2.5px solid var(--sky);outline-offset:2px;border-radius:50%}
+.kreq{padding:12px 14px}.krq{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;font-size:13px}.krq>span:nth-child(2){flex:1;min-width:140px}
+.kpick{display:flex;flex-wrap:wrap;gap:8px}
+.litebar{padding:8px 16px;font-size:13px;color:var(--mute);text-align:center}
+.litebar.ask{display:flex;align-items:center;gap:8px;flex-wrap:wrap;text-align:left;color:var(--ink)}.litebar.ask span{flex:1;min-width:160px}
+.holbar{display:flex;align-items:center;gap:8px;padding:12px 14px;color:#fff;font-weight:600;font-size:14px;text-shadow:0 1px 3px rgba(0,0,0,.3)}.holbar span{flex:1}.holbar .ib{color:#fff}
+.gcard{width:240px;max-width:100%;border-radius:16px;padding:18px 16px;color:#fff;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.35);margin:2px 0 4px}
+.gcard .ge{display:block;font-size:44px;line-height:1.1}.gcard b{display:block;font-size:19px;margin:6px 0 4px}.gcard p{margin:0;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
+.gpick{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.gpk{flex:none;width:74px;height:74px;border-radius:14px;color:#fff;font-size:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:3px solid transparent;cursor:pointer}
+.gpk span{font-size:11px;font-weight:700}.gpk.on{border-color:var(--ink)}
+#gprev{display:flex;justify-content:center}
+.gfr{display:flex;flex-direction:column;gap:2px;max-height:200px;overflow-y:auto}
+.gfi{display:flex;align-items:center;gap:10px;padding:6px 4px;font-size:14px;cursor:pointer}.gfi input{width:18px;height:18px;flex:none}
+.capl{display:block;font-size:12px;font-weight:700;opacity:.85;margin-bottom:4px}
+.vprev{display:flex;align-items:center;gap:6px;margin-top:8px}.vprev audio,.pvoice{width:100%;max-width:360px;height:40px}
+.pvoice{display:block;margin:4px 16px 10px;width:calc(100% - 32px)}
+#lsch{display:flex;flex-direction:column}
+.lsc{display:flex;align-items:center;gap:10px;padding:10px 14px}.lsc .rt{flex:1;min-width:0;display:flex;flex-direction:column}.lsc .rt b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lvbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:15px;cursor:pointer}
 .lvbtn svg{color:#E41E3F;fill:#E41E3F;stroke:#E41E3F}
 .lvbtn:active{transform:scale(.98)}
@@ -672,7 +700,7 @@ async function loadFirebase(){
 const S={me:null,tab:'feed',thread:null,posts:[],mine:[],stories:[],friends:new Map(),reqIn:[],reqOut:new Set(),chats:new Map(),msgs:[],
   cm:new Map(),open:new Set(),people:[],q:'',draftImg:null,sv:null,gsel:0,readMap:{},seenMap:{},errShown:false,
   view:null,vposts:[],pq:'',cq:'',rxOpen:null,blocked:new Set(),blockedBy:new Set(),draftPhoto:null,draftCover:null,stick:false,
-  reply:null,fwd:null,feedTab:'all',draftImgs:[],draftStory:null,prefs:{},act:{},mfEmoji:false,gcalls:new Map(),lives:new Map(),plim:20,pend:false,pmore:false,bm:new Map(),bmPosts:new Map(),bmReels:new Map(),pv:null,admin:false,reps:[],myReels:[],reqAcc:[],mnP:[],mnC:[],sq:'',sres:null};
+  reply:null,fwd:null,feedTab:'all',draftImgs:[],draftStory:null,prefs:{},act:{},mfEmoji:false,gcalls:new Map(),lives:new Map(),plim:20,ntPosts:null,ntPeople:null,kin:[],vkin:null,lsched:[],draftVoice:null,pend:false,pmore:false,bm:new Map(),bmPosts:new Map(),bmReels:new Map(),pv:null,admin:false,reps:[],myReels:[],reqAcc:[],mnP:[],mnC:[],sq:'',sres:null};
 const U=new Map(),seenSent=new Map();
 const A={mode:'login',msg:'',ok:false};
 let subs=[],cmSubs=new Map(),msgSub=null,svT=null,regBusy=false,tt,peopleT,vSub=null,uT,rec=null;
@@ -894,10 +922,10 @@ async function downscale(file,max=900,lim=700000){
   return d;
 }
 /* ---------- өгөгдлийн хөрвүүлэгч ---------- */
-const mapPost=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,uid:x.uid,name:x.name||'',text:x.text||'',img:x.img||'',imgs:Array.isArray(x.imgs)?x.imgs:[],likes:Array.isArray(x.likes)?x.likes:[],cc:x.cc||0,rx:x.rx||{},ed:!!x.edited,t:tms(x.createdAt)}};
+const mapPost=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,uid:x.uid,name:x.name||'',text:x.text||'',img:x.img||'',imgs:Array.isArray(x.imgs)?x.imgs:[],likes:Array.isArray(x.likes)?x.likes:[],cc:x.cc||0,rx:x.rx||{},ed:!!x.edited,voice:safeAud(x.voice),t:tms(x.createdAt)}};
 const mapStory=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,uid:x.uid,name:x.name||'',text:x.text||'',g:x.g|0,img:x.img||'',views:Array.isArray(x.views)?x.views:[],t:tms(x.createdAt)}};
 const mapMsg=d=>{const x=d.data({serverTimestamps:'estimate'});return {id:d.id,f:x.from,t:x.text||'',img:x.img||'',aud:x.aud||'',fn:x.fn||'',re:x.re&&typeof x.re==='object'?x.re:null,fw:!!x.fw,rx:x.rx||{},ed:!!x.edited,del:!!x.deleted,ms:tms(x.createdAt),
-  sh:x.sh&&(x.sh.k==='p'||x.sh.k==='r')&&LINK_ID.test(x.sh.id)?{k:x.sh.k,id:x.sh.id,t:String(x.sh.t||'').slice(0,120)}:null,poll:x.poll&&typeof x.poll.q==='string'&&Array.isArray(x.poll.o)?{q:x.poll.q.slice(0,200),o:x.poll.o.slice(0,6).map(o=>String(o).slice(0,60))}:null,pv:x.pv&&typeof x.pv==='object'?x.pv:{},pw:!!(d.metadata&&d.metadata.hasPendingWrites)}};
+  sh:x.sh&&(x.sh.k==='p'||x.sh.k==='r')&&LINK_ID.test(x.sh.id)?{k:x.sh.k,id:x.sh.id,t:String(x.sh.t||'').slice(0,120)}:null,poll:x.poll&&typeof x.poll.q==='string'&&Array.isArray(x.poll.o)?{q:x.poll.q.slice(0,200),o:x.poll.o.slice(0,6).map(o=>String(o).slice(0,60))}:null,pv:x.pv&&typeof x.pv==='object'?x.pv:{},card:x.card&&CARDS[x.card.k]?{k:x.card.k,t:String(x.card.t||'').slice(0,300)}:null,cap:x.cap?tms(x.cap):0,pw:!!(d.metadata&&d.metadata.hasPendingWrites)}};
 const hid=u=>S.blocked.has(u)||S.blockedBy.has(u);
 const safeAud=s=>typeof s==='string'&&/^data:audio\/[^,;]{1,60}(;[^,]{1,60})?;base64,[A-Za-z0-9+\/=]+$/.test(s)?s:'';
 const EMO=['👍','❤️','😂','😮','😢','🔥'];
@@ -994,11 +1022,13 @@ function postHTML(p){
   const open=S.open.has(p.id),liked=p.likes.includes(S.me.uid),img=safeImg(p.img),ims=p.imgs.map(safeImg).filter(Boolean).slice(0,4);
   const cms=open?`<div class="cms">${(S.cm.get(p.id)||[]).map(c=>`<div class="cm">${av(c.uid,c.name,30)}<div class="bb"><b>${esc(c.name)}</b>${hashLink(esc(c.text))}</div>${c.uid===S.me.uid||p.uid===S.me.uid||S.admin?`<button class="cmx" data-a="cmdel" data-k="p" data-p="${esc(p.id)}" data-id="${esc(c.id)}" aria-label="Сэтгэгдэл устгах">${ic('trash',15)}</button>`:''}</div>`).join('')}<form class="cmf" data-f="comment" data-id="${esc(p.id)}"><input data-cin="${esc(p.id)}" placeholder="Сэтгэгдэл бичих" aria-label="Сэтгэгдэл бичих" autocomplete="off" maxlength="500"><button class="btn sm" type="submit">Илгээх</button></form></div>`:'';
   const nm=(U.get(p.uid)||{}).name||p.name,uattr=`data-a="user" data-id="${esc(p.uid)}" data-n="${esc(nm)}"`,mine=p.uid===S.me.uid;
-  return `<article class="post"><div class="ph"><span ${uattr}>${av(p.uid,nm,42)}</span><div ${uattr}><b>${esc(nm)}</b><span class="mute">${ago(p.t)}${p.ed?' · засварласан':''}</span></div>${mine?`<button class="del" data-a="editpost" data-id="${esc(p.id)}">Засах</button><button class="del" data-a="delpost" data-id="${esc(p.id)}">Устгах</button>`:`<button class="del" data-a="pmenu" data-id="${esc(p.uid)}" data-p="${esc(p.id)}" data-n="${esc(nm)}" aria-label="Цэс">${ic('more',20)}</button>`}</div>${p.text?`<p>${hashLink(esc(p.text))}</p>`:''}${ims.length>1?`<div class="igrid n${ims.length}">${ims.map((s,i)=>`<img src="${s}" alt="" data-a="pzoom" data-id="${esc(p.id)}" data-i="${i}">`).join('')}</div>`:img?`<div class="art"><img src="${img}" alt="" data-a="pzoom" data-id="${esc(p.id)}" data-i="0" style="cursor:zoom-in"></div>`:''}<div class="pa"><button data-a="like" data-id="${esc(p.id)}" class="${liked?'liked':''}" aria-pressed="${liked}">${ic('heart',20,liked)}${p.likes.length}</button><button data-a="cm" data-id="${esc(p.id)}">${ic('chat',20)}${p.cc}</button><button data-a="rxo" data-id="${esc(p.id)}" aria-label="Реакц">${ic('smile',20)}</button><span class="rxs">${rxSum(p.rx)}</span><button data-a="pshare" data-id="${esc(p.id)}" aria-label="Хуваалцах" style="margin-left:auto">${ic('share',20)}</button><button data-a="bm" data-id="${esc(p.id)}" class="bmb${bmGet().has(p.id)?' liked':''}" aria-label="Хадгалах">${ic('bookmark',20,bmGet().has(p.id))}</button></div>${S.rxOpen===p.id?rxPick('p',p.id):''}${cms}</article>`;
+  return `<article class="post"><div class="ph"><span ${uattr}>${av(p.uid,nm,42)}</span><div ${uattr}><b>${esc(nm)}</b><span class="mute">${ago(p.t)}${p.ed?' · засварласан':''}</span></div>${mine?`<button class="del" data-a="editpost" data-id="${esc(p.id)}">Засах</button><button class="del" data-a="delpost" data-id="${esc(p.id)}">Устгах</button>`:`<button class="del" data-a="pmenu" data-id="${esc(p.uid)}" data-p="${esc(p.id)}" data-n="${esc(nm)}" aria-label="Цэс">${ic('more',20)}</button>`}</div>${p.text?`<p>${hashLink(esc(p.text))}</p>`:''}${p.voice?`<audio class="pvoice" controls preload="none" src="${p.voice}"></audio>`:''}${ims.length>1?`<div class="igrid n${ims.length}">${ims.map((s,i)=>`<img src="${s}" alt="" data-a="pzoom" data-id="${esc(p.id)}" data-i="${i}">`).join('')}</div>`:img?`<div class="art"><img src="${img}" alt="" data-a="pzoom" data-id="${esc(p.id)}" data-i="0" style="cursor:zoom-in"></div>`:''}<div class="pa"><button data-a="like" data-id="${esc(p.id)}" class="${liked?'liked':''}" aria-pressed="${liked}">${ic('heart',20,liked)}${p.likes.length}</button><button data-a="cm" data-id="${esc(p.id)}">${ic('chat',20)}${p.cc}</button><button data-a="rxo" data-id="${esc(p.id)}" aria-label="Реакц">${ic('smile',20)}</button><span class="rxs">${rxSum(p.rx)}</span><button data-a="pshare" data-id="${esc(p.id)}" aria-label="Хуваалцах" style="margin-left:auto">${ic('share',20)}</button><button data-a="bm" data-id="${esc(p.id)}" class="bmb${bmGet().has(p.id)?' liked':''}" aria-label="Хадгалах">${ic('bookmark',20,bmGet().has(p.id))}</button></div>${S.rxOpen===p.id?rxPick('p',p.id):''}${cms}</article>`;
 }
 function postsHTML(){
   if(S.tab==='search'&&!S.view)return searchPostsHTML();
   const feed=S.tab==='feed'&&!S.view,saved=feed&&S.feedTab==='saved';
+  if(feed&&S.feedTab==='nutag'){const nl=(S.ntPosts||[]).filter(p=>p.uid===S.me.uid||!hid(p.uid));
+    return ntHeadHTML()+(!S.me.nutag?'':S.ntPosts==null?loader(true):nl.length?nl.map(postHTML).join(''):`<div class="empty">${esc(S.me.nutag)}-ийнхны нийтлэл алга. Анхны нийтлэлээ бич!</div>`)}
   let list=S.view?S.vposts:S.tab==='profile'?S.mine:S.posts;
   // хадгалсан: урсгалд ачаалагдаагүй хуучин нийтлэлийг ч id-аар нь татаж харуулна
   if(saved){const byId=new Map(allPosts().map(p=>[p.id,p])),ids=bmIds('p');list=ids.map(id=>byId.get(id)).filter(Boolean);bmFetch('p',ids.filter(id=>!byId.has(id)))}
@@ -1038,12 +1068,12 @@ function welcomeHTML(){
   <button class="btn sm" data-a="wdis" style="margin-top:10px">Ойлголоо</button></section>`;
 }
 function feedHTML(){
-  return verifyHTML()+welcomeHTML()+`<section class="card composer-bar" data-a="newpost" role="button" tabindex="0">${av(S.me.uid,S.me.name,38)}<span style="flex:1;color:var(--mute);font-size:14px">Юу бодож байна?</span><button class="ib" data-a="settings" aria-label="Тохиргоо">${ic('settings',20)}</button></section><section class="card lvrow"><button class="lvbtn" data-a="golive">${ic('video',22)}Live</button></section>${livesHTML()}<div class="tabs2" role="tablist"><button data-a="ftab" data-v="all" class="${S.feedTab==='all'?'on':''}">Бүгд</button><button data-a="ftab" data-v="friends" class="${S.feedTab==='friends'?'on':''}">Найзууд</button><button data-a="ftab" data-v="saved" class="${S.feedTab==='saved'?'on':''}">Хадгалсан</button></div>`+storiesHTML()+`<button class="search sbtn" data-a="search">${ic('search',18)}<span>Хүн, нийтлэл, reels, #таг хайх</span></button><div id="posts">${postsHTML()}</div>`;
+  return verifyHTML()+welcomeHTML()+`<section class="card composer-bar" data-a="newpost" role="button" tabindex="0">${av(S.me.uid,S.me.name,38)}<span style="flex:1;color:var(--mute);font-size:14px">Юу бодож байна?</span><button class="ib" data-a="settings" aria-label="Тохиргоо">${ic('settings',20)}</button></section>${liteBanner()}${holidayBanner()}<section class="card lvrow"><button class="lvbtn" data-a="golive">${ic('video',22)}Live</button><button class="lvbtn sm" data-a="lsched" aria-label="Live товлох">📅</button><button class="lvbtn sm" data-a="greet" aria-label="Мэндчилгээ илгээх">🎉</button></section>${livesHTML()}${lschedHTML()}<div class="tabs2" role="tablist"><button data-a="ftab" data-v="all" class="${S.feedTab==='all'?'on':''}">Бүгд</button><button data-a="ftab" data-v="friends" class="${S.feedTab==='friends'?'on':''}">Найзууд</button><button data-a="ftab" data-v="nutag" class="${S.feedTab==='nutag'?'on':''}">🏔 Нутаг</button><button data-a="ftab" data-v="saved" class="${S.feedTab==='saved'?'on':''}">Хадгалсан</button></div>`+storiesHTML()+`<button class="search sbtn" data-a="search">${ic('search',18)}<span>Хүн, нийтлэл, reels, #таг хайх</span></button><div id="posts">${postsHTML()}</div>`;
 }
 // харагдах горим: 'light' | 'dark' | 'time' (19:00–07:00 харанхуй) | байхгүй = системийнх
 function themePref(){let t=null;try{t=localStorage.getItem('nutag-theme')}catch(_){}return t==='light'||t==='dark'||t==='time'?t:'sys'}
 function applyTheme(){const r=document.documentElement,t=themePref();if(t==='time'){const h=new Date().getHours(),t2=(h>=19||h<7)?'dark':'light';if(r.dataset.theme!==t2)r.dataset.theme=t2}else if(t==='sys')delete r.dataset.theme;else r.dataset.theme=t}
-function composerFormHTML(){return `<h3>Шинэ нийтлэл</h3><form data-f="post"><div class="top">${av(S.me.uid,S.me.name,42)}<textarea id="cmp" rows="2" maxlength="2000" placeholder="Юу бодож байна?" aria-label="Шинэ нийтлэл"></textarea></div><div id="prev">${prevHTML()}</div><div class="bar"><label class="chip">${ic('image',18)}Зураг<input type="file" id="file" accept="image/*" multiple class="vh"></label><button class="btn" type="submit">Нийтлэх</button></div></form>`}
+function composerFormHTML(){return `<h3>Шинэ нийтлэл</h3><form data-f="post"><div class="top">${av(S.me.uid,S.me.name,42)}<textarea id="cmp" rows="2" maxlength="2000" placeholder="Юу бодож байна?" aria-label="Шинэ нийтлэл"></textarea></div><div id="prev">${prevHTML()}</div><div id="vprev"></div><div class="bar"><label class="chip">${ic('image',18)}Зураг<input type="file" id="file" accept="image/*" multiple class="vh"></label><button type="button" class="chip" id="vrecb" data-a="vrec">🎤 Дуу</button><button class="btn" type="submit">Нийтлэх</button></div></form>`}
 function verifyHTML(){const u=auth&&auth.currentUser;return u&&!u.emailVerified?`<section class="card composer" style="display:flex;gap:10px;align-items:center"><span style="flex:1;font-size:14px">📧 Имэйлээ баталгаажуулна уу. Баталгаажуулах холбоос имэйл рүү чинь илгээгдсэн.</span><button class="btn sm line" data-a="verify">Дахин илгээх</button></section>`:''}
 function personAction(uid,name){
   const chat=`<button class="btn sm line" data-a="thread" data-id="${esc(uid)}" data-n="${esc(name)}">Чат</button>`;
@@ -1147,7 +1177,7 @@ function msgsHTML(){
   let lm=-1;vis.forEach((m,i)=>{if(m.f===S.me.uid)lm=i});
   return vis.map((m,i)=>{
     const me=m.f===S.me.uid,dl=m.del,im=dl?'':safeImg(m.img),au=dl?'':safeAud(m.aud);
-    const body=(dl?'':(m.fw?'<span class="fwl">↪ Дамжуулсан</span>':'')+(m.re?`<div class="qt"><b>${esc(m.re.n||'')}</b>${esc(m.re.t||'')}</div>`:''))+(im?`<img class="mimg" src="${im}" data-a="zoom" data-id="${esc(m.id)}" alt="Зураг">`:'')+(au?`<audio controls preload="none" src="${au}"></audio>`:'')+(m.sh&&!dl?shCard(m.sh):'')+(m.poll&&!dl?pollCard(m):'')+(m.t&&!dl?`<span>${mq?hlq(esc(m.t),mq):hashLink(esc(m.t))}</span>`:'')+(dl?'<span class="mdel">🚫 Мессеж устгагдсан</span>':'');
+    const body=(dl?'':(m.cap?'<span class="capl">⏳ Цаг хугацааны капсул · '+ymd(m.cap)+'-нд бичсэн</span>':'')+(m.fw?'<span class="fwl">↪ Дамжуулсан</span>':'')+(m.re?`<div class="qt"><b>${esc(m.re.n||'')}</b>${esc(m.re.t||'')}</div>`:''))+(im?`<img class="mimg" src="${im}" data-a="zoom" data-id="${esc(m.id)}" alt="Зураг">`:'')+(au?`<audio controls preload="none" src="${au}"></audio>`:'')+(m.sh&&!dl?shCard(m.sh):'')+(m.poll&&!dl?pollCard(m):'')+(m.card&&!dl?cardHTML(m.card):'')+(m.t&&!dl?`<span>${mq?hlq(esc(m.t),mq):hashLink(esc(m.t))}</span>`:'')+(dl?'<span class="mdel">🚫 Мессеж устгагдсан</span>':'');
     let seen='';
     if(i===lm&&th.group){const os=(th.group?(c.members||[]):[th.uid]).filter(u=>u!==S.me.uid),n=os.filter(u=>(sn[u]||0)>=m.ms).length;if(n)seen=`<span class="seenl">${th.group?'Үзсэн '+n:'Үзсэн ✓'}</span>`}
     const rb=dl?'':rxSum(m.rx),who=th.group&&!me?`<span class="mn">${esc((U.get(m.f)||{}).name||m.fn||'')}</span>`:'';
@@ -1157,7 +1187,7 @@ function msgsHTML(){
 const mfLike=()=>S.thread?cpref(S.thread.cid).emo||'👍':'👍';
 function mfInner(){
   if(rec)return `<button type="button" class="ib" data-a="reccancel" aria-label="Болих">${ic('close',20)}</button><div class="recbar"><i></i><span id="rt">0:00</span>&nbsp;бичиж байна</div><button type="button" data-a="recsend" aria-label="Илгээх">${ic('send',20)}</button>`;
-  return (S.mfEmoji?`<div class="rxp" id="mfemo" style="position:absolute;bottom:100%;left:14px;right:14px;margin-bottom:6px;flex-wrap:wrap;max-width:none;width:auto;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.25);max-height:160px;overflow:auto">${EMOJI_TYPE.map(e=>`<button type="button" data-a="mfe" data-e="${e}">${e}</button>`).join('')}</div>`:'')+`<label class="ib" aria-label="Зураг илгээх">${ic('image',20)}<input type="file" id="mfile" accept="image/*" class="vh"></label>${S.thread&&S.thread.group?'<button type="button" class="ib" data-a="pollnew" aria-label="Санал асуулга">📊</button>':''}<button type="button" class="ib" id="mfemobtn" data-a="mfemoji" aria-label="Emoji">${ic('smile',20)}</button><input id="mi" placeholder="Мессеж бичих" aria-label="Мессеж бичих" autocomplete="off" maxlength="2000"><button type="button" class="ib" data-a="rec" aria-label="Дуут мессеж">${ic('mic',20)}</button><button type="submit" id="sendbtn" class="like" aria-label="Илгээх">${mfLike()}</button>`;
+  return (S.mfEmoji?`<div class="rxp" id="mfemo" style="position:absolute;bottom:100%;left:14px;right:14px;margin-bottom:6px;flex-wrap:wrap;max-width:none;width:auto;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.25);max-height:160px;overflow:auto">${EMOJI_TYPE.map(e=>`<button type="button" data-a="mfe" data-e="${e}">${e}</button>`).join('')}</div>`:'')+`<label class="ib" aria-label="Зураг илгээх">${ic('image',20)}<input type="file" id="mfile" accept="image/*" class="vh"></label>${S.thread&&S.thread.group?'<button type="button" class="ib" data-a="pollnew" aria-label="Санал асуулга">📊</button>':''}<button type="button" class="ib" data-a="capnew" aria-label="Цаг хугацааны капсул">⏳</button><button type="button" class="ib" id="mfemobtn" data-a="mfemoji" aria-label="Emoji">${ic('smile',20)}</button><input id="mi" placeholder="Мессеж бичих" aria-label="Мессеж бичих" autocomplete="off" maxlength="2000"><button type="button" class="ib" data-a="rec" aria-label="Дуут мессеж">${ic('mic',20)}</button><button type="submit" id="sendbtn" class="like" aria-label="Илгээх">${mfLike()}</button>`;
 }
 function reqBarHTML(){
   const th=S.thread;if(!th||th.group)return '';const c=S.chats.get(th.cid);if(!isReq(c))return '';
@@ -1270,6 +1300,7 @@ function settingsHTML(){
   sec('Аккаунт')+`<button class="btn line" data-a="editprofile">Профайл засах</button>`+
   sec('Хувийн байдал')+`<p class="mute" style="margin:0;font-size:13px">Хэн танд чатаар шууд бичиж болох вэ?</p><div style="display:flex;gap:8px"><button class="btn ${dm==='all'?'':'line'}" style="flex:1" data-a="dmset" data-v="all">Бүгд${dm==='all'?' ✓':''}</button><button class="btn ${dm==='friends'?'':'line'}" style="flex:1" data-a="dmset" data-v="friends">Зөвхөн найзууд${dm==='friends'?' ✓':''}</button></div><button class="btn line" data-a="blocklist">Блоклосон хэрэглэгчид (${S.blocked.size})</button>`+
   sec('Дуудлага ба мэдэгдэл')+`<button class="btn line" data-a="ringset">Дуудлагын дуу</button>`+(np?`<button class="btn line" data-a="${np==='granted'?'pushcheck':'notif'}">${np==='granted'?'🔔 Мэдэгдэл асаалттай — дахин шалгах':np==='denied'?'🔕 Мэдэгдэл хаалттай (браузерийн тохиргооноос нээнэ)':'🔔 Мэдэгдэл асаах'}</button>`:'')+
+  sec('Сүлжээ')+`<button class="btn line" data-a="lite" data-v="${LITE?0:1}">📶 Хөдөө горим: ${LITE?'Асаалттай':'Унтраалттай'}</button><p class="mute" style="margin:4px 0 0;font-size:12px">Сүлжээ сул газар: нийтлэл цөөнөөр ачаална, reels автоматаар тоглохгүй, чатын түүх богино. Интернэтгүй үед бичсэн мессеж сүлжээ орж ирэхэд автоматаар илгээгдэнэ.</p>`+
   sec('Харагдац')+`<div class="tabs2" style="padding:0;flex-wrap:wrap;border:0">${[['sys','Систем'],['light','☀️ Гэрэлтэй'],['dark','🌙 Харанхуй'],['time','🕖 Цагаар']].map(([v,n])=>`<button data-a="theme" data-v="${v}" class="${themePref()===v?'on':''}">${n}</button>`).join('')}</div><p class="mute" style="margin:4px 0 0;font-size:12px">«Цагаар»: 19:00–07:00 харанхуй, бусад үед гэрэлтэй.</p><div class="tabs2" style="padding:8px 0 0;flex-wrap:wrap;border:0">${[['glass','Aurora'],['discord','Discord'],['pop','Поп'],['minimal','Минимал'],['card','Карт']].map(([v,n])=>`<button data-a="dstyle" data-v="${v}" class="${(document.documentElement.dataset.style||'glass')===v?'on':''}">${n}</button>`).join('')}</div>`+
   (S.admin?sec('Админ')+`<button class="btn line" data-a="admin">🛡 Гомдол шийдвэрлэх (${S.reps.length})</button>`:'')+sec('Аюулгүй байдал')+secInfo()+`<button class="btn line" data-a="terms">Үйлчилгээний нөхцөл</button>`+`<button class="btn line" data-a="logout">Гарах</button><button class="btn line" data-a="delaccask" style="color:var(--like)">Акаунт устгах</button>`;
 }
@@ -1305,10 +1336,10 @@ function profileHTML(){
   const me=S.me,t=S.ptab||'posts';
   const meta=`<b>${S.friends.size}</b> найз · <b>${S.mine.length}</b> нийтлэл`;
   const btns=`<button class="btn" data-a="addstory">${ic('plus',18)} Story нэмэх</button><button class="btn line" data-a="editprofile">${ic('edit',17)} Профайл засах</button><button class="btn line fbmore" data-a="settings" aria-label="Тохиргоо">${ic('more',20)}</button>`;
-  const details=[me.joined?`<div>${ic('cal',18)}${joinedTxt(me.joined)}</div>`:'',`<div>${ic('chat',18)}${me.dm==='friends'?'Зөвхөн найзууд надад бичиж болно':'Хүн бүр надад бичиж болно'}</div>`].join('');
+  const details=[me.nutag?`<div>🏔 ${ntTxt(me.nutag,me.sum)}</div>`:'',me.joined?`<div>${ic('cal',18)}${joinedTxt(me.joined)}</div>`:'',`<div>${ic('chat',18)}${me.dm==='friends'?'Зөвхөн найзууд надад бичиж болно':'Хүн бүр надад бичиж болно'}</div>`].join('');
   const body=t==='photos'?profPhotos(S.mine):t==='reels'?profReels(S.myReels)
     :`<section class="card composer-bar" data-a="newpost" role="button" tabindex="0">${av(me.uid,me.name,38)}<span style="flex:1;color:var(--mute);font-size:14px">Юу бодож байна?</span>${ic('image',20)}</section><div id="posts">${postsHTML()}</div>`;
-  return profHead({uid:me.uid,name:me.name,bio:me.bio,cover:me.cover,mine:true,meta,btns,details})+profFriends()+profTabs()+body;
+  return profHead({uid:me.uid,name:me.name,bio:me.bio,cover:me.cover,mine:true,meta,btns,details})+profFriends()+kinMineHTML()+profTabs()+body;
 }
 /* профайл хуудасны том зураг: бүтэн харагдана, дарвал томорно */
 function pav(uid,name,s){
@@ -1320,10 +1351,10 @@ function userHTML(){
   const fr=S.friends.has(v.uid);
   const meta=`${fr?'<b>✓ Найз</b> · ':''}<b>${S.vposts.length}</b> нийтлэл`;
   const btns=(bl?'':fr?`<button class="btn" data-a="thread" data-id="${esc(v.uid)}" data-n="${esc(u.name)}">${ic('chat',18)} Чат</button><button class="btn line" data-a="ucall" data-id="${esc(v.uid)}" data-n="${esc(u.name)}" data-au="1">${ic('phone',18)} Залгах</button>`:personAction(v.uid,u.name))+`<button class="btn line fbmore" data-a="umenu" data-id="${esc(v.uid)}" data-n="${esc(u.name)}" aria-label="Бусад">${ic('more',20)}</button>`;
-  const details=[`<div>${presence(v.uid)||'<span class="pres">Идэвх тодорхойгүй</span>'}</div>`,u.ca?`<div>${ic('cal',18)}${joinedTxt(u.ca)}</div>`:''].join('');
+  const details=[u.nt?`<div>🏔 ${ntTxt(u.nt,u.sm)}</div>`:'',`<div>${presence(v.uid)||'<span class="pres">Идэвх тодорхойгүй</span>'}</div>`,u.ca?`<div>${ic('cal',18)}${joinedTxt(u.ca)}</div>`:''].join('');
   const vis=S.vposts;
   const body=t==='photos'?profPhotos(vis):t==='reels'?(S.vreels?profReels(S.vreels.filter(r=>!hid(r.uid))):loader(true)):`<div id="posts">${postsHTML()}</div>`;
-  return profHead({uid:v.uid,name:u.name,bio:u.bio,cover:u.cover,mine:false,meta,btns,details})+profTabs()+body;
+  return profHead({uid:v.uid,name:u.name,bio:u.bio,cover:u.cover,mine:false,meta,btns,details})+(S.vkin?kinTree(S.vkin,v.uid,u.name):'')+profTabs()+body;
 }
 function render(){
   if(!S.me){authRender();return}
@@ -1449,14 +1480,14 @@ async function doAuth(f){
 function clearView(){if(vSub){try{vSub()}catch(_){}vSub=null}S.view=null;S.vposts=[]}
 function openUser(uid,name){
   if(uid===S.me.uid){clearView();S.tab='profile';S.thread=null;render();return}
-  clearView();S.view={uid,name};S.thread=null;S.ptab='posts';S.vreels=null;
+  clearView();S.view={uid,name};S.thread=null;S.ptab='posts';S.vreels=null;kinLoadFor(uid);
   FS.getDocs(FS.query(FS.collection(db,'reels'),FS.where('uid','==',uid),FS.limit(30))).then(sn=>{if(S.view&&S.view.uid===uid){S.vreels=sn.docs.map(mapReel);if(S.ptab==='reels')refreshProfile()}}).catch(e=>{console.warn('user reels',e&&e.code);if(S.view&&S.view.uid===uid)S.vreels=[]});
   const {collection,query,where,limit,onSnapshot}=FS;
   vSub=onSnapshot(query(collection(db,'posts'),where('uid','==',uid),limit(60)),sn=>{
     S.vposts=sn.docs.map(mapPost).sort((a,b)=>b.t-a.t);if(S.view&&S.view.uid===uid)refreshProfile()},onErr);
   render();$('#main').scrollTop=0;
 }
-function unsubAll(){userSubsStop();clearView();if(postSub){try{postSub()}catch(_){}postSub=null}subs.forEach(f=>{try{f()}catch(_){}});subs=[];cmSubs.forEach(f=>{try{f()}catch(_){}});cmSubs.clear();if(msgSub){try{msgSub()}catch(_){}msgSub=null}}
+function unsubAll(){if(ntSub){try{ntSub()}catch(_){}ntSub=null}userSubsStop();clearView();if(postSub){try{postSub()}catch(_){}postSub=null}subs.forEach(f=>{try{f()}catch(_){}});subs=[];cmSubs.forEach(f=>{try{f()}catch(_){}});cmSubs.clear();if(msgSub){try{msgSub()}catch(_){}msgSub=null}}
 /* ---------- имэйл баталгаажуулалт: баталгаажаагүй бол апп руу оруулахгүй ---------- */
 let vfT=null;
 function vfStop(){clearInterval(vfT);vfT=null}
@@ -1487,9 +1518,9 @@ async function startSession(u){
     if(sn.exists())p=sn.data();
     else{const nm=(u.displayName||(u.email||'Хэрэглэгч').split('@')[0]).slice(0,40);p={name:nm,bio:''};await FS.setDoc(ref,{name:nm,nameLower:nm.toLowerCase(),bio:'',createdAt:FS.serverTimestamp()})}
     unsubAll();U.clear();seenSent.clear();bmTried.clear();
-    Object.assign(S,{me:{uid:u.uid,name:p.name,bio:p.bio||'',dm:p.dm||'all',cover:safeImg(p.cover),joined:tv(p.createdAt)},tab:'feed',thread:null,posts:[],mine:[],stories:[],friends:new Map(),reqIn:[],reqOut:new Set(),chats:new Map(),msgs:[],cm:new Map(),open:new Set(),people:[],q:'',draftImg:null,errShown:false,view:null,vposts:[],pq:'',cq:'',rxOpen:null,blocked:new Set(),blockedBy:new Set(),draftPhoto:null,draftCover:null,stick:false,
+    Object.assign(S,{me:{uid:u.uid,name:p.name,bio:p.bio||'',dm:p.dm||'all',cover:safeImg(p.cover),joined:tv(p.createdAt),nutag:p.nutag||'',sum:p.sum||''},tab:'feed',thread:null,posts:[],mine:[],stories:[],friends:new Map(),reqIn:[],reqOut:new Set(),chats:new Map(),msgs:[],cm:new Map(),open:new Set(),people:[],q:'',draftImg:null,errShown:false,view:null,vposts:[],pq:'',cq:'',rxOpen:null,blocked:new Set(),blockedBy:new Set(),draftPhoto:null,draftCover:null,stick:false,
       readMap:lsGet('nutag-read-'+u.uid,{}),seenMap:lsGet('nutag-seen-'+u.uid,{}),
-      reply:null,fwd:null,feedTab:'all',draftImgs:[],draftStory:null,prefs:lsGet('maze-cp-'+u.uid,{}),act:lsGet('maze-act-'+u.uid,null),plim:20,pend:false,pmore:false,bm:new Map(),bmPosts:new Map(),bmReels:new Map(),pv:null,admin:false,reps:[],myReels:[],reqAcc:[],mnP:[],mnC:[],sq:'',sres:null});
+      reply:null,fwd:null,feedTab:'all',draftImgs:[],draftStory:null,prefs:lsGet('maze-cp-'+u.uid,{}),act:lsGet('maze-act-'+u.uid,null),plim:LITE?10:20,ntPosts:null,ntPeople:null,kin:[],vkin:null,lsched:[],draftVoice:null,pend:false,pmore:false,bm:new Map(),bmPosts:new Map(),bmReels:new Map(),pv:null,admin:false,reps:[],myReels:[],reqAcc:[],mnP:[],mnC:[],sq:'',sres:null});
     if(!S.act){S.act={t0:Date.now(),p:{}};lsSet('maze-act-'+u.uid,S.act)}
     subscribe();heartbeat();registerPush();loadIce();render();toast('Тавтай морил, '+S.me.name);notifNudge();termsCheck();
   }catch(e){onErr(e);A.mode='login';amsg('Профайлаа уншиж чадсангүй. Firestore-ийн тохиргоогоо шалгана уу.');S.me=null;render()}
@@ -1567,7 +1598,12 @@ function subscribe(){
       if(d.host!==uid&&S.friends.has(d.host)&&!hid(d.host)&&Date.now()-tms(d.createdAt)<120000)notify('🔴 Live',(d.hostName||'Найз тань')+' live хийж байна','live-'+ch.doc.id)});
     if(!sn.metadata.fromCache)rdy.lives=true;
     S.lives=new Map(sn.docs.map(d=>[d.id,{id:d.id,...d.data({serverTimestamps:'estimate'})}]));refreshLives()},e=>console.warn('lives',e&&e.code)));
-  if(S.pendLive){const l=S.pendLive;S.pendLive='';liveWatch(l)} // алдаа гарвал (rules deploy хийгээгүй г.м) аппыг бүхэлд нь саатуулахгүй
+  if(S.pendLive){const l=S.pendLive;S.pendLive='';liveWatch(l)}
+  subs.push(onSnapshot(query(collection(db,'kin'),where('members','array-contains',uid)),sn=>{
+    if(rdy.kin&&!sn.metadata.fromCache)sn.docChanges().forEach(ch=>{const k=ch.doc.data();if(ch.type==='added'&&k.st==='p'&&k.to===uid)notify('👪 Гэр бүлийн хүсэлт',((k.names&&k.names[k.from])||'Хэн нэгэн')+' таныг гэр бүлдээ нэмэх хүсэлт илгээлээ','kin-'+ch.doc.id)});
+    if(!sn.metadata.fromCache)rdy.kin=true;S.kin=sn.docs.map(d=>({id:d.id,...d.data()}));refreshProfile()},e=>console.warn('kin',e&&e.code)));
+  subs.push(onSnapshot(query(collection(db,'lsched'),where('at','>',Timestamp.fromMillis(Date.now()-36e5)),orderBy('at','asc'),limit(30)),sn=>{
+    S.lsched=sn.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));refreshLsched()},e=>console.warn('lsched',e&&e.code))); // алдаа гарвал (rules deploy хийгээгүй г.м) аппыг бүхэлд нь саатуулахгүй
   loadPeople('');
   adminInit();
   if(S.pendLink){const l=S.pendLink;S.pendLink=null;openLink(l.k,l.id)}
@@ -2149,6 +2185,160 @@ function livesHTML(){
 }
 const refreshLives=()=>{const e=$('#lives');if(e)e.outerHTML=livesHTML()};
 addEventListener('pagehide',e=>{if(LIVE&&!e.persisted)liveEnd()});
+/* ---------- Нутаг нэгтэн: профайлд аймаг/сум, мэдээний урсгалд "Нутгийнхан" ---------- */
+const AIMAGS=['Улаанбаатар','Архангай','Баян-Өлгий','Баянхонгор','Булган','Говь-Алтай','Говьсүмбэр','Дархан-Уул','Дорноговь','Дорнод','Дундговь','Завхан','Орхон','Өвөрхангай','Өмнөговь','Сүхбаатар','Сэлэнгэ','Төв','Увс','Ховд','Хөвсгөл','Хэнтий'];
+const ntTxt=(a,s)=>a?esc(a)+(s?', '+esc(s):''):'';
+let ntSub=null;
+function ntLoad(){
+  if(ntSub){try{ntSub()}catch(_){}ntSub=null}S.ntPosts=null;S.ntPeople=null;
+  const a=S.me.nutag;if(!a)return;
+  const {collection,query,where,orderBy,limit,onSnapshot,getDocs}=FS;
+  ntSub=onSnapshot(query(collection(db,'posts'),where('nt','==',a),orderBy('createdAt','desc'),limit(LITE?10:30)),sn=>{S.ntPosts=sn.docs.map(mapPost);refreshPosts()},e=>{console.warn('nutag posts',e&&e.code);S.ntPosts=[];refreshPosts()});
+  getDocs(query(collection(db,'users'),where('nutag','==',a),limit(40))).then(sn=>{
+    S.ntPeople=sn.docs.filter(d=>d.id!==S.me.uid&&!hid(d.id)).map(d=>{const x=d.data();
+      if(!U.has(d.id))U.set(d.id,{name:x.name||'Хэрэглэгч',bio:x.bio||'',photo:safeImg(x.photo),cover:safeImg(x.cover),dm:x.dm||'all',ls:tv(x.lastSeen),nt:x.nutag||'',sm:x.sum||''});
+      return {uid:d.id,name:x.name||'Хэрэглэгч',sm:x.sum||''}});refreshPosts()}).catch(e=>{console.warn('nutag people',e&&e.code);S.ntPeople=[]});
+}
+function ntHeadHTML(){
+  if(!S.me.nutag)return `<section class="card ntask"><b>🏔 Нутаг нэгтнүүдээ олоорой</b><span class="mute">Төрсөн аймаг, сумаа профайлдаа нэмбэл нутгийнхнаа олж, нутгийн мэдээгээ хуваалцана.</span><button class="btn" data-a="editprofile">Нутгаа сонгох</button></section>`;
+  const pp=S.ntPeople;
+  return `<div class="nthd">🏔 <b>${esc(S.me.nutag)}</b>-ийнхан</div>`+(pp==null?'':pp.length?`<div class="lvlist">${pp.map(p=>`<button class="lvcard" data-a="user" data-id="${esc(p.uid)}" data-n="${esc(p.name)}">${av(p.uid,p.name,56)}<span class="n">${esc(p.name)}</span><span class="mute">${esc(p.sm||'')}</span></button>`).join('')}</div>`:`<p class="mute" style="padding:4px 18px">Одоогоор ${esc(S.me.nutag)}-аас өөр хүн бүртгүүлээгүй байна. Найзуудаа урь!</p>`);
+}
+
+/* ---------- Ургийн бичиг: найзаа гэр бүлийн гишүүнээр холбоно (kin/{хос id}), хоёр тал зөвшөөрсний дараа харагдана ---------- */
+const KREL={gpa:'Өвөө/эмээ',par:'Эцэг/эх',old:'Ах/эгч',spo:'Хань',cou:'Үеэл',yng:'Дүү',chi:'Хүүхэд',gch:'Ач/зээ',rel:'Хамаатан'};
+const KINV={gpa:'gch',gch:'gpa',par:'chi',chi:'par',old:'yng',yng:'old',spo:'spo',cou:'cou',rel:'rel'};
+const kinRel=(k,me)=>k.from===me?k.rel:KINV[k.rel]; // me-ийн хувьд нөгөө хүн хэн бэ
+const kinOther=(k,me)=>k.members.find(u=>u!==me);
+const kinName=(k,u)=>(U.get(u)||{}).name||(k.names&&k.names[u])||'Хэрэглэгч';
+function kinTree(list,me,meName){
+  const ok=list.filter(k=>k.st==='ok'&&!hid(kinOther(k,me)));if(!ok.length)return '';
+  const by=r=>ok.filter(k=>kinRel(k,me)===r),ppl=(ks,r)=>ks.map(k=>{const u=kinOther(k,me),nm=kinName(k,u);
+    return `<button class="kp" data-a="user" data-id="${esc(u)}" data-n="${esc(nm)}">${av(u,nm,44)}<span>${esc(nm)}</span><em>${KREL[r]}</em></button>`}).join('');
+  const row=(rs,center)=>{const h=rs.map(r=>ppl(by(r),r)).join('');return h||center?`<div class="krow">${h}${center||''}</div>`:''};
+  const mid=`<span class="kp me">${av(me,meName,48)}<span>${esc(meName)}</span><em>${me===S.me.uid?'Та':''}</em></span>`;
+  return `<section class="card ktree"><div class="sec" style="padding:0 0 6px">👪 Ургийн бичиг</div>${row(['gpa'])}${row(['par'])}<div class="krow">${ppl(by('old'),'old')}${mid}${ppl(by('spo'),'spo')}${ppl(by('yng'),'yng')}${ppl(by('cou'),'cou')}</div>${row(['chi'])}${row(['gch'])}${row(['rel'])}</section>`;
+}
+function kinMineHTML(){
+  const me=S.me.uid,inc=S.kin.filter(k=>k.st==='p'&&k.to===me&&!hid(k.from)),out=S.kin.filter(k=>k.st==='p'&&k.from===me);
+  const req=inc.length?`<section class="card kreq"><div class="sec" style="padding:0 0 6px">👪 Гэр бүлийн хүсэлт</div>${inc.map(k=>{const nm=kinName(k,k.from);
+    return `<div class="krq">${av(k.from,nm,36)}<span><b>${esc(nm)}</b> таныг өөрийн <b>${KREL[k.rel]}</b> гэж нэмэх хүсэлт илгээлээ</span><button class="btn sm" data-a="kinok" data-id="${esc(k.id)}">Зөвшөөрөх</button><button class="btn sm line" data-a="kindel" data-id="${esc(k.id)}">Татгалзах</button></div>`}).join('')}</section>`:'';
+  const outH=out.length?`<p class="mute" style="padding:0 18px;font-size:13px">Хүлээгдэж буй: ${out.map(k=>{const u=k.to,nm=kinName(k,u);return `${esc(nm)} (${KREL[KINV[k.rel]]}) <a class="ht" data-a="kindel" data-id="${esc(k.id)}">цуцлах</a>`}).join(', ')}</p>`:'';
+  return req+kinTree(S.kin,me,S.me.name)+outH;
+}
+function kinAddSheet(u,n){
+  const ex=S.kin.find(k=>k.members.includes(u));
+  if(ex){openSheet(`<h3>👪 ${esc(n)}</h3><p class="mute" style="margin:0">${ex.st==='ok'?esc(n)+' таны '+KREL[kinRel(ex,S.me.uid)]:'Хүсэлт хүлээгдэж байна'}</p><button class="btn line" style="color:var(--like)" data-a="kindel" data-id="${esc(ex.id)}">${ex.st==='ok'?'Гэр бүлээс хасах':'Хүсэлтээ цуцлах'}</button>`);return}
+  openSheet(`<h3>👪 ${esc(n)} таны хэн бэ?</h3><div class="kpick">${Object.entries(KREL).map(([k,l])=>`<button class="chip" data-a="kinadd" data-id="${esc(u)}" data-n="${esc(n)}" data-r="${k}">${l}</button>`).join('')}</div><p class="mute" style="margin:0;font-size:13px">${esc(n)} зөвшөөрсний дараа ургийн бичигт харагдана.</p>`);
+}
+async function kinAdd(u,n,rel){
+  if(!S.friends.has(u)){toast('Зөвхөн найзаа гэр бүлд нэмнэ');return}
+  const id=chatId(S.me.uid,u);
+  try{await FS.setDoc(FS.doc(db,'kin',id),{members:id.split('_'),from:S.me.uid,to:u,rel,st:'p',names:{[S.me.uid]:S.me.name.slice(0,40),[u]:String(n).slice(0,40)},createdAt:FS.serverTimestamp()});closeOv();toast(n+' руу хүсэлт илгээлээ');pushPing({kind:'kin',id})}
+  catch(e){console.warn('kin',e);toast('Илгээж чадсангүй')}
+}
+// бусдын профайл дээр тэдний ургийн бичиг
+function kinLoadFor(uid){
+  S.vkin=null;FS.getDocs(FS.query(FS.collection(db,'kin'),FS.where('members','array-contains',uid))).then(sn=>{
+    if(!S.view||S.view.uid!==uid)return;S.vkin=sn.docs.map(d=>({id:d.id,...d.data()}));refreshProfile()}).catch(e=>console.warn('vkin',e&&e.code));
+}
+
+/* ---------- Хөдөө горим: сул сүлжээнд бага өгөгдөл зарцуулна ---------- */
+let LITE=lsGet('maze-lite',false)===true;
+const slowNet=()=>{const c=navigator.connection;return !!c&&(c.saveData||/(^|-)2g$/.test(c.effectiveType||''))};
+function liteBanner(){
+  if(LITE)return `<div class="litebar">📶 Хөдөө горим асаалттай · бага өгөгдөл зарцуулж байна</div>`;
+  return slowNet()&&!lsGet('maze-lite-ask',false)?`<section class="card litebar ask"><span>📶 Сүлжээ сул байна. Хөдөө горим асаах уу?</span><button class="btn sm" data-a="lite" data-v="1">Асаах</button><button class="btn sm line" data-a="liteno">Үгүй</button></section>`:'';
+}
+function setLite(on){LITE=!!on;lsSet('maze-lite',LITE);S.plim=LITE?10:20;subPosts();if(S.me.nutag&&S.feedTab==='nutag')ntLoad();render();toast(LITE?'Хөдөө горим асаалаа':'Хөдөө горим унтарлаа')}
+
+/* ---------- Баярын мэндчилгээ: загвартай карт, олон найз руу нэг дор ---------- */
+const CARDS={
+  ts:{n:'Цагаан сар',e:'🌙',g:'linear-gradient(135deg,#1e3a8a,#3b82f6 60%,#93c5fd)',t:'Сар шинэдээ сайхан шинэлээрэй! Аз жаргал, эрүүл энхийг хүсье.'},
+  nd:{n:'Наадам',e:'🏹',g:'linear-gradient(135deg,#b91c1c,#ef4444 55%,#2563eb)',t:'Үндэсний их баяр наадмын мэнд хүргэе!'},
+  bd:{n:'Төрсөн өдөр',e:'🎂',g:'linear-gradient(135deg,#db2777,#f472b6 55%,#fbbf24)',t:'Төрсөн өдрийн мэнд хүргэе! Хүссэн бүхэн чинь биелэх болтугай.'},
+  ny:{n:'Шинэ жил',e:'🎄',g:'linear-gradient(135deg,#065f46,#10b981 55%,#fde68a)',t:'Шинэ оны мэнд хүргэе! Ирэх жил аз жаргал, амжилтаар дүүрэн байх болтугай.'},
+  w8:{n:'Мартын 8',e:'🌷',g:'linear-gradient(135deg,#9d174d,#ec4899 55%,#fde68a)',t:'Олон улсын эмэгтэйчүүдийн баярын мэнд хүргэе!'},
+  ty:{n:'Баярлалаа',e:'💐',g:'linear-gradient(135deg,#7c3aed,#a78bfa 55%,#fcd34d)',t:'Танд чин сэтгэлээсээ баярлалаа!'}
+};
+const cardHTML=c=>{const x=CARDS[c.k]||CARDS.ty;return `<div class="gcard" style="background:${x.g}"><span class="ge">${x.e}</span><b>${x.n}</b><p>${esc(c.t)}</p></div>`};
+// тогтмол огноотой баярууд: ойртох үед мэдээний урсгалд санал болгоно
+function holidayNow(){const d=new Date(),m=d.getMonth()+1,day=d.getDate();
+  if((m===12&&day>=28)||(m===1&&day<=2))return 'ny';if(m===3&&day>=6&&day<=8)return 'w8';if(m===7&&day>=9&&day<=13)return 'nd';return ''}
+function holidayBanner(){const k=holidayNow();if(!k||lsGet('maze-hol-'+k+new Date().getFullYear(),false))return '';const x=CARDS[k];
+  return `<section class="card holbar" style="background:${x.g}"><span>${x.e} ${x.n} ойртлоо! Найзууддаа мэндчилгээ илгээх үү?</span><button class="btn sm" data-a="greet" data-k="${k}">Илгээх</button><button class="ib" data-a="holx" data-k="${k}" aria-label="Хаах">${ic('close',16)}</button></section>`}
+function greetSheet(k){
+  k=CARDS[k]?k:'ts';S.gk=k;const fr=[...S.friends.entries()].filter(([u])=>!hid(u));
+  openSheet(`<h3>🎉 Мэндчилгээ илгээх</h3><div class="gpick">${Object.entries(CARDS).map(([key,x])=>`<button class="gpk${key===k?' on':''}" data-a="greetk" data-k="${key}" style="background:${x.g}">${x.e}<span>${x.n}</span></button>`).join('')}</div>
+  <div id="gprev">${cardHTML({k,t:CARDS[k].t})}</div><label>Мэндчилгээ<textarea id="gt" maxlength="300" rows="2">${esc(CARDS[k].t)}</textarea></label>
+  <div class="sec" style="padding:4px 0 0;display:flex;justify-content:space-between">Хэнд илгээх вэ?<a class="ht" data-a="gall">Бүгдийг сонгох</a></div>
+  ${fr.length?`<div class="gfr">${fr.map(([u,n])=>`<label class="gfi"><input type="checkbox" value="${esc(u)}" data-n="${esc(n)}">${av(u,n,32)}<span>${esc(n)}</span></label>`).join('')}</div>`:'<p class="mute">Танд найз алга байна.</p>'}
+  <button class="btn" data-a="greetsend">Илгээх</button>`);
+}
+async function greetSend(btn){
+  const k=S.gk,t=($('#gt').value||'').trim().slice(0,300)||CARDS[k].t,to=[...document.querySelectorAll('.gfi input:checked')].map(i=>({uid:i.value,name:i.dataset.n}));
+  if(!to.length){toast('Найзаа сонгоно уу');return}if(to.length>50){toast('Нэг удаад 50 хүртэл хүнд илгээнэ');return}
+  btn.disabled=true;btn.textContent='Илгээж байна…';let ok=0;
+  for(const p of to){try{await sendTo({cid:chatId(S.me.uid,p.uid),uid:p.uid,name:p.name,group:false},{card:{k,t}});ok++}catch(e){console.warn('greet',p.uid,e&&e.code)}}
+  closeOv();toast(ok===to.length?'🎉 '+ok+' найз руу илгээлээ':ok+'/'+to.length+' хүнд илгээгдлээ',3500);
+}
+
+/* ---------- Цаг хугацааны капсул: товлосон өдөр мессеж болж очно (push-worker cron хүргэнэ) ---------- */
+const dtLocal=ms=>{const d=new Date(ms),z=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+'T'+z(d.getHours())+':'+z(d.getMinutes())};
+const ymd=ms=>{const d=new Date(ms),z=n=>String(n).padStart(2,'0');return d.getFullYear()+'.'+z(d.getMonth()+1)+'.'+z(d.getDate())};
+async function capSheet(){
+  const th=S.thread;if(!th)return;const now=Date.now();
+  openSheet(`<h3>⏳ Цаг хугацааны капсул</h3><p class="mute" style="margin:0;font-size:13px">Бичсэн мессеж тань сонгосон өдөр, цагт ${th.group?'бүлэг рүү':esc(th.name)+' руу'} очно. Тэр хүртэл хэн ч харахгүй.</p><label>Мессеж<textarea id="capt" maxlength="2000" rows="4" placeholder="Ирээдүйд хэлэх үг…"></textarea></label><label>Хэзээ нээгдэх вэ?<input id="capd" type="datetime-local" min="${dtLocal(now+36e5)}" max="${dtLocal(now+5*365*864e5)}" value="${dtLocal(now+365*864e5)}"></label><button class="btn" data-a="capsend">Капсул илгээх</button><div id="capmine"></div>`);
+  try{const sn=await FS.getDocs(FS.query(FS.collection(db,'capsules'),FS.where('from','==',S.me.uid),FS.where('cid','==',th.cid)));
+    const el=$('#capmine');if(el&&sn.size)el.innerHTML=`<div class="sec" style="padding:12px 0 4px">Хүлээгдэж буй капсулууд</div>`+sn.docs.map(d=>{const x=d.data();return `<div class="mrow"><div class="rt" style="flex:1"><b>🔒 ${ymd(tms(x.at))}-нд нээгдэнэ</b><span class="mute">${esc(String(x.text||'').slice(0,60))}</span></div><button class="ib" data-a="capdel" data-id="${esc(d.id)}" aria-label="Цуцлах">${ic('close',18)}</button></div>`}).join('');
+  }catch(e){console.warn('capsules',e&&e.code)}
+}
+async function capSend(btn){
+  const th=S.thread;if(!th)return;const t=($('#capt').value||'').trim(),at=new Date($('#capd').value).getTime();
+  if(!t){toast('Мессежээ бичнэ үү');return}if(!(at>Date.now()+30*6e4)){toast('Дор хаяж 1 цагийн дараах цагийг сонгоно уу');return}if(at>Date.now()+5*365*864e5){toast('5 жилээс хэтрэхгүй');return}
+  btn.disabled=true;
+  const d={from:S.me.uid,fn:S.me.name.slice(0,40),cid:th.cid,g:!!th.group,text:t.slice(0,2000),at:FS.Timestamp.fromMillis(at),createdAt:FS.serverTimestamp()};
+  if(!th.group){d.to=th.uid;d.tn=String(th.name||'').slice(0,40)}
+  try{await FS.addDoc(FS.collection(db,'capsules'),d);closeOv();toast('⏳ Капсул '+ymd(at)+'-нд нээгдэнэ',3500)}catch(e){console.warn('capsule',e);btn.disabled=false;toast('Илгээж чадсангүй')}
+}
+
+/* ---------- Дуут пост: бичихэд хэцүү хүмүүст ---------- */
+let vrec=null;
+async function vrecToggle(btn){
+  if(vrec){vrec.mr.stop();return}
+  if(!navigator.mediaDevices||!window.MediaRecorder){toast('Энэ төхөөрөмж дуу бичихийг дэмжихгүй байна',3000);return}
+  let st;try{st=await navigator.mediaDevices.getUserMedia({audio:true})}catch(_){toast('Микрофоны зөвшөөрөл өгнө үү',3500);return}
+  const mt=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(t=>MediaRecorder.isTypeSupported(t))||'';
+  const mr=new MediaRecorder(st,mt?{mimeType:mt,audioBitsPerSecond:24000}:{audioBitsPerSecond:24000}),chunks=[],r=vrec={mr,t0:Date.now()};
+  mr.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+  const lbl=()=>{const b=$('#vrecb');if(b)b.textContent=vrec===r?'⏹ Зогсоох '+Math.floor((Date.now()-r.t0)/1000)+'с':'🎤 Дуу'};
+  r.iv=setInterval(()=>{lbl();if(Date.now()-r.t0>120000)mr.stop()},500);lbl();
+  mr.onstop=async()=>{st.getTracks().forEach(t=>t.stop());clearInterval(r.iv);vrec=null;lbl();
+    const blob=new Blob(chunks,{type:mr.mimeType||mt||'audio/webm'});if(!chunks.length)return;
+    if(blob.size>600000){toast('Хэт урт байна (2 минутаас бага)');return}
+    S.draftVoice=await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(blob)});drawVoice()};
+}
+function drawVoice(){const e=$('#vprev');if(e)e.innerHTML=S.draftVoice?`<div class="vprev"><audio controls src="${S.draftVoice}"></audio><button type="button" class="ib" data-a="vdel" aria-label="Устгах">${ic('close',18)}</button></div>`:''}
+
+/* ---------- Live хуваарь: урьдчилан зарлаж, найзууд "Сануулах" дарна (push-worker cron мэдэгдэнэ) ---------- */
+function lschedSheet(){const now=Date.now();
+  openSheet(`<h3>📅 Live товлох</h3><label>Юуны тухай вэ?<input id="lst" maxlength="80" placeholder="Жишээ: Наадмын тойм, асуулт хариулт…" autocomplete="off"></label><label>Хэзээ?<input id="lsd" type="datetime-local" min="${dtLocal(now+10*6e4)}" max="${dtLocal(now+30*864e5)}" value="${dtLocal(now+864e5)}"></label><p class="mute" style="margin:0;font-size:13px">Найзууд тань «Сануулах» дарвал live эхлэх үед мэдэгдэл авна.</p><button class="btn" data-a="lschedsave">Товлох</button>`)}
+async function lschedSave(btn){
+  const t=($('#lst').value||'').trim(),at=new Date($('#lsd').value).getTime();
+  if(!t){toast('Гарчиг бичнэ үү');return}if(!(at>Date.now()+5*6e4)||at>Date.now()+30*864e5){toast('Ирэх 30 хоногийн доторх цагийг сонгоно уу');return}
+  btn.disabled=true;
+  try{await FS.addDoc(FS.collection(db,'lsched'),{host:S.me.uid,hostName:S.me.name.slice(0,40),title:t.slice(0,80),at:FS.Timestamp.fromMillis(at),rem:[],createdAt:FS.serverTimestamp()});closeOv();toast('📅 Live товлогдлоо')}
+  catch(e){console.warn('lsched',e);btn.disabled=false;toast('Товлож чадсангүй')}
+}
+const wday=ms=>{const d=new Date(ms),z=n=>String(n).padStart(2,'0'),dd=Math.round((new Date(d).setHours(0,0,0,0)-new Date().setHours(0,0,0,0))/864e5);
+  return (dd===0?'Өнөөдөр':dd===1?'Маргааш':['Ням','Даваа','Мягмар','Лхагва','Пүрэв','Баасан','Бямба'][d.getDay()]+' ('+z(d.getMonth()+1)+'/'+z(d.getDate())+')')+' '+z(d.getHours())+':'+z(d.getMinutes())};
+function lschedHTML(){
+  const me=S.me.uid,ls=(S.lsched||[]).filter(x=>(x.host===me||S.friends.has(x.host))&&!hid(x.host)&&tms(x.at)>Date.now()-36e5).sort((a,b)=>tms(a.at)-tms(b.at)).slice(0,5);
+  if(!ls.length)return '<div id="lsch"></div>';
+  return `<div id="lsch">${ls.map(x=>{const nm=x.host===me?'Та':(U.get(x.host)||{}).name||x.hostName,on=(x.rem||[]).includes(me);
+    return `<div class="card lsc">${av(x.host,nm,40)}<div class="rt"><b>📅 ${esc(x.title)}</b><span class="mute">${esc(nm)} · ${wday(tms(x.at))}</span></div>${x.host===me?`<button class="btn sm line" data-a="lscheddel" data-id="${esc(x.id)}">Цуцлах</button>`:`<button class="btn sm${on?' line':''}" data-a="lschedrem" data-id="${esc(x.id)}">${on?'✓ Сануулна':'🔔 Сануулах'}</button>`}</div>`}).join('')}</div>`;
+}
+const refreshLsched=()=>{const e=$('#lsch');if(e)e.outerHTML=lschedHTML()};
 /* дэлгэц хуваалцах: камерын видеог бүх холболт дээр дэлгэцийн видеогоор сольж, дуусахад буцаана */
 function gSwap(from,to){
   const c=CALL;if(from)c.local.removeTrack(from);if(to)c.local.addTrack(to);
@@ -2245,7 +2435,7 @@ function openThread(uid,name,gid){
   clearView();recStop(false);S.rxOpen=null;
   if(msgSub){msgSub();msgSub=null}
   S.mq="";S.mqOn=false;S.mfEmoji=false;S.thread={uid:gid?cid:uid,name,cid,group:!!gid};S.tab='chat';S.msgs=[];S.stick=true;S.msgsLoaded=false;lastMsgsHtml='';render();clearTimeout(S.ldT);S.ldT=setTimeout(()=>{if(S.thread&&S.thread.cid===cid&&!S.msgsLoaded){S.msgsLoaded=true;refreshMsgs()}},1500);
-  msgSub=onSnapshot(query(collection(db,'chats',cid,'messages'),orderBy('createdAt','asc'),limitToLast(100)),{includeMetadataChanges:true},sn=>{
+  msgSub=onSnapshot(query(collection(db,'chats',cid,'messages'),orderBy('createdAt','asc'),limitToLast(LITE?40:100)),{includeMetadataChanges:true},sn=>{
     S.msgs=sn.docs.map(mapMsg);if(sn.metadata&&sn.metadata.fromCache&&!sn.docs.length&&!S.msgsLoaded)return;S.msgsLoaded=true;if(S.thread&&S.thread.cid===cid){refreshMsgs();markRead(cid)}},onErr);
   markRead(cid);const mi=$('#mi');if(mi&&!(window.matchMedia&&matchMedia('(pointer:coarse)').matches))mi.focus({preventScroll:true});
 }
@@ -2263,12 +2453,12 @@ function typingPing(){
 }
 async function sendTo(th,p){
   const {doc,collection,writeBatch,serverTimestamp}=FS,me=S.me,cid=th.cid,b=writeBatch(db),ex=S.chats.get(cid);
-  const pv=p.poll?'📊 '+p.poll.q.slice(0,190):p.text?p.text.slice(0,200):p.img?'📷 Зураг':p.sh?(p.sh.k==='p'?'📎 Нийтлэл':'🎬 Reel'):'🎤 Дуут мессеж',cd={last:pv,lastAt:serverTimestamp(),lastFrom:me.uid};
+  const pv=p.card?'🎉 '+CARDS[p.card.k].n:p.poll?'📊 '+p.poll.q.slice(0,190):p.text?p.text.slice(0,200):p.img?'📷 Зураг':p.sh?(p.sh.k==='p'?'📎 Нийтлэл':'🎬 Reel'):'🎤 Дуут мессеж',cd={last:pv,lastAt:serverTimestamp(),lastFrom:me.uid};
   if(!th.group){cd.members=[me.uid,th.uid].sort();cd.names={[me.uid]:me.name,[th.uid]:th.name};
     if(!ex)cd.by=me.uid;                                             // шинэ чат: хэн эхлүүлсэн
     else if(isReq(ex))cd.ok=true}                                    // хүсэлтэд хариулбал зөвшөөрсөнд тооцно
   b.set(doc(db,'chats',cid),cd,{merge:true});
-  const md={from:me.uid,fn:me.name,text:p.text||'',createdAt:serverTimestamp()};if(p.img)md.img=p.img;if(p.aud)md.aud=p.aud;if(p.re)md.re={n:String(p.re.n||'').slice(0,40),t:String(p.re.t||'').slice(0,100)};if(p.fw)md.fw=true;if(p.sh)md.sh={k:p.sh.k,id:p.sh.id,t:String(p.sh.t||'').slice(0,120)};if(p.poll)md.poll={q:p.poll.q,o:p.poll.o};
+  const md={from:me.uid,fn:me.name,text:p.text||'',createdAt:serverTimestamp()};if(p.img)md.img=p.img;if(p.aud)md.aud=p.aud;if(p.re)md.re={n:String(p.re.n||'').slice(0,40),t:String(p.re.t||'').slice(0,100)};if(p.fw)md.fw=true;if(p.sh)md.sh={k:p.sh.k,id:p.sh.id,t:String(p.sh.t||'').slice(0,120)};if(p.poll)md.poll={q:p.poll.q,o:p.poll.o};if(p.card)md.card={k:p.card.k,t:p.card.t};
   const mref=doc(collection(db,'chats',cid,'messages'));b.set(mref,md);
   await b.commit();
   if(th.group&&p.text){const mem=(ex&&ex.members)||[],to=mnOf(p.text).filter(u=>mem.includes(u));if(to.length)pushPing({kind:'mention',k:'m',cid,mid:mref.id,to})}
@@ -2432,7 +2622,7 @@ const uSubs=new Map(),uTried=new Set(),uNeed=new Set();let uNT=0,uST=0;
 function uApply(chs){
   let vis=false;
   chs.forEach(ch=>{if(ch.type==='removed'){U.delete(ch.doc.id);vis=true;return}
-    const x=ch.doc.data(),o=U.get(ch.doc.id),n={name:x.name||'Хэрэглэгч',bio:x.bio||'',photo:safeImg(x.photo),cover:safeImg(x.cover),dm:x.dm||'all',ls:tv(x.lastSeen),ca:tv(x.createdAt)};
+    const x=ch.doc.data(),o=U.get(ch.doc.id),n={name:x.name||'Хэрэглэгч',bio:x.bio||'',photo:safeImg(x.photo),cover:safeImg(x.cover),dm:x.dm||'all',ls:tv(x.lastSeen),ca:tv(x.createdAt),nt:x.nutag||'',sm:x.sum||''};
     U.set(ch.doc.id,n);if(!o||o.name!==n.name||o.bio!==n.bio||o.photo!==n.photo||o.dm!==n.dm)vis=true});
   if(vis){clearTimeout(uT);uT=setTimeout(refreshAll,120)}else if(S.thread&&!S.thread.group)setHd();
 }
@@ -2571,7 +2761,7 @@ function crResult(){
 }
 function editProfileSheet(){
   const ph=S.draftPhoto?`<span class="hx" style="--s:56px;background:url('${S.draftPhoto}') center/cover"></span>`:av(S.me.uid,S.me.name,56),cvr=S.draftCover||S.me.cover;
-  openSheet(`<h3>Профайл засах</h3><div class="cover" id="pcover" style="height:110px;margin:0">${cvr?`<img src="${cvr}" alt="">`:cover()}</div><label class="chip" id="pcoverchip" style="margin-top:8px">${ic('image',18)}Ковер зураг солих<input type="file" id="pcoverfile" accept="image/*" class="vh"></label><div class="phrow">${ph}<label class="chip" id="pchip">${ic('image',18)}Зураг солих<input type="file" id="pfile" accept="image/*" class="vh"></label></div><label>Нэр<input id="pn" value="${esc(S.draftName??S.me.name)}" maxlength="40"></label><label>Танилцуулга<textarea id="pb" maxlength="140">${esc(S.draftBio??S.me.bio)}</textarea></label><button class="btn" data-a="saveprofile">Хадгалах</button>`);
+  openSheet(`<h3>Профайл засах</h3><div class="cover" id="pcover" style="height:110px;margin:0">${cvr?`<img src="${cvr}" alt="">`:cover()}</div><label class="chip" id="pcoverchip" style="margin-top:8px">${ic('image',18)}Ковер зураг солих<input type="file" id="pcoverfile" accept="image/*" class="vh"></label><div class="phrow">${ph}<label class="chip" id="pchip">${ic('image',18)}Зураг солих<input type="file" id="pfile" accept="image/*" class="vh"></label></div><label>Нэр<input id="pn" value="${esc(S.draftName??S.me.name)}" maxlength="40"></label><label>Танилцуулга<textarea id="pb" maxlength="140">${esc(S.draftBio??S.me.bio)}</textarea></label><label>🏔 Төрсөн нутаг (аймаг)<select id="pnt"><option value="">— Сонгоогүй —</option>${AIMAGS.map(a=>`<option${S.me.nutag===a?' selected':''}>${a}</option>`).join('')}</select></label><label>Сум / дүүрэг<input id="psm" maxlength="40" value="${esc(S.me.sum||'')}" placeholder="Жишээ: Цэцэрлэг"></label><button class="btn" data-a="saveprofile">Хадгалах</button>`);
 }
 
 /* ---------- үйлдлүүд ---------- */
@@ -2621,7 +2811,7 @@ document.addEventListener('click',async e=>{
     case 'cropok':{if(!CR)break;const d=crResult(),k=CR.kind;CR=null;if(k==='cover')S.draftCover=d;else S.draftPhoto=d;editProfileSheet();break}
     case 'ptab':{S.ptab=b.dataset.v;const y=$('#main').scrollTop;render();$('#main').scrollTop=y;break}
     case 'umenu':{const u=id,n=b.dataset.n,bl=S.blocked.has(u);
-      openSheet(`<h3>${esc(n)}</h3>${bl?'':`<button class="btn line" data-a="ucall" data-id="${esc(u)}" data-n="${esc(n)}" data-au="1">${ic('phone',18)} Дуут дуудлага</button><button class="btn line" data-a="ucall" data-id="${esc(u)}" data-n="${esc(n)}">${ic('video',18)} Видео дуудлага</button>`}${S.friends.has(u)&&!bl?`<button class="btn line" data-a="unfriend" data-id="${esc(u)}">Найзаас хасах</button>`:''}${S.admin?`<button class="btn line" data-a="addeluser" data-id="${esc(u)}" data-n="${esc(n)}" style="color:var(--like)">Хэрэглэгч устгах</button>`:''}<button class="btn line" data-a="report" data-id="${esc(u)}" data-n="${esc(n)}">Гомдол өгөх</button><button class="btn line" data-a="${bl?'unblock':'block'}" data-id="${esc(u)}" style="color:var(--like)">${bl?'Блокоос гаргах':'Блоклох'}</button>`);break}
+      openSheet(`<h3>${esc(n)}</h3>${bl?'':`<button class="btn line" data-a="ucall" data-id="${esc(u)}" data-n="${esc(n)}" data-au="1">${ic('phone',18)} Дуут дуудлага</button><button class="btn line" data-a="ucall" data-id="${esc(u)}" data-n="${esc(n)}">${ic('video',18)} Видео дуудлага</button>`}${S.friends.has(u)&&!bl?`<button class="btn line" data-a="kinask" data-id="${esc(u)}" data-n="${esc(n)}">👪 Гэр бүлд нэмэх</button><button class="btn line" data-a="unfriend" data-id="${esc(u)}">Найзаас хасах</button>`:''}${S.admin?`<button class="btn line" data-a="addeluser" data-id="${esc(u)}" data-n="${esc(n)}" style="color:var(--like)">Хэрэглэгч устгах</button>`:''}<button class="btn line" data-a="report" data-id="${esc(u)}" data-n="${esc(n)}">Гомдол өгөх</button><button class="btn line" data-a="${bl?'unblock':'block'}" data-id="${esc(u)}" style="color:var(--like)">${bl?'Блокоос гаргах':'Блоклох'}</button>`);break}
     case 'sback':S.tab='feed';render();$('#main').scrollTop=0;break;
     case 'openreel':closeOv();await openReels(id);break;
     case 'shopen':openLink(b.dataset.k,id);break;
@@ -2704,7 +2894,7 @@ document.addEventListener('click',async e=>{
       if(d.go==='admin'){adminSheet();break}
       closeOv();clearView();recStop(false);S.tab=d.go||'feed';S.thread=null;render();break}
     case 'tag':openSearch('#'+b.dataset.t);break;
-    case 'ftab':{S.feedTab=b.dataset.v;document.querySelectorAll('.tabs2 button').forEach(x=>x.classList.toggle('on',x.dataset.v===S.feedTab));refreshPosts();break}
+    case 'ftab':{S.feedTab=b.dataset.v;if(S.feedTab==='nutag'&&!ntSub)ntLoad();document.querySelectorAll('.tabs2 button').forEach(x=>x.classList.toggle('on',x.dataset.v===S.feedTab));refreshPosts();break}
     case 'medit':{const m=S.msgs.find(x=>x.id===id);if(!m)break;
       openSheet(`<h3>Мессеж засах</h3><textarea id="me-t" maxlength="2000">${esc(m.t)}</textarea><button class="btn" data-a="msave" data-id="${esc(id)}">Хадгалах</button>`);break}
     case 'msave':{const m=S.msgs.find(x=>x.id===id),nt=$('#me-t').value.trim();if(!m||!S.thread)break;
@@ -2717,7 +2907,7 @@ document.addEventListener('click',async e=>{
     case 'mdel':{const m=S.msgs.find(x=>x.id===id);if(!m||!S.thread)break;
       if(!confirm('Энэ мессежийг хоёр талаас устгах уу?'))break;
       const cid=S.thread.cid,isLast=S.msgs[S.msgs.length-1].id===id;
-      await updateDoc(doc(db,'chats',cid,'messages',id),{text:'',img:deleteField(),aud:deleteField(),sh:deleteField(),poll:deleteField(),deleted:true});
+      await updateDoc(doc(db,'chats',cid,'messages',id),{text:'',img:deleteField(),aud:deleteField(),sh:deleteField(),poll:deleteField(),card:deleteField(),deleted:true});
       if(isLast)await updateDoc(doc(db,'chats',cid),{last:'Мессеж устгагдсан'}).catch(()=>{});
       closeOv();toast('Устгагдлаа');break}
     case 'zoom':{const m=S.msgs.find(x=>x.id===id),im=m&&safeImg(m.img);if(im){ov.innerHTML=`<div class="scrim" data-a="closeov"></div><img class="zoom" src="${im}" alt="">`;ov.className='open'}break}
@@ -2827,8 +3017,29 @@ document.addEventListener('click',async e=>{
     case 'rldel':{const i=+b.dataset.i,r=R.list[i];if(!r||r.uid!==S.me.uid||!confirm('Энэ reel-ийг устгах уу?'))break;
       b.disabled=true;await reelDelete(r);closeOv();const j=R.list.indexOf(r);if(j>=0)R.list.splice(j,1);reelRedraw();toast('Устгагдлаа');break}
     case 'rpub':await reelPublish(b);break;
-    case 'newpost':openSheet(composerFormHTML());break;
+    case 'newpost':openSheet(composerFormHTML());drawVoice();break;
     case 'golive':liveStart();break;
+    case 'lsched':lschedSheet();break;
+    case 'lschedsave':await lschedSave(b);break;
+    case 'lscheddel':if(confirm('Товлосон live-г цуцлах уу?'))await deleteDoc(doc(db,'lsched',id));break;
+    case 'lschedrem':{const x=(S.lsched||[]).find(y=>y.id===id);if(!x)break;const on=(x.rem||[]).includes(S.me.uid);
+      await updateDoc(doc(db,'lsched',id),{rem:on?arrayRemove(S.me.uid):arrayUnion(S.me.uid)});if(!on)toast('🔔 Live эхлэхэд сануулна');break}
+    case 'greet':greetSheet(b.dataset.k||holidayNow()||'ts');break;
+    case 'greetk':{S.gk=b.dataset.k;const x=CARDS[S.gk];document.querySelectorAll('.gpk').forEach(e=>e.classList.toggle('on',e===b));$('#gt').value=x.t;$('#gprev').innerHTML=cardHTML({k:S.gk,t:x.t});break}
+    case 'gall':{const bx=[...document.querySelectorAll('.gfi input')],all=bx.every(i=>i.checked);bx.forEach(i=>i.checked=!all);break}
+    case 'greetsend':await greetSend(b);break;
+    case 'holx':lsSet('maze-hol-'+b.dataset.k+new Date().getFullYear(),true);b.closest('.holbar').remove();break;
+    case 'lite':setLite(b.dataset.v==='1');closeOv();break;
+    case 'liteno':lsSet('maze-lite-ask',true);b.closest('.litebar').remove();break;
+    case 'kinask':kinAddSheet(id,b.dataset.n);break;
+    case 'kinadd':await kinAdd(id,b.dataset.n,b.dataset.r);break;
+    case 'kinok':await updateDoc(doc(db,'kin',id),{st:'ok'});toast('👪 Гэр бүлд нэмэгдлээ');break;
+    case 'kindel':if(!confirm('Үүнийг устгах уу?'))break;await deleteDoc(doc(db,'kin',id));closeOv();if(S.view)kinLoadFor(S.view.uid);break;
+    case 'capnew':capSheet();break;
+    case 'capsend':await capSend(b);break;
+    case 'capdel':if(!confirm('Капсулыг цуцлах уу?'))break;await deleteDoc(doc(db,'capsules',id));b.closest('.mrow').remove();toast('Цуцаллаа');break;
+    case 'vrec':await vrecToggle(b);break;
+    case 'vdel':S.draftVoice=null;drawVoice();break;
     case 'lvwatch':liveWatch(id);break;
     case 'lvend':if(LIVE&&LIVE.host&&!confirm('Live-г дуусгах уу?'))break;liveEnd();break;
     case 'lvheart':liveFloat();liveSend('❤️');break;
@@ -2887,11 +3098,11 @@ document.addEventListener('click',async e=>{
     case 'thread':openThread(id,b.dataset.n,b.dataset.g||null);break;
     case 'editprofile':S.draftPhoto=null;S.draftCover=null;S.draftName=null;S.draftBio=null;editProfileSheet();break;
     case 'saveprofile':{const n=$('#pn').value.trim();if(!n){toast('Нэр хоосон байж болохгүй');break}
-      const bio=$('#pb').value.trim(),up={name:n,nameLower:n.toLowerCase(),bio};if(S.draftPhoto)up.photo=S.draftPhoto;if(S.draftCover)up.cover=S.draftCover;
+      const bio=$('#pb').value.trim(),nt=AIMAGS.includes($('#pnt').value)?$('#pnt').value:'',sm=$('#psm').value.trim().slice(0,40),up={name:n,nameLower:n.toLowerCase(),bio,nutag:nt,sum:sm};if(S.draftPhoto)up.photo=S.draftPhoto;if(S.draftCover)up.cover=S.draftCover;
       await updateDoc(doc(db,'users',S.me.uid),up);
       const old=U.get(S.me.uid)||{};U.set(S.me.uid,{name:n,bio,photo:S.draftPhoto||old.photo||'',cover:S.draftCover||S.me.cover||'',dm:S.me.dm||'all'});
       if(S.draftCover)S.me.cover=S.draftCover;S.draftPhoto=null;S.draftCover=null;
-      S.me.name=n;S.me.bio=bio;S.draftName=null;S.draftBio=null;closeOv();render();toast('Хадгалагдлаа');break}
+      const ntCh=S.me.nutag!==nt;S.me.nutag=nt;S.me.sum=sm;if(ntCh&&ntSub)ntLoad();S.me.name=n;S.me.bio=bio;S.draftName=null;S.draftBio=null;closeOv();render();toast('Хадгалагдлаа');break}
     case 'dstyle':{const v=b.dataset.v;document.documentElement.dataset.style=v;try{localStorage.setItem('maze-style',v)}catch(_){}document.querySelectorAll('[data-a=dstyle]').forEach(x=>x.classList.toggle('on',x.dataset.v===v));break}
     case 'theme':{const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
       try{if(b.dataset.v==='sys')localStorage.removeItem('nutag-theme');else localStorage.setItem('nutag-theme',b.dataset.v)}catch(_){}applyTheme();b.parentElement.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));break}
@@ -2920,10 +3131,11 @@ document.addEventListener('submit',async e=>{
       closeOv();await sendMsg({poll:{q:q.slice(0,200),o:o.slice(0,6).map(x=>x.slice(0,60))}});return}
     if(k==='lvcm'){const i=$('#lvin');const t=i.value;i.value='';await liveSend(t);return}
     if(k==='post'){
-      const t=$('#cmp').value.trim();if(!t&&!S.draftImgs.length){toast('Текст эсвэл зураг нэм');return}
+      const t=$('#cmp').value.trim();if(vrec){toast('Эхлээд дуу бичлэгээ зогсооно уу');return}if(!t&&!S.draftImgs.length&&!S.draftVoice){toast('Текст, зураг эсвэл дуу нэм');return}
       const data={uid:S.me.uid,name:S.me.name,text:t,createdAt:serverTimestamp(),likes:[],cc:0,kw:kwOf(t,S.me.name)},mn=mnOf(t);if(mn.length)data.mn=mn;
-      if(S.draftImgs.length===1)data.img=S.draftImgs[0];else if(S.draftImgs.length>1)data.imgs=S.draftImgs.slice();
-      $('#cmp').value='';S.draftImgs=[];drawPrev();
+      if(S.draftImgs.length===1)data.img=S.draftImgs[0];else if(S.draftImgs.length>1)data.imgs=S.draftImgs.slice();if(S.draftVoice)data.voice=S.draftVoice;if(S.me.nutag)data.nt=S.me.nutag;
+      if((data.img||'').length+(data.imgs||[]).join('').length+(data.voice||'').length>950000){toast('Зураг, дуу хамт хэт том байна');return}
+      $('#cmp').value='';S.draftImgs=[];S.draftVoice=null;drawPrev();
       const pref=await addDoc(collection(db,'posts'),data);toast('Нийтлэгдлээ');closeOv();
       if(mn.length)pushPing({kind:'mention',k:'p',id:pref.id,to:mn});
     }

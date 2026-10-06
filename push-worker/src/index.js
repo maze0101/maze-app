@@ -296,6 +296,16 @@ async function handle(req, env) {
       body: short(text, 120), tag: 'mn-' + (mid || cid || id), url}, 86400);
     return 200;
   }
+  if (b.kind === 'kin') {
+    const id = String(b.id || ''); if (!/^[\w-]{1,200}$/.test(id)) return 400;
+    const k = await fsGet(env, tok, 'kin/' + id);
+    if (!k || k.from !== uid || k.st !== 'p') return 403;
+    if (await fsGet(env, tok, `blocks/${k.to}_${uid}`)) return 200;
+    const me = await fsGet(env, tok, 'users/' + uid);
+    await push(env, tok, [k.to], {type: 'req', title: '👪 Гэр бүлийн хүсэлт', body: short(me && me.name, 40) + ' таныг гэр бүлдээ нэмэх хүсэлт илгээлээ',
+      tag: 'kin-' + id, url: './index.html'}, 86400);
+    return 200;
+  }
   if (b.kind === 'req') {
     const id = String(b.id || '');
     const r = await fsGet(env, tok, 'requests/' + encodeURIComponent(id));
@@ -309,7 +319,81 @@ async function handle(req, env) {
   return 400;
 }
 
+/* ---------- cron: цаг хугацааны капсул хүргэх, товлосон live-ийг сануулах ---------- */
+async function fsRange(env, tok, coll, field, from, to, limit) {
+  const f = [];
+  if (from) f.push({fieldFilter: {field: {fieldPath: field}, op: 'GREATER_THAN_OR_EQUAL', value: {timestampValue: from}}});
+  f.push({fieldFilter: {field: {fieldPath: field}, op: 'LESS_THAN_OR_EQUAL', value: {timestampValue: to}}});
+  const r = await fetch(`https://firestore.googleapis.com/v1/${ROOT(env)}:runQuery`, {
+    method: 'POST', headers: {Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json'},
+    body: JSON.stringify({structuredQuery: {from: [{collectionId: coll}], where: f.length > 1 ? {compositeFilter: {op: 'AND', filters: f}} : f[0], limit}}),
+  });
+  if (!r.ok) throw new Error('range ' + coll + ' ' + r.status);
+  return (await r.json()).filter(x => x.document).map(x => {
+    const o = {name: x.document.name}; for (const k in x.document.fields || {}) o[k] = val(x.document.fields[k]); return o;
+  });
+}
+async function fsCommit(env, tok, writes) {
+  const r = await fetch(`https://firestore.googleapis.com/v1/${ROOT(env)}:commit`, {
+    method: 'POST', headers: {Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json'}, body: JSON.stringify({writes}),
+  });
+  if (!r.ok) throw new Error('commit ' + r.status + ' ' + (await r.text()).slice(0, 200));
+}
+const Sv = v => ({stringValue: String(v)});
+async function deliverCapsules(env, tok) {
+  const now = new Date().toISOString(), root = ROOT(env);
+  const caps = await fsRange(env, tok, 'capsules', 'at', null, now, 40);
+  for (const c of caps) {
+    const del = {delete: c.name};
+    try {
+      const cid = String(c.cid || '');
+      if (!/^[\w-]{1,200}$/.test(cid)) { await fsCommit(env, tok, [del]); continue; }
+      const chat = await fsGet(env, tok, 'chats/' + cid);
+      let to = [];
+      if (c.g) {
+        if (!chat || !(chat.members || []).includes(c.from)) { await fsCommit(env, tok, [del]); continue; } // бүлгээс гарсан бол хүргэхгүй
+        to = chat.members.filter(u => u !== c.from);
+      } else {
+        if (await fsGet(env, tok, `blocks/${c.to}_${c.from}`)) { await fsCommit(env, tok, [del]); continue; }
+        to = [c.to];
+      }
+      const mid = crypto.randomUUID().replace(/-/g, '').slice(0, 20), pv = '⏳ ' + short(c.text, 180);
+      const chatFields = {last: Sv(pv), lastAt: {timestampValue: now}, lastFrom: Sv(c.from)}, mask = ['last', 'lastAt', 'lastFrom'];
+      if (!c.g && !chat) {
+        chatFields.members = {arrayValue: {values: cid.split('_').map(Sv)}};
+        chatFields.names = {mapValue: {fields: {[c.from]: Sv(short(c.fn, 40)), [c.to]: Sv(short(c.tn, 40))}}};
+        chatFields.by = Sv(c.from); mask.push('members', 'names', 'by');
+      }
+      await fsCommit(env, tok, [
+        {update: {name: `${root}/chats/${cid}`, fields: chatFields}, updateMask: {fieldPaths: mask}},
+        {update: {name: `${root}/chats/${cid}/messages/${mid}`, fields: {from: Sv(c.from), fn: Sv(short(c.fn, 40)), text: Sv(short(c.text, 2000)),
+          createdAt: {timestampValue: now}, cap: {timestampValue: c.createdAt || now}}}, currentDocument: {exists: false}},
+        del,
+      ]);
+      await push(env, tok, to, {type: 'msg', title: '⏳ ' + short(c.fn, 40) + '-ийн капсул нээгдлээ', body: short(c.text, 120), tag: 'chat-' + cid, url: './index.html'}, 86400);
+    } catch (e) { console.log('capsule', c.name, e.message); }
+  }
+}
+async function remindLives(env, tok) {
+  const now = Date.now();
+  const ls = await fsRange(env, tok, 'lsched', 'at', new Date(now - 15 * 60e3).toISOString(), new Date(now + 5 * 60e3).toISOString(), 40);
+  for (const l of ls) {
+    if (l.n) continue;
+    try {
+      await fsCommit(env, tok, [{update: {name: l.name, fields: {n: {booleanValue: true}}}, updateMask: {fieldPaths: ['n']}, currentDocument: {exists: true}}]);
+      const to = [...new Set(l.rem || [])].filter(u => u !== l.host), id = l.name.split('/').pop();
+      if (to.length) await push(env, tok, to, {type: 'live', title: '🔴 ' + short(l.hostName, 40) + '-ийн live одоо эхэлнэ', body: short(l.title, 120), tag: 'lsched-' + id, url: './index.html'}, 1800);
+      await push(env, tok, [l.host], {type: 'live', title: '📅 Таны товлосон live-ийн цаг боллоо', body: short(l.title, 80) + ' · ' + to.length + ' хүн хүлээж байна', tag: 'lsched-' + id, url: './index.html'}, 1800);
+    } catch (e) { console.log('lsched', l.name, e.message); }
+  }
+}
+
 export default {
+  async scheduled(ev, env, ctx) {
+    const tok = await accessToken(JSON.parse(env.SERVICE_ACCOUNT));
+    const rs = await Promise.allSettled([deliverCapsules(env, tok), remindLives(env, tok)]);
+    rs.forEach(r => { if (r.status === 'rejected') console.log('cron', r.reason && r.reason.message); });
+  },
   async fetch(req, env) {
     const cors = {
       'Access-Control-Allow-Origin': env.ALLOWED_ORIGIN || '*',

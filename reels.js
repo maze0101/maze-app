@@ -119,9 +119,10 @@ async function reelActivate(i){
   let url;try{url=await reelSrc(r)}catch(e){console.warn('reel',e);if(R.cur===i){sl.classList.remove('rlld');sl.classList.add('err')}return}
   if(!R.on||R.cur!==i)return;
   if(v.src!==url)v.src=url;else v.currentTime=0;
-  v.muted=R.mute;reelPlay();
+  // хөдөө горим: автоматаар тоглуулахгүй, дарвал тоглоно
+  v.muted=R.mute;if(typeof LITE!=='undefined'&&LITE)sl.classList.add('paused');else reelPlay();
   clearTimeout(R.vT);R.vT=setTimeout(()=>{if(R.on&&R.cur===i)reelView(r,i)},2000);
-  const nx=R.list[i+1];if(nx)reelSrc(nx).catch(()=>{});
+  const nx=R.list[i+1];if(nx&&!(typeof LITE!=='undefined'&&LITE))reelSrc(nx).catch(()=>{});
 }
 // дуутай автоматаар тоглуулахыг хөтөч хориглосон бол дуугүй тоглуулна (дууны товчоор асаана)
 // 2 секунд үзсэн бол үзсэн тоог +1 (өөрийн reel-ийг тоолохгүй, нэг сессэд нэг удаа)

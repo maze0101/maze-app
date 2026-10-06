@@ -43,8 +43,10 @@ service cloud.firestore {
         && (!('photo' in d) || isStr(d.photo, 60000))
         && (!('cover' in d) || isStr(d.cover, 60000))
         && (!('dm' in d) || d.dm in ['all', 'friends'])
+        && (!('nutag' in d) || isStr(d.nutag, 30))
+        && (!('sum' in d) || isStr(d.sum, 40))
         && (!('lastSeen' in d) || d.lastSeen is number || d.lastSeen is timestamp)
-        && d.keys().hasOnly(['name', 'nameLower', 'bio', 'photo', 'cover', 'dm', 'lastSeen', 'createdAt']);
+        && d.keys().hasOnly(['name', 'nameLower', 'bio', 'photo', 'cover', 'dm', 'lastSeen', 'nutag', 'sum', 'createdAt']);
     }
     match /users/{uid} {
       allow read: if signedIn();
@@ -86,12 +88,14 @@ service cloud.firestore {
     match /posts/{postId} {
       allow read: if signedIn();
       allow create: if mine(request.resource.data.uid) && notBanned()
-        && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'img', 'imgs', 'createdAt', 'likes', 'cc', 'kw', 'mn'])
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'img', 'imgs', 'createdAt', 'likes', 'cc', 'kw', 'mn', 'voice', 'nt'])
+        && (!('voice' in request.resource.data) || isStr(request.resource.data.voice, 900000))
+        && (!('nt' in request.resource.data) || isStr(request.resource.data.nt, 30))
         && kwOk(request.resource.data) && mnOk(request.resource.data)
         && (!('imgs' in request.resource.data) || (request.resource.data.imgs is list && request.resource.data.imgs.size() >= 2 && request.resource.data.imgs.size() <= 4))
         && isStr(request.resource.data.name, 40)
         && isStr(request.resource.data.text, 2000)
-        && (request.resource.data.text.size() > 0 || 'img' in request.resource.data || 'imgs' in request.resource.data)
+        && (request.resource.data.text.size() > 0 || 'img' in request.resource.data || 'imgs' in request.resource.data || 'voice' in request.resource.data)
         && (!('img' in request.resource.data) || isStr(request.resource.data.img, 900000))
         && request.resource.data.likes == []
         && request.resource.data.cc == 0
@@ -102,7 +106,7 @@ service cloud.firestore {
           && changed().hasOnly(['text', 'edited', 'kw', 'mn'])
           && kwOk(request.resource.data) && mnOk(request.resource.data)
           && isStr(request.resource.data.text, 2000)
-          && (request.resource.data.text.size() > 0 || 'img' in resource.data || 'imgs' in resource.data)) ||
+          && (request.resource.data.text.size() > 0 || 'img' in resource.data || 'imgs' in resource.data || 'voice' in resource.data)) ||
         // лайк: зөвхөн өөрийн uid-г нэмэх/хасах
         (changed().hasOnly(['likes']) && onlyMeInSet(request.resource.data.likes, resource.data.likes)) ||
         // сэтгэгдлийн тоо ±1
@@ -325,7 +329,10 @@ service cloud.firestore {
               (getAfter(/databases/$(database)/documents/chats/$(chatId)).data.get('group', false) == true
                && request.auth.uid in getAfter(/databases/$(database)/documents/chats/$(chatId)).data.members))
           && request.resource.data.from == request.auth.uid && notBanned()
-          && request.resource.data.keys().hasOnly(['from', 'fn', 'text', 'img', 'aud', 're', 'fw', 'sh', 'poll', 'createdAt'])
+          && request.resource.data.keys().hasOnly(['from', 'fn', 'text', 'img', 'aud', 're', 'fw', 'sh', 'poll', 'card', 'createdAt'])
+          // баярын мэндчилгээний карт
+          && (!('card' in request.resource.data) || (request.resource.data.card is map && request.resource.data.card.keys().hasOnly(['k', 't'])
+                && request.resource.data.card.k in ['ts', 'nd', 'bd', 'ny', 'w8', 'ty'] && isStr(request.resource.data.card.t, 300)))
           // санал асуулга: асуулт + 2-6 сонголт
           && (!('poll' in request.resource.data) || (request.resource.data.poll is map && request.resource.data.poll.keys().hasOnly(['q', 'o'])
                 && isStr(request.resource.data.poll.q, 200) && request.resource.data.poll.q.size() > 0
@@ -338,7 +345,7 @@ service cloud.firestore {
           && (!('fw' in request.resource.data) || request.resource.data.fw == true)
           && isStr(request.resource.data.text, 2000)
           && isStr(request.resource.data.fn, 40)
-          && (request.resource.data.text.size() > 0 || 'img' in request.resource.data || 'aud' in request.resource.data || 'sh' in request.resource.data || 'poll' in request.resource.data)
+          && (request.resource.data.text.size() > 0 || 'img' in request.resource.data || 'aud' in request.resource.data || 'sh' in request.resource.data || 'poll' in request.resource.data || 'card' in request.resource.data)
           && (!('img' in request.resource.data) || isStr(request.resource.data.img, 900000))
           && (!('aud' in request.resource.data) || isStr(request.resource.data.aud, 900000))
           && stamped();
@@ -367,10 +374,10 @@ service cloud.firestore {
             && request.resource.data.edited == true) ||
           // устгах (бүгдэд): зөвхөн илгээгч, агуулгыг нь арилгана
           (resource.data.from == request.auth.uid
-            && changed().hasOnly(['text', 'img', 'aud', 'sh', 'poll', 'deleted'])
+            && changed().hasOnly(['text', 'img', 'aud', 'sh', 'poll', 'card', 'deleted'])
             && request.resource.data.deleted == true
             && request.resource.data.text == ''
-            && !('img' in request.resource.data) && !('aud' in request.resource.data) && !('sh' in request.resource.data) && !('poll' in request.resource.data))
+            && !('img' in request.resource.data) && !('aud' in request.resource.data) && !('sh' in request.resource.data) && !('poll' in request.resource.data) && !('card' in request.resource.data))
         );
         allow delete: if mine(resource.data.from);
       }
@@ -510,6 +517,64 @@ service cloud.firestore {
           && isStr(request.resource.data.d, 30000)
           && mlive(request.auth.uid) && mlive(request.resource.data.t);
       }
+    }
+
+    // ургийн бичиг: id = хоёр хүний uid (эрэмбэлсэн), from нь to-г rel гэж нэмнэ; to зөвшөөрвөл st='ok'
+    match /kin/{kid} {
+      allow read: if signedIn();
+      allow create: if mine(request.resource.data.from) && notBanned()
+        && kid.split('_').size() == 2 && kid.split('_')[0] < kid.split('_')[1]
+        && request.resource.data.keys().hasOnly(['members', 'from', 'to', 'rel', 'st', 'names', 'createdAt'])
+        && request.resource.data.members == kid.split('_')
+        && request.auth.uid in kid.split('_') && request.resource.data.to in kid.split('_')
+        && request.resource.data.to != request.auth.uid
+        && request.resource.data.rel in ['gpa', 'par', 'old', 'spo', 'cou', 'yng', 'chi', 'gch', 'rel']
+        && request.resource.data.st == 'p'
+        && request.resource.data.names is map && request.resource.data.names.size() <= 2
+        && exists(/databases/$(database)/documents/friendships/$(kid))
+        && stamped();
+      allow update: if signedIn() && resource.data.to == request.auth.uid && resource.data.st == 'p'
+        && changed().hasOnly(['st']) && request.resource.data.st == 'ok';
+      allow delete: if signedIn() && request.auth.uid in resource.data.members;
+    }
+
+    // цаг хугацааны капсул: зөвхөн илгээгч харна, товлосон цагт push-worker мессеж болгон хүргэнэ
+    match /capsules/{cpid} {
+      allow read, delete: if signedIn() && resource.data.from == request.auth.uid;
+      allow create: if mine(request.resource.data.from) && notBanned()
+        && request.resource.data.keys().hasOnly(['from', 'fn', 'cid', 'g', 'to', 'tn', 'text', 'at', 'createdAt'])
+        && isStr(request.resource.data.fn, 40)
+        && isStr(request.resource.data.cid, 200)
+        && request.resource.data.g is bool
+        && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000
+        && request.resource.data.at is timestamp
+        && request.resource.data.at > request.time + duration.value(30, 'm')
+        && request.resource.data.at < request.time + duration.value(1830, 'd')
+        && (request.resource.data.g
+            ? request.auth.uid in get(/databases/$(database)/documents/chats/$(request.resource.data.cid)).data.members
+            : (request.resource.data.cid.split('_').size() == 2 && request.auth.uid in request.resource.data.cid.split('_')
+               && request.resource.data.to in request.resource.data.cid.split('_') && request.resource.data.to != request.auth.uid
+               && isStr(request.resource.data.tn, 40)))
+        && stamped();
+    }
+
+    // live хуваарь: найзууд rem-д өөрийгөө нэмж сануулга авна
+    match /lsched/{sid} {
+      allow read: if signedIn();
+      allow create: if mine(request.resource.data.host) && notBanned()
+        && request.resource.data.keys().hasOnly(['host', 'hostName', 'title', 'at', 'rem', 'createdAt'])
+        && isStr(request.resource.data.hostName, 40)
+        && isStr(request.resource.data.title, 80) && request.resource.data.title.size() > 0
+        && request.resource.data.at is timestamp
+        && request.resource.data.at > request.time
+        && request.resource.data.at < request.time + duration.value(31, 'd')
+        && request.resource.data.rem == []
+        && stamped();
+      allow update: if signedIn() && changed().hasOnly(['rem'])
+        && request.resource.data.rem is list && request.resource.data.rem.size() <= 1000
+        && request.resource.data.rem.toSet().difference(resource.data.rem.toSet()).hasOnly([request.auth.uid])
+        && resource.data.rem.toSet().difference(request.resource.data.rem.toSet()).hasOnly([request.auth.uid]);
+      allow delete: if mine(resource.data.host) || isAdmin();
     }
 
     // Live: эзэн нь дамжуулж, нэвтэрсэн хэн ч үзнэ. v = одоо үзэж буй хүмүүс (хүн бүр зөвхөн өөрийгөө нэмж хасна),
